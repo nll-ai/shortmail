@@ -5,18 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShortMail Result</title>
     <style>
-        /* Add the same styles as in send_shortmail.html */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #f44336;
+        }
+        a {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>ShortMail Result</h1>
         {% if email_sent %}
-            <p>Your ShortMail has been sent successfully!</p>
+            <p class="success">Your ShortMail has been sent successfully to {{ recipient_email }}!</p>
         {% else %}
-            <p>There was an error sending your ShortMail. Please try again later.</p>
+            <p class="error">There was an error sending your ShortMail to {{ recipient_email }}. Please try again later.</p>
         {% endif %}
-        <a href="/">Back to Home</a>
+        <a href="/send/{{ recipient_email }}">Back to {{ recipient_email }}'s ShortMail</a>
     </div>
 </body>
 </html>

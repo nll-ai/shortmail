@@ -73,7 +73,7 @@ MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
 MAIL_USERNAME = os.getenv('MAIL_USERNAME')
 MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
 
-def send_email(from_email,to_email, subject, body):
+def send_email(from_email, to_email, subject, body):
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
@@ -231,7 +231,10 @@ async def send_shortmail(request: Request, user_email: str, db: Session = Depend
 async def process_shortmail(
     request: Request,
     user_email: str,
+    sender_name: str = Form(...),
+    sender_email: str = Form(...),
     subject: str = Form(...),
+    custom_subject: str = Form(None),
     message: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -242,12 +245,19 @@ async def process_shortmail(
     if len(message) > 500:
         raise HTTPException(status_code=400, detail="Message exceeds 500 characters")
 
-    # Send email
-    email_sent = send_email(MAIL_USERNAME, user.email, f"ShortMail: {subject}", message)
+    # Use custom subject if "OTHER" is selected
+    email_subject = custom_subject if subject == "OTHER" else subject
+
+    # Compose the email body
+    email_body = f"From: {sender_name} <{sender_email}>\n\n{message}"
+
+    # Send email (removed "ShortMail: " prefix from the subject)
+    email_sent = send_email(sender_email, user.email, email_subject, email_body)
 
     return templates.TemplateResponse("send_result.html", {
         "request": request,
-        "email_sent": email_sent
+        "email_sent": email_sent,
+        "recipient_email": user_email
     })
 
 if __name__ == "__main__":
