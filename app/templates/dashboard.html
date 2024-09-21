@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShortMail Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -56,11 +57,36 @@
 
         <h2>Your ShortMail Landing Page URL</h2>
         <p>Share this URL with others to let them send you ShortMail:</p>
-        <strong>{{ request.base_url }}send/{{ user.email }}</strong>
+        <div class="share-url-container">
+            <div class="share-url">{{ request.base_url }}send/{{ user.email }}</div>
+            <button id="copy-button" class="copy-button" title="Copy URL">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
 
         <div class="logout-container">
             <a href="/logout" class="logout">Logout</a>
         </div>
     </div>
+
+    <script>
+        document.getElementById('copy-button').addEventListener('click', function() {
+            var shareUrl = document.querySelector('.share-url').textContent;
+            navigator.clipboard.writeText(shareUrl).then(function() {
+                var icon = this.querySelector('i');
+                icon.classList.remove('fa-copy');
+                icon.classList.add('fa-check');
+                this.classList.add('copied');
+
+                setTimeout(() => {
+                    icon.classList.remove('fa-check');
+                    icon.classList.add('fa-copy');
+                    this.classList.remove('copied');
+                }, 2000);
+            }.bind(this), function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        });
+    </script>
 </body>
 </html>

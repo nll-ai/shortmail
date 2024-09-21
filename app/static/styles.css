@@ -163,3 +163,72 @@ a:hover {
 .logout-container {
     margin-top: 20px;
 }
+
+.url-box {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.url-box input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    font-size: 14px;
+}
+
+.url-box button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.url-box button:hover {
+    background-color: #45a049;
+}
+
+.share-url-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.share-url {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px 40px 10px 10px; /* Increased right padding for button */
+    font-size: 14px;
+    word-break: break-all;
+}
+
+.copy-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #4CAF50;
+    transition: color 0.3s ease;
+}
+
+.copy-button:hover {
+    color: #45a049;
+}
+
+.copy-button.copied {
+    color: #4CAF50;
+}
+
+.copy-button i {
+    transition: all 0.3s ease;
+}
