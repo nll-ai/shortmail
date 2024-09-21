@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortMail Result</title>
+    <style>
+        /* Add the same styles as in send_shortmail.html */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ShortMail Result</h1>
+        {% if email_sent %}
+            <p>Your ShortMail has been sent successfully!</p>
+        {% else %}
+            <p>There was an error sending your ShortMail. Please try again later.</p>
+        {% endif %}
+        <a href="/">Back to Home</a>
+    </div>
+</body>
+</html>

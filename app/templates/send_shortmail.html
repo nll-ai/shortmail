@@ -5,7 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send ShortMail to {{ user.email }}</title>
     <style>
-        /* ... Add styles similar to dashboard.html ... */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        select, textarea, input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -18,7 +59,7 @@
                     <option value="{{ heading.heading }}">{{ heading.heading }}</option>
                 {% endfor %}
             </select>
-            <textarea name="message" rows="4" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
+            <textarea name="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
             <input type="submit" value="Send ShortMail">
         </form>
     </div>
