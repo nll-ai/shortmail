@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQs for {{ user.email }}</title>
+    <style>
+        /* Add styles similar to other pages */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frequently Asked Questions for {{ user.email }}</h1>
+        {% for faq in faqs %}
+            <div class="faq-item">
+                <h3>{{ faq.question }}</h3>
+                <p>{{ faq.answer }}</p>
+            </div>
+        {% else %}
+            <p>No FAQs available.</p>
+        {% endfor %}
+        <a href="/send/{{ user.email }}">Send ShortMail to {{ user.email }}</a>
+    </div>
+</body>
+</html>

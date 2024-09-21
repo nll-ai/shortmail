@@ -85,6 +85,18 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
     </style>
 </head>
 <body>
@@ -93,7 +105,7 @@
 
         <h2>Configure Your ShortMail Landing Page</h2>
         <form action="/add_subject_heading" method="post">
-            <input type="text" name="heading" required placeholder="Add a new subject heading">
+            <input type="text" name="heading" required placeholder="Add a new subject heading" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
             <input type="submit" value="Add Heading">
         </form>
 
@@ -108,6 +120,28 @@
                 </div>
             {% else %}
                 <p>No subject headings configured yet.</p>
+            {% endfor %}
+        </div>
+
+        <h2>Manage Your FAQs</h2>
+        <form action="/add_faq" method="post">
+            <input type="text" name="question" required placeholder="Question" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            <textarea name="answer" required placeholder="Answer" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; height: 100px; resize: vertical;"></textarea>
+            <input type="submit" value="Add FAQ">
+        </form>
+
+        <div class="faqs">
+            <h3>Your FAQs</h3>
+            {% for faq in faqs %}
+                <div class="faq-item">
+                    <h4>{{ faq.question }}</h4>
+                    <p>{{ faq.answer }}</p>
+                    <form action="/remove_faq/{{ faq.id }}" method="post">
+                        <button type="submit" class="remove-faq">Remove</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>No FAQs added yet.</p>
             {% endfor %}
         </div>
 

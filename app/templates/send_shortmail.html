@@ -60,11 +60,45 @@
         .over-limit {
             color: #f44336;
         }
+        .faq-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .faq-item {
+            margin-bottom: 20px;
+        }
+        .faq-question {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .faq-answer {
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Send ShortMail to {{ user.email }}</h1>
+
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            {% if faqs %}
+                {% for faq in faqs %}
+                    <div class="faq-item">
+                        <div class="faq-question">Q: {{ faq.question }}</div>
+                        <div class="faq-answer">A: {{ faq.answer }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No FAQs available.</p>
+            {% endif %}
+        </div>
+
+        <h2>Send a Message</h2>
+        <p>If your question isn't answered in the FAQ above, please feel free to send a message:</p>
         <form action="/send/{{ user.email }}" method="post">
             <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
             <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
