@@ -97,6 +97,39 @@
             height: 100px;
             resize: vertical;
         }
+        .subject-heading, .faq-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .faq-content {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .faq-content h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .faq-content p {
+            margin: 0;
+        }
+        .remove-heading, .remove-faq {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+        .remove-heading:hover, .remove-faq:hover {
+            background-color: #ff3333;
+        }
     </style>
 </head>
 <body>
@@ -125,8 +158,8 @@
 
         <h2>Manage Your FAQs</h2>
         <form action="/add_faq" method="post">
-            <input type="text" name="question" required placeholder="Question" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-            <textarea name="answer" required placeholder="Answer" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; height: 100px; resize: vertical;"></textarea>
+            <input type="text" name="question" required placeholder="Question">
+            <textarea name="answer" required placeholder="Answer"></textarea>
             <input type="submit" value="Add FAQ">
         </form>
 
@@ -134,8 +167,10 @@
             <h3>Your FAQs</h3>
             {% for faq in faqs %}
                 <div class="faq-item">
-                    <h4>{{ faq.question }}</h4>
-                    <p>{{ faq.answer }}</p>
+                    <div class="faq-content">
+                        <h4>{{ faq.question }}</h4>
+                        <p>{{ faq.answer }}</p>
+                    </div>
                     <form action="/remove_faq/{{ faq.id }}" method="post">
                         <button type="submit" class="remove-faq">Remove</button>
                     </form>
