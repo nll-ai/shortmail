@@ -29,6 +29,18 @@
         <form action="/send/{{ user.email }}" method="post">
             <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
             <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
+
+            <!-- Add radio buttons for reply option -->
+            <div class="reply-option">
+                <p>Reply needed?</p>
+                <label>
+                    <input type="radio" name="reply_needed" value="yes" required> Yes
+                </label>
+                <label>
+                    <input type="radio" name="reply_needed" value="no" required> No
+                </label>
+            </div>
+
             <select name="subject" id="subject-select" required>
                 <option value="">Select a subject</option>
                 {% for heading in subject_headings %}

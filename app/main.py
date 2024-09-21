@@ -249,6 +249,7 @@ async def process_shortmail(
     user_email: str,
     sender_name: str = Form(...),
     sender_email: str = Form(...),
+    reply_needed: str = Form(...),
     subject: str = Form(...),
     custom_subject: str = Form(None),
     message: str = Form(...),
@@ -264,10 +265,14 @@ async def process_shortmail(
     # Use custom subject if "OTHER" is selected
     email_subject = custom_subject if subject == "OTHER" else subject
 
+    # Prepend reply needed tag to the subject
+    reply_tag = "[RN]" if reply_needed == "yes" else "[NRN]"
+    email_subject = f"{reply_tag} {email_subject}"
+
     # Compose the email body
     email_body = f"From: {sender_name} <{sender_email}>\n\n{message}"
 
-    # Send email (removed "ShortMail: " prefix from the subject)
+    # Send email
     email_sent = send_email(sender_email, user.email, email_subject, email_body)
 
     return templates.TemplateResponse("send_result.html", {
