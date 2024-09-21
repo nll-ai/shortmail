@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship  # Add relationship here
 from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
@@ -47,6 +47,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     login_token = Column(String, unique=True, index=True)
     token_expiry = Column(DateTime)
+    subject_headings = relationship("SubjectHeading", back_populates="user")
 
 class Message(Base):
     __tablename__ = "messages"
@@ -54,6 +55,14 @@ class Message(Base):
     content = Column(Text)
     created_at = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
+
+class SubjectHeading(Base):
+    __tablename__ = "subject_headings"
+    id = Column(Integer, primary_key=True, index=True)
+    heading = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+SubjectHeading.user = relationship("User", back_populates="subject_headings")
 
 Base.metadata.create_all(bind=engine)
 run_migrations(engine)
@@ -134,14 +143,45 @@ async def dashboard(request: Request, current_user: User = Depends(get_current_u
     if not current_user:
         return RedirectResponse(url="/")
 
-    # Fetch the user's messages, ordered by creation time (most recent first)
-    messages = db.query(Message).filter(Message.user_id == current_user.id).order_by(Message.created_at.desc()).limit(10).all()
+    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == current_user.id).all()
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": current_user,
-        "messages": messages
+        "subject_headings": subject_headings
     })
+
+@app.post("/add_subject_heading")
+async def add_subject_heading(
+    request: Request,
+    heading: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    new_heading = SubjectHeading(heading=heading, user_id=current_user.id)
+    db.add(new_heading)
+    db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=303)
+
+@app.post("/remove_subject_heading/{heading_id}")
+async def remove_subject_heading(
+    heading_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    heading = db.query(SubjectHeading).filter(SubjectHeading.id == heading_id, SubjectHeading.user_id == current_user.id).first()
+    if heading:
+        db.delete(heading)
+        db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=303)
 
 @app.post("/send", response_class=HTMLResponse)
 async def send_message(
@@ -172,6 +212,43 @@ async def send_message(
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
+
+@app.get("/send/{user_email}", response_class=HTMLResponse)
+async def send_shortmail(request: Request, user_email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
+
+    return templates.TemplateResponse("send_shortmail.html", {
+        "request": request,
+        "user": user,
+        "subject_headings": subject_headings
+    })
+
+@app.post("/send/{user_email}")
+async def process_shortmail(
+    request: Request,
+    user_email: str,
+    subject: str = Form(...),
+    message: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if len(message) > 500:
+        raise HTTPException(status_code=400, detail="Message exceeds 500 characters")
+
+    # Send email
+    email_sent = send_email(MAIL_USERNAME, user.email, f"ShortMail: {subject}", message)
+
+    return templates.TemplateResponse("send_result.html", {
+        "request": request,
+        "email_sent": email_sent
+    })
 
 if __name__ == "__main__":
     import uvicorn

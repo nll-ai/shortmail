@@ -64,29 +64,56 @@
         .logout:hover {
             text-decoration: underline;
         }
+        .subject-headings {
+            margin-top: 20px;
+        }
+        .subject-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .remove-heading {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
-        <h2>Send a new message</h2>
-        <form action="/send" method="post">
-            <textarea name="message" rows="4" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea><br>
-            <input type="submit" value="Send Message">
+        <h2>Configure Your ShortMail Landing Page</h2>
+        <form action="/add_subject_heading" method="post">
+            <input type="text" name="heading" required placeholder="Add a new subject heading">
+            <input type="submit" value="Add Heading">
         </form>
 
-        <h2>Your Recent Messages</h2>
-        <ul>
-        {% for message in messages %}
-            <li>
-                <strong>{{ message.content }}</strong><br>
-                <small>Sent: {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-            </li>
-        {% else %}
-            <li>No messages yet.</li>
-        {% endfor %}
-        </ul>
+        <div class="subject-headings">
+            <h3>Your Subject Headings</h3>
+            {% for heading in subject_headings %}
+                <div class="subject-heading">
+                    <span>{{ heading.heading }}</span>
+                    <form action="/remove_subject_heading/{{ heading.id }}" method="post">
+                        <button type="submit" class="remove-heading">Remove</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>No subject headings configured yet.</p>
+            {% endfor %}
+        </div>
+
+        <h2>Your ShortMail Landing Page URL</h2>
+        <p>Share this URL with others to let them send you ShortMail:</p>
+        <strong>{{ request.base_url }}send/{{ user.email }}</strong>
 
         <a href="/logout" class="logout">Logout</a>
     </div>

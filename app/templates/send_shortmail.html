@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send ShortMail to {{ user.email }}</title>
+    <style>
+        /* ... Add styles similar to dashboard.html ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Send ShortMail to {{ user.email }}</h1>
+        <form action="/send/{{ user.email }}" method="post">
+            <select name="subject" required>
+                <option value="">Select a subject</option>
+                {% for heading in subject_headings %}
+                    <option value="{{ heading.heading }}">{{ heading.heading }}</option>
+                {% endfor %}
+            </select>
+            <textarea name="message" rows="4" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
+            <input type="submit" value="Send ShortMail">
+        </form>
+    </div>
+</body>
+</html>
