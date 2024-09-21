@@ -4,23 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShortMail Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .logout {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+        }
+        .logout:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
+    <div class="container">
+        <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
-    <h2>Send a new message</h2>
-    <form action="/send" method="post">
-        <textarea name="message" rows="4" cols="50" maxlength="500" required></textarea><br>
-        <input type="submit" value="Send Message">
-    </form>
+        <h2>Send a new message</h2>
+        <form action="/send" method="post">
+            <textarea name="message" rows="4" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea><br>
+            <input type="submit" value="Send Message">
+        </form>
 
-    <h2>Your Recent Messages</h2>
-    <ul>
-    {% for message in messages %}
-        <li>{{ message.content }} (Sent: {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }})</li>
-    {% endfor %}
-    </ul>
+        <h2>Your Recent Messages</h2>
+        <ul>
+        {% for message in messages %}
+            <li>
+                <strong>{{ message.content }}</strong><br>
+                <small>Sent: {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+            </li>
+        {% else %}
+            <li>No messages yet.</li>
+        {% endfor %}
+        </ul>
 
-    <a href="/logout">Logout</a>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
 </body>
 </html>
