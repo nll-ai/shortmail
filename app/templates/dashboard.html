@@ -4,131 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShortMail Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .logout {
-            display: inline-block;
-            margin-top: 20px;
-            color: #666;
-            text-decoration: none;
-        }
-        .logout:hover {
-            text-decoration: underline;
-        }
-        .subject-headings {
-            margin-top: 20px;
-        }
-        .subject-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .remove-heading {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        .subject-heading, .faq-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .faq-content {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        .faq-content h4 {
-            margin-top: 0;
-            margin-bottom: 5px;
-        }
-        .faq-content p {
-            margin: 0;
-        }
-        .remove-heading, .remove-faq {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            align-self: center;
-        }
-        .remove-heading:hover, .remove-faq:hover {
-            background-color: #ff3333;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -136,7 +12,7 @@
 
         <h2>Configure Your ShortMail Landing Page</h2>
         <form action="/add_subject_heading" method="post">
-            <input type="text" name="heading" required placeholder="Add a new subject heading" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            <input type="text" name="heading" required placeholder="Add a new subject heading">
             <input type="submit" value="Add Heading">
         </form>
 

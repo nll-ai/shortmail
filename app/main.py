@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship  # Add relationship here
@@ -20,6 +21,7 @@ load_dotenv()
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./shortmail.db"
