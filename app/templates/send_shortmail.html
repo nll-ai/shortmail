@@ -10,18 +10,18 @@
     <div class="container">
         <h1>Send ShortMail to {{ user.email }}</h1>
 
-        <div class="faq-section">
+        <div class="faqs">
             <h2>Frequently Asked Questions</h2>
-            {% if faqs %}
-                {% for faq in faqs %}
-                    <div class="faq-item">
-                        <div class="faq-question">{{ faq.question }}</div>
-                        <div class="faq-answer">{{ faq.answer }}</div>
+            {% for faq in faqs %}
+                <div class="faq-item">
+                    <div class="faq-content">
+                        <h4>{{ faq.question }}</h4>
+                        <p>{{ faq.answer }}</p>
                     </div>
-                {% endfor %}
+                </div>
             {% else %}
                 <p>No FAQs available.</p>
-            {% endif %}
+            {% endfor %}
         </div>
 
         <h2>Send a Message</h2>
@@ -30,7 +30,6 @@
             <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
             <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
 
-            <!-- Add radio buttons for reply option -->
             <div class="reply-option">
                 <p>Reply needed?</p>
                 <label>
