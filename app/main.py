@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
@@ -24,6 +24,19 @@ templates = Jinja2Templates(directory="app/templates")
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./shortmail.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
+def run_migrations(engine):
+    inspector = inspect(engine)
+    if 'messages' in inspector.get_table_names():
+        columns = [column['name'] for column in inspector.get_columns('messages')]
+        if 'user_id' not in columns:
+            with engine.connect() as connection:
+                connection.execute(text("ALTER TABLE messages ADD COLUMN user_id INTEGER REFERENCES users(id)"))
+                # Update existing messages with a default user_id if necessary
+                connection.execute(text("UPDATE messages SET user_id = (SELECT id FROM users LIMIT 1) WHERE user_id IS NULL"))
+                connection.commit()
+
+run_migrations(engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -43,6 +56,7 @@ class Message(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
 
 Base.metadata.create_all(bind=engine)
+run_migrations(engine)
 
 # Email configuration
 MAIL_HOST = os.getenv('MAIL_HOST')
@@ -116,10 +130,18 @@ async def verify_login(request: Request, token: str, db: Session = Depends(get_d
     return RedirectResponse(url="/dashboard")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, current_user: User = Depends(get_current_user)):
+async def dashboard(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not current_user:
         return RedirectResponse(url="/")
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": current_user})
+
+    # Fetch the user's messages, ordered by creation time (most recent first)
+    messages = db.query(Message).filter(Message.user_id == current_user.id).order_by(Message.created_at.desc()).limit(10).all()
+
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "user": current_user,
+        "messages": messages
+    })
 
 @app.post("/send", response_class=HTMLResponse)
 async def send_message(

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortMail Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
+
+    <h2>Send a new message</h2>
+    <form action="/send" method="post">
+        <textarea name="message" rows="4" cols="50" maxlength="500" required></textarea><br>
+        <input type="submit" value="Send Message">
+    </form>
+
+    <h2>Your Recent Messages</h2>
+    <ul>
+    {% for message in messages %}
+        <li>{{ message.content }} (Sent: {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }})</li>
+    {% endfor %}
+    </ul>
+
+    <a href="/logout">Logout</a>
+</body>
+</html>
