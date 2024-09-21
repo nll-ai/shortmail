@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortMail</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        form { display: flex; flex-direction: column; }
+        input, textarea { margin-bottom: 10px; padding: 5px; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        #char-count { text-align: right; }
+    </style>
+</head>
+<body>
+    <h1>ShortMail</h1>
+    <p>Send a short message (max 500 characters)</p>
+    <form hx-post="/send" hx-target="#result">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" id="message" rows="5" placeholder="Your Message" required maxlength="500"></textarea>
+        <div id="char-count">0 / 500</div>
+        <button type="submit">Send Message</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        const messageArea = document.getElementById('message');
+        const charCount = document.getElementById('char-count');
+
+        messageArea.addEventListener('input', function() {
+            const remaining = 500 - this.value.length;
+            charCount.textContent = `${this.value.length} / 500`;
+            if (remaining < 0) {
+                charCount.style.color = 'red';
+            } else {
+                charCount.style.color = 'black';
+            }
+        });
+    </script>
+</body>
+</html>
