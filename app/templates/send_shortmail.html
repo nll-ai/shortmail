@@ -4,95 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send ShortMail to {{ user.email }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        select, textarea, input[type="text"], input[type="email"], input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        textarea {
-            height: 150px;
-            resize: vertical;
-        }
-        input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        #custom-subject {
-            display: none;
-        }
-        #char-count {
-            text-align: right;
-            font-size: 0.9em;
-            color: #666;
-            margin-top: -10px;
-            margin-bottom: 10px;
-        }
-        .over-limit {
-            color: #f44336;
-        }
-        .faq-section {
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        .faq-item {
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .faq-question {
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .faq-question::after {
-            content: '\25BC';
-            font-size: 0.8em;
-            transition: transform 0.3s ease;
-        }
-        .faq-question.active::after {
-            transform: rotate(180deg);
-        }
-        .faq-answer {
-            display: none;
-            margin-top: 10px;
-            padding-left: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -156,28 +68,6 @@
             } else {
                 charCount.classList.remove('over-limit');
             }
-        });
-
-        // FAQ toggle functionality
-        document.querySelectorAll('.faq-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const answer = question.nextElementSibling;
-                const isOpen = answer.style.display === 'block';
-
-                // Close all other open FAQs
-                document.querySelectorAll('.faq-answer').forEach(a => {
-                    a.style.display = 'none';
-                });
-                document.querySelectorAll('.faq-question').forEach(q => {
-                    q.classList.remove('active');
-                });
-
-                // Toggle the clicked FAQ
-                if (!isOpen) {
-                    answer.style.display = 'block';
-                    question.classList.add('active');
-                }
-            });
         });
     </script>
 </body>
