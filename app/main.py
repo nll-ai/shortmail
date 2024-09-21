@@ -1,20 +1,30 @@
-from fastapi import FastAPI, Request, Form, HTTPException, Depends
-from fastapi.templating import Jinja2Templates
+import os
+import secrets
+import smtplib
+from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, inspect, text
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    inspect,
+    text,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship  # Add relationship here
-from datetime import datetime, timedelta
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import os
-from dotenv import load_dotenv
-import secrets
-from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy.orm import Session, relationship, sessionmaker  # Add relationship here
 from sqlalchemy.sql import func
-from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
 load_dotenv()
 
