@@ -62,13 +62,6 @@ class User(Base):
     subject_headings = relationship("SubjectHeading", back_populates="user")
     faqs = relationship("FAQ", back_populates="user")
 
-class Message(Base):
-    __tablename__ = "messages"
-    id = Column(Integer, primary_key=True, index=True)
-    content = Column(Text)
-    created_at = Column(DateTime, default=func.now())
-    user_id = Column(Integer, ForeignKey("users.id"))
-
 class SubjectHeading(Base):
     __tablename__ = "subject_headings"
     id = Column(Integer, primary_key=True, index=True)
@@ -207,52 +200,6 @@ async def remove_subject_heading(
 
     return RedirectResponse(url="/dashboard", status_code=303)
 
-@app.post("/send", response_class=HTMLResponse)
-async def send_message(
-    request: Request,
-    message: str = Form(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    if len(message) > 500:
-        raise HTTPException(status_code=400, detail="Message exceeds 500 characters")
-
-    new_message = Message(content=message, user_id=current_user.id)
-    db.add(new_message)
-    db.commit()
-
-    # Send email (you can customize this part)
-    email_sent = send_email(MAIL_USERNAME, f"New ShortMail from {current_user.email}", message)
-
-    return templates.TemplateResponse("result.html", {
-        "request": request,
-        "email_sent": email_sent
-    })
-
-@app.get("/logout")
-async def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/")
-
-@app.get("/send/{user_email}", response_class=HTMLResponse)
-async def send_shortmail(request: Request, user_email: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
-    faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
-
-    return templates.TemplateResponse("send_shortmail.html", {
-        "request": request,
-        "user": user,
-        "subject_headings": subject_headings,
-        "faqs": faqs
-    })
-
 @app.post("/send/{user_email}")
 async def process_shortmail(
     request: Request,
@@ -289,6 +236,27 @@ async def process_shortmail(
         "request": request,
         "email_sent": email_sent,
         "recipient_email": user_email
+    })
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/")
+
+@app.get("/send/{user_email}", response_class=HTMLResponse)
+async def send_shortmail(request: Request, user_email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
+    faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
+
+    return templates.TemplateResponse("send_shortmail.html", {
+        "request": request,
+        "user": user,
+        "subject_headings": subject_headings,
+        "faqs": faqs
     })
 
 @app.post("/add_faq")
