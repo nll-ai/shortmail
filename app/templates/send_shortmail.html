@@ -26,7 +26,7 @@
         form {
             margin-bottom: 20px;
         }
-        select, textarea, input[type="text"], input[type="submit"] {
+        select, textarea, input[type="text"], input[type="email"], input[type="submit"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
@@ -50,14 +50,6 @@
         #custom-subject {
             display: none;
         }
-        input[type="email"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
         #char-count {
             text-align: right;
             font-size: 0.9em;
@@ -74,8 +66,8 @@
     <div class="container">
         <h1>Send ShortMail to {{ user.email }}</h1>
         <form action="/send/{{ user.email }}" method="post">
-            <input type="text" name="sender_name" required placeholder="Your Name">
-            <input type="email" name="sender_email" required placeholder="Your Email Address">
+            <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
+            <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
             <select name="subject" id="subject-select" required>
                 <option value="">Select a subject</option>
                 {% for heading in subject_headings %}
