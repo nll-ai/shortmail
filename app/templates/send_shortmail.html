@@ -68,14 +68,29 @@
             background-color: #f9f9f9;
         }
         .faq-item {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
         .faq-question {
             font-weight: bold;
-            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-question::after {
+            content: '\25BC';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+        .faq-question.active::after {
+            transform: rotate(180deg);
         }
         .faq-answer {
-            margin-left: 20px;
+            display: none;
+            margin-top: 10px;
+            padding-left: 20px;
         }
     </style>
 </head>
@@ -88,8 +103,8 @@
             {% if faqs %}
                 {% for faq in faqs %}
                     <div class="faq-item">
-                        <div class="faq-question">Q: {{ faq.question }}</div>
-                        <div class="faq-answer">A: {{ faq.answer }}</div>
+                        <div class="faq-question">{{ faq.question }}</div>
+                        <div class="faq-answer">{{ faq.answer }}</div>
                     </div>
                 {% endfor %}
             {% else %}
@@ -141,6 +156,28 @@
             } else {
                 charCount.classList.remove('over-limit');
             }
+        });
+
+        // FAQ toggle functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const isOpen = answer.style.display === 'block';
+
+                // Close all other open FAQs
+                document.querySelectorAll('.faq-answer').forEach(a => {
+                    a.style.display = 'none';
+                });
+                document.querySelectorAll('.faq-question').forEach(q => {
+                    q.classList.remove('active');
+                });
+
+                // Toggle the clicked FAQ
+                if (!isOpen) {
+                    answer.style.display = 'block';
+                    question.classList.add('active');
+                }
+            });
         });
     </script>
 </body>
