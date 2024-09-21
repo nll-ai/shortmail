@@ -58,6 +58,16 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+        #char-count {
+            text-align: right;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+        .over-limit {
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
@@ -74,7 +84,8 @@
                 <option value="OTHER">OTHER</option>
             </select>
             <input type="text" id="custom-subject" name="custom_subject" placeholder="Enter custom subject">
-            <textarea name="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
+            <textarea name="message" id="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
+            <div id="char-count">0 / 500</div>
             <input type="submit" value="Send ShortMail">
         </form>
     </div>
@@ -88,6 +99,21 @@
             } else {
                 customSubject.style.display = 'none';
                 customSubject.required = false;
+            }
+        });
+
+        const messageTextarea = document.getElementById('message');
+        const charCount = document.getElementById('char-count');
+
+        messageTextarea.addEventListener('input', function() {
+            const remainingChars = 500 - this.value.length;
+            charCount.textContent = `${this.value.length} / 500`;
+
+            if (remainingChars < 0) {
+                charCount.classList.add('over-limit');
+                this.value = this.value.slice(0, 500);
+            } else {
+                charCount.classList.remove('over-limit');
             }
         });
     </script>
