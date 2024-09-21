@@ -1,0 +1,24 @@
+[project]
+authors = [{name = "Eric Ma", email = "ericmajinglong@gmail.com"}]
+dependencies = [ "fastapi>=0.115.0,<0.116", "uvicorn>=0.30.6,<0.31", "sqlalchemy>=2.0.35,<3", "jinja2>=3.1.4,<4", "python-multipart>=0.0.10,<0.0.11"]
+description = "Add a short description here"
+name = "shortmail"
+requires-python = ">= 3.11"
+version = "0.1.0"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+shortmail = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+app = "uvicorn app.main:app --reload"
+
+[tool.pixi.dependencies]
+python-dotenv = ">=1.0.1,<2"
