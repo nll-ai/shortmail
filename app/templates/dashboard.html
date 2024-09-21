@@ -58,7 +58,9 @@
         <p>Share this URL with others to let them send you ShortMail:</p>
         <strong>{{ request.base_url }}send/{{ user.email }}</strong>
 
-        <a href="/logout" class="logout">Logout</a>
+        <div class="logout-container">
+            <a href="/logout" class="logout">Logout</a>
+        </div>
     </div>
 </body>
 </html>

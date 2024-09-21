@@ -158,3 +158,8 @@ a:hover {
 .reply-option label {
     margin-right: 15px;
 }
+
+/* Add this to the end of your existing CSS */
+.logout-container {
+    margin-top: 20px;
+}
