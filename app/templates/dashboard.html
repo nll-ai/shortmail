@@ -11,35 +11,6 @@
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
-        <div class="profile-setup">
-            <h2>Your ShortMail Profile</h2>
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
-            <div class="two-column-form">
-                <div class="form-column">
-                    <h3>Vanity Name</h3>
-                    <form action="/update_vanity_name" method="post">
-                        <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
-                        <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
-                        {% if not user.is_paid %}
-                            <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
-                        {% else %}
-                            <input type="submit" value="Update Vanity Name">
-                        {% endif %}
-                    </form>
-                </div>
-                <div class="form-column">
-                    <h3>Display Name</h3>
-                    <form action="/update_display_name" method="post">
-                        <label for="display_name">Your display name:</label>
-                        <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
-                        <input type="submit" value="Update Display Name">
-                    </form>
-                </div>
-            </div>
-        </div>
-
         <div class="analytics-link">
             <a href="/analytics" class="button-link">View Analytics</a>
         </div>
@@ -96,6 +67,7 @@
             {% endfor %}
         </div>
 
+        <!-- Moved sections start here -->
         <h2>Your ShortMail Landing Page URL</h2>
         <p>Share this URL with others to let them send you ShortMail:</p>
         <div class="share-url-container">
@@ -104,6 +76,36 @@
                 <i class="fas fa-copy"></i>
             </button>
         </div>
+
+        <div class="profile-setup">
+            <h2>Your ShortMail Profile</h2>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <div class="two-column-form">
+                <div class="form-column">
+                    <h3>Vanity Name</h3>
+                    <form action="/update_vanity_name" method="post">
+                        <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
+                        <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
+                        {% if not user.is_paid %}
+                            <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
+                        {% else %}
+                            <input type="submit" value="Update Vanity Name">
+                        {% endif %}
+                    </form>
+                </div>
+                <div class="form-column">
+                    <h3>Display Name</h3>
+                    <form action="/update_display_name" method="post">
+                        <label for="display_name">Your display name:</label>
+                        <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
+                        <input type="submit" value="Update Display Name">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Moved sections end here -->
 
         <div class="logout-container">
             <a href="/logout" class="logout">Logout</a>

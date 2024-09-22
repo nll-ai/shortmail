@@ -186,7 +186,8 @@ li {
 
 .share-url-container {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 30px; /* Increased margin to separate from the profile setup */
+    margin-top: 40px; /* Adds space above the URL section */
 }
 
 .share-url {
@@ -337,7 +338,8 @@ input[readonly] {
 }
 
 .profile-setup {
-    margin-bottom: 30px;
+    margin-bottom: 30px; /* Increased margin to separate from the analytics link */
+    margin-top: 40px; /* Adds space above the profile section */
 }
 
 .profile-setup .two-column-form {
