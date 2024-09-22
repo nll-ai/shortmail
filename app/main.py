@@ -299,6 +299,54 @@ async def analytics(request: Request, current_user: User = Depends(get_current_u
         "analytics": analytics_data
     })
 
+@app.post("/update_vanity_name")
+async def update_vanity_name(
+    request: Request,
+    vanity_name: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if not current_user.is_paid:
+        raise HTTPException(status_code=403, detail="Upgrade to a paid account to change your vanity name")
+
+    try:
+        current_user.vanity_name = vanity_name
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "user": current_user,
+            "error": "This vanity name is already taken. Please choose another."
+        })
+
+    return RedirectResponse(url="/dashboard", status_code=303)
+
+@app.post("/update_display_name")
+async def update_display_name(
+    request: Request,
+    display_name: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if not display_name:
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "user": current_user,
+            "error": "Display name is required."
+        })
+
+    current_user.display_name = display_name
+    db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=303)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

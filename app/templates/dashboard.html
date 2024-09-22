@@ -16,26 +16,28 @@
             {% if error %}
                 <p class="error">{{ error }}</p>
             {% endif %}
-            <form action="/dashboard" method="post" class="two-column-form">
-                <div class="form-row">
-                    <div class="form-column">
+            <div class="two-column-form">
+                <div class="form-column">
+                    <h3>Vanity Name</h3>
+                    <form action="/update_vanity_name" method="post">
                         <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
-                        {% if user.is_paid %}
-                            <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}">
-                        {% else %}
-                            <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" readonly>
+                        <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
+                        {% if not user.is_paid %}
                             <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
+                        {% else %}
+                            <input type="submit" value="Update Vanity Name">
                         {% endif %}
-                    </div>
-                    <div class="form-column">
+                    </form>
+                </div>
+                <div class="form-column">
+                    <h3>Display Name</h3>
+                    <form action="/update_display_name" method="post">
                         <label for="display_name">Your display name:</label>
                         <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
-                    </div>
+                        <input type="submit" value="Update Display Name">
+                    </form>
                 </div>
-                <div class="form-row">
-                    <input type="submit" value="Update Profile">
-                </div>
-            </form>
+            </div>
         </div>
 
         <div class="analytics-link">

@@ -297,22 +297,32 @@ li {
 
 .two-column-form {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.form-row {
-    display: flex;
+    justify-content: space-between;
     gap: 20px;
 }
 
 .form-column {
     flex: 1;
-    min-width: 0; /* This allows the flex item to shrink below its content size */
 }
 
 .form-column input[type="text"] {
     width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.form-column input[type="submit"] {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.upgrade-message {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
 }
 
 @media (max-width: 600px) {
@@ -324,4 +334,49 @@ li {
 input[readonly] {
     background-color: #f0f0f0;
     cursor: not-allowed;
+}
+
+.profile-setup {
+    margin-bottom: 30px;
+}
+
+.profile-setup .two-column-form {
+    display: flex;
+    gap: 20px;
+}
+
+.profile-setup .form-column {
+    flex: 1;
+    min-width: 0; /* Allows flex items to shrink below content size */
+}
+
+.profile-setup form {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-setup label {
+    margin-bottom: 5px;
+}
+
+.profile-setup input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.profile-setup input[type="submit"] {
+    margin-top: 10px;
+    align-self: flex-start;
+}
+
+.profile-setup .upgrade-message {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .profile-setup .two-column-form {
+        flex-direction: column;
+    }
 }
