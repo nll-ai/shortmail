@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-sqlalchemy
-jinja2
-python-multipart
-markdown==3.4.1

@@ -66,7 +66,7 @@
         <h2>Your ShortMail Landing Page URL</h2>
         <p>Share this URL with others to let them send you ShortMail:</p>
         <div class="share-url-container">
-            <div class="share-url">{{ request.base_url }}send/{{ user.email }}</div>
+            <div class="share-url"><a href="{{ request.base_url }}send/{{ user.email }}">{{ request.base_url }}send/{{ user.email }}</a></div>
             <button id="copy-button" class="copy-button" title="Copy URL">
                 <i class="fas fa-copy"></i>
             </button>
