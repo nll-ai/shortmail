@@ -1,32 +1,19 @@
 import os
 import secrets
-import smtplib
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import markdown
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    create_engine,
-    inspect,
-    text,
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, relationship, sessionmaker  # Add relationship here
-from sqlalchemy.sql import func
+from sqlalchemy import inspect, text
+from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy.exc import IntegrityError
+
+from app.models import Base, User, SubjectHeading, FAQ, get_db, engine
+from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names
 
 load_dotenv()
 
@@ -42,89 +29,27 @@ def run_migrations(engine):
             columns = [column['name'] for column in inspector.get_columns('users')]
             if 'is_paid' not in columns:
                 connection.execute(text("ALTER TABLE users ADD COLUMN is_paid BOOLEAN DEFAULT FALSE"))
-                connection.commit()
+            if 'vanity_name' not in columns:
+                connection.execute(text("ALTER TABLE users ADD COLUMN vanity_name VARCHAR"))
+                connection.execute(text("CREATE UNIQUE INDEX idx_users_vanity_name ON users(vanity_name)"))
+            if 'display_name' not in columns:
+                connection.execute(text("ALTER TABLE users ADD COLUMN display_name VARCHAR"))
+            connection.commit()
 
-# Database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./shortmail.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    # Run the user migration after schema changes
+    db = next(get_db())
+    migrate_users_vanity_names(db)
+
 run_migrations(engine)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# Models
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    login_token = Column(String, unique=True, index=True)
-    token_expiry = Column(DateTime)
-    is_paid = Column(Boolean, default=False)
-    subject_headings = relationship("SubjectHeading", back_populates="user")
-    faqs = relationship("FAQ", back_populates="user")
-
-class SubjectHeading(Base):
-    __tablename__ = "subject_headings"
-    id = Column(Integer, primary_key=True, index=True)
-    heading = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-SubjectHeading.user = relationship("User", back_populates="subject_headings")
-
-class FAQ(Base):
-    __tablename__ = "faqs"
-    id = Column(Integer, primary_key=True, index=True)
-    question = Column(String, nullable=False)
-    answer = Column(Text, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-FAQ.user = relationship("User", back_populates="faqs")
-
-Base.metadata.create_all(bind=engine)
-# Remove or comment out this line if it exists
-# run_migrations(engine)
-
-# Email configuration
-MAIL_HOST = os.getenv('MAIL_HOST')
-MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
-MAIL_USERNAME = os.getenv('MAIL_USERNAME')
-MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-
-def send_email(from_email, to_email, subject, body):
-    msg = MIMEMultipart('alternative')
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
-
-    # Create plain text version of the message
-    text_part = MIMEText(body, 'plain')
-    msg.attach(text_part)
-
-    # Create HTML version of the message
-    html_body = markdown.markdown(body)
-    html_part = MIMEText(html_body, 'html')
-    msg.attach(html_part)
-
-    try:
-        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
-            server.starttls()
-            server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            server.send_message(msg)
-        return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
-        return False
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     user_email = request.session.get("user_email")
     if user_email:
-        return db.query(User).filter(User.email == user_email).first()
+        user = db.query(User).filter(User.email == user_email).first()
+        if user and not user.vanity_name:
+            user.vanity_name = generate_vanity_name(user.email)
+            db.commit()
+        return user
     return None
 
 @app.get("/", response_class=HTMLResponse)
@@ -135,7 +60,8 @@ async def read_root(request: Request):
 async def login(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        user = User(email=email)
+        vanity_name = generate_vanity_name(email)
+        user = User(email=email, vanity_name=vanity_name)
         db.add(user)
         db.commit()
 
@@ -163,9 +89,36 @@ async def verify_login(request: Request, token: str, db: Session = Depends(get_d
     return RedirectResponse(url="/dashboard")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def dashboard(
+    request: Request,
+    vanity_name: str = Form(None),
+    display_name: str = Form(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     if not current_user:
         return RedirectResponse(url="/")
+
+    if request.method == "POST":
+        if not display_name:
+            return templates.TemplateResponse("dashboard.html", {
+                "request": request,
+                "user": current_user,
+                "error": "Display name is required."
+            })
+
+        try:
+            if current_user.is_paid and vanity_name:
+                current_user.vanity_name = vanity_name
+            current_user.display_name = display_name
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            return templates.TemplateResponse("dashboard.html", {
+                "request": request,
+                "user": current_user,
+                "error": "This vanity name is already taken. Please choose another."
+            })
 
     subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == current_user.id).all()
     faqs = db.query(FAQ).filter(FAQ.user_id == current_user.id).all()
@@ -259,9 +212,9 @@ async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
 
-@app.get("/send/{user_email}", response_class=HTMLResponse)
-async def send_shortmail(request: Request, user_email: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_email).first()
+@app.get("/send/{vanity_name}", response_class=HTMLResponse)
+async def send_shortmail(request: Request, vanity_name: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.vanity_name == vanity_name).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 

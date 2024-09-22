@@ -11,6 +11,33 @@
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
+        <div class="profile-setup">
+            <h2>Your ShortMail Profile</h2>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <form action="/dashboard" method="post" class="two-column-form">
+                <div class="form-row">
+                    <div class="form-column">
+                        <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
+                        {% if user.is_paid %}
+                            <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}">
+                        {% else %}
+                            <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" readonly>
+                            <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
+                        {% endif %}
+                    </div>
+                    <div class="form-column">
+                        <label for="display_name">Your display name:</label>
+                        <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <input type="submit" value="Update Profile">
+                </div>
+            </form>
+        </div>
+
         <div class="analytics-link">
             <a href="/analytics" class="button-link">View Analytics</a>
         </div>
@@ -70,7 +97,7 @@
         <h2>Your ShortMail Landing Page URL</h2>
         <p>Share this URL with others to let them send you ShortMail:</p>
         <div class="share-url-container">
-            <div class="share-url"><a href="{{ request.base_url }}send/{{ user.email }}">{{ request.base_url }}send/{{ user.email }}</a></div>
+            <div class="share-url"><a href="{{ request.base_url }}send/{{ user.vanity_name or '' }}">{{ request.base_url }}send/{{ user.vanity_name or '' }}</a></div>
             <button id="copy-button" class="copy-button" title="Copy URL">
                 <i class="fas fa-copy"></i>
             </button>
