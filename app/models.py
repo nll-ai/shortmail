@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 # Database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./shortmail.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/shortmail.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
