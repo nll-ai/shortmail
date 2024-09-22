@@ -18,7 +18,7 @@ platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 shortmail = { path = ".", editable = true }
 
 [tool.pixi.tasks]
-app = "uvicorn app.main:app --reload"
+app = "uvicorn app.main:app --reload --port $PORT"
 
 [tool.pixi.dependencies]
 python-dotenv = ">=1.0.1,<2"
