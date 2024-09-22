@@ -12,10 +12,14 @@
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
         <h2>Configure Your ShortMail Landing Page</h2>
-        <form action="/add_subject_heading" method="post">
-            <input type="text" name="heading" required placeholder="Add a new subject heading">
-            <input type="submit" value="Add Heading">
-        </form>
+        {% if can_add_subject %}
+            <form action="/add_subject_heading" method="post">
+                <input type="text" name="heading" required placeholder="Add a new subject heading">
+                <input type="submit" value="Add Heading">
+            </form>
+        {% else %}
+            <p>You've reached the maximum number of subject headings for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
+        {% endif %}
 
         <div class="subject-headings">
             <h3>Your Subject Headings</h3>
@@ -32,11 +36,15 @@
         </div>
 
         <h2>Manage Your FAQs</h2>
-        <form action="/add_faq" method="post">
-            <input type="text" name="question" required placeholder="Question">
-            <textarea name="answer" required placeholder="Answer"></textarea>
-            <input type="submit" value="Add FAQ">
-        </form>
+        {% if can_add_faq %}
+            <form action="/add_faq" method="post">
+                <input type="text" name="question" required placeholder="Question">
+                <textarea name="answer" required placeholder="Answer"></textarea>
+                <input type="submit" value="Add FAQ">
+            </form>
+        {% else %}
+            <p>You've reached the maximum number of FAQs for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
+        {% endif %}
 
         <div class="faqs">
             <h3>Your FAQs</h3>

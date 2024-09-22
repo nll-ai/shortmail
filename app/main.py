@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     ForeignKey,
@@ -33,21 +34,18 @@ app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+def run_migrations(engine):
+    inspector = inspect(engine)
+    with engine.connect() as connection:
+        if 'users' in inspector.get_table_names():
+            columns = [column['name'] for column in inspector.get_columns('users')]
+            if 'is_paid' not in columns:
+                connection.execute(text("ALTER TABLE users ADD COLUMN is_paid BOOLEAN DEFAULT FALSE"))
+                connection.commit()
+
 # Database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./shortmail.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
-def run_migrations(engine):
-    inspector = inspect(engine)
-    if 'messages' in inspector.get_table_names():
-        columns = [column['name'] for column in inspector.get_columns('messages')]
-        if 'user_id' not in columns:
-            with engine.connect() as connection:
-                connection.execute(text("ALTER TABLE messages ADD COLUMN user_id INTEGER REFERENCES users(id)"))
-                # Update existing messages with a default user_id if necessary
-                connection.execute(text("UPDATE messages SET user_id = (SELECT id FROM users LIMIT 1) WHERE user_id IS NULL"))
-                connection.commit()
-
 run_migrations(engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -59,6 +57,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     login_token = Column(String, unique=True, index=True)
     token_expiry = Column(DateTime)
+    is_paid = Column(Boolean, default=False)
     subject_headings = relationship("SubjectHeading", back_populates="user")
     faqs = relationship("FAQ", back_populates="user")
 
@@ -80,7 +79,8 @@ class FAQ(Base):
 FAQ.user = relationship("User", back_populates="faqs")
 
 Base.metadata.create_all(bind=engine)
-run_migrations(engine)
+# Remove or comment out this line if it exists
+# run_migrations(engine)
 
 # Email configuration
 MAIL_HOST = os.getenv('MAIL_HOST')
@@ -165,7 +165,10 @@ async def dashboard(request: Request, current_user: User = Depends(get_current_u
         "request": request,
         "user": current_user,
         "subject_headings": subject_headings,
-        "faqs": faqs
+        "faqs": faqs,
+        "is_paid": current_user.is_paid,
+        "can_add_subject": len(subject_headings) < 5 or current_user.is_paid,
+        "can_add_faq": len(faqs) < 3 or current_user.is_paid
     })
 
 @app.post("/add_subject_heading")
@@ -177,6 +180,10 @@ async def add_subject_heading(
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == current_user.id).all()
+    if len(subject_headings) >= 5 and not current_user.is_paid:
+        raise HTTPException(status_code=403, detail="Free tier limit reached")
 
     new_heading = SubjectHeading(heading=heading, user_id=current_user.id)
     db.add(new_heading)
@@ -270,6 +277,10 @@ async def add_faq(
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    faqs = db.query(FAQ).filter(FAQ.user_id == current_user.id).all()
+    if len(faqs) >= 3 and not current_user.is_paid:
+        raise HTTPException(status_code=403, detail="Free tier limit reached")
+
     new_faq = FAQ(question=question, answer=answer, user_id=current_user.id)
     db.add(new_faq)
     db.commit()
@@ -304,6 +315,25 @@ async def user_faq(request: Request, user_email: str, db: Session = Depends(get_
         "request": request,
         "user": user,
         "faqs": faqs
+    })
+
+@app.get("/analytics", response_class=HTMLResponse)
+async def analytics(request: Request, current_user: User = Depends(get_current_user)):
+    if not current_user or not current_user.is_paid:
+        raise HTTPException(status_code=403, detail="Paid tier feature")
+
+    # Here you would typically fetch analytics data
+    # For now, we'll just pass some dummy data
+    analytics_data = {
+        "total_messages": 100,
+        "popular_subjects": ["Subject 1", "Subject 2", "Subject 3"],
+        "avg_response_time": "2 hours"
+    }
+
+    return templates.TemplateResponse("analytics.html", {
+        "request": request,
+        "user": current_user,
+        "analytics": analytics_data
     })
 
 if __name__ == "__main__":

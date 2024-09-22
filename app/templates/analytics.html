@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortMail Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>ShortMail Analytics for {{ user.email }}</h1>
+
+        <h2>Overview</h2>
+        <p>Total messages received: {{ analytics.total_messages }}</p>
+        <p>Average response time: {{ analytics.avg_response_time }}</p>
+
+        <h2>Popular Subjects</h2>
+        <ul>
+            {% for subject in analytics.popular_subjects %}
+                <li>{{ subject }}</li>
+            {% endfor %}
+        </ul>
+
+        <a href="/dashboard">Back to Dashboard</a>
+    </div>
+</body>
+</html>
