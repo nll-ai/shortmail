@@ -4,6 +4,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import markdown
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Email configuration
 MAIL_HOST = os.getenv('MAIL_HOST')
