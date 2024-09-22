@@ -58,6 +58,17 @@ async def read_root(request: Request):
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
+    """
+    Handle user login or registration.
+
+    This function processes the login request. If the user doesn't exist, it creates a new account.
+    It generates a login token, sends a login link via email, and returns a template response.
+
+    :param request: The incoming request object.
+    :param email: The user's email address, obtained from the form.
+    :param db: The database session, obtained through dependency injection.
+    :return: A response indicating that the login link has been sent.
+    """
     user = db.query(User).filter(User.email == email).first()
     if not user:
         vanity_name = generate_vanity_name(email)
