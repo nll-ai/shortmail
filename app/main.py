@@ -4,6 +4,7 @@ import smtplib
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import markdown
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
@@ -89,11 +90,19 @@ MAIL_USERNAME = os.getenv('MAIL_USERNAME')
 MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
 
 def send_email(from_email, to_email, subject, body):
-    msg = MIMEMultipart()
+    msg = MIMEMultipart('alternative')
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+
+    # Create plain text version of the message
+    text_part = MIMEText(body, 'plain')
+    msg.attach(text_part)
+
+    # Create HTML version of the message
+    html_body = markdown.markdown(body)
+    html_part = MIMEText(html_body, 'html')
+    msg.attach(html_part)
 
     try:
         with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
