@@ -22,11 +22,13 @@ def generate_vanity_name(email):
     # Return the first 6 characters of the hash
     return hash_digest[:6]
 
-def send_email(from_email, to_email, subject, body):
+def send_email(from_email, to_email, reply_to_email, subject, body):
     msg = MIMEMultipart('alternative')
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
+    # Add Reply-To header
+    msg['Reply-To'] = reply_to_email
 
     # Create plain text version of the message
     text_part = MIMEText(body, 'plain')

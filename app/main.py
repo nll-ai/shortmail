@@ -82,7 +82,7 @@ async def login(request: Request, email: str = Form(...), db: Session = Depends(
     db.commit()
 
     login_url = f"{request.base_url}login/{token}"
-    send_email("login@shortmail.com", email, "ShortMail Login Link", f"Click here to log in: {login_url}")
+    send_email("login@ericmjl.com", email, "ericmjl@hey.com","ShortMail Login Link", f"Click here to log in: {login_url}")
 
     return templates.TemplateResponse("login_sent.html", {"request": request})
 
@@ -210,7 +210,7 @@ async def process_shortmail(
     email_body = f"From: {sender_name} <{sender_email}>\n\n{message}"
 
     # Send email
-    email_sent = send_email(sender_email, user.email, email_subject, email_body)
+    email_sent = send_email("koalamail@ericmjl.com", user.email, sender_email, email_subject, email_body)
 
     return templates.TemplateResponse("send_result.html", {
         "request": request,
