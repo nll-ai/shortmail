@@ -180,10 +180,26 @@ async def remove_subject_heading(
 
     return RedirectResponse(url="/dashboard", status_code=303)
 
-@app.post("/send/{user_email}")
+@app.get("/send/{vanity_name}", response_class=HTMLResponse)
+async def send_shortmail(request: Request, vanity_name: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.vanity_name == vanity_name).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
+    faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
+
+    return templates.TemplateResponse("send_shortmail.html", {
+        "request": request,
+        "user": user,
+        "subject_headings": subject_headings,
+        "faqs": faqs
+    })
+
+@app.post("/send/{vanity_name}")
 async def process_shortmail(
     request: Request,
-    user_email: str,
+    vanity_name: str,
     sender_name: str = Form(...),
     sender_email: str = Form(...),
     reply_needed: str = Form(...),
@@ -192,7 +208,7 @@ async def process_shortmail(
     message: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.email == user_email).first()
+    user = db.query(User).filter(User.vanity_name == vanity_name).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -215,28 +231,8 @@ async def process_shortmail(
     return templates.TemplateResponse("send_result.html", {
         "request": request,
         "email_sent": email_sent,
-        "recipient_email": user_email
-    })
-
-@app.get("/logout")
-async def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/")
-
-@app.get("/send/{vanity_name}", response_class=HTMLResponse)
-async def send_shortmail(request: Request, vanity_name: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.vanity_name == vanity_name).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
-    faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
-
-    return templates.TemplateResponse("send_shortmail.html", {
-        "request": request,
-        "user": user,
-        "subject_headings": subject_headings,
-        "faqs": faqs
+        "vanity_name": user.vanity_name,
+        "display_name": user.display_name or user.email  # Fallback to email if display_name is not set
     })
 
 @app.post("/add_faq")
@@ -357,6 +353,11 @@ async def update_display_name(
     db.commit()
 
     return RedirectResponse(url="/dashboard", status_code=303)
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/")
 
 if __name__ == "__main__":
     import uvicorn

@@ -9,11 +9,13 @@
     <div class="container">
         <h1>ShortMail Result</h1>
         {% if email_sent %}
-            <p class="success">Your ShortMail has been sent successfully to {{ recipient_email }}!</p>
+            <p class="success">Your ShortMail has been sent successfully to {{ display_name }}!</p>
         {% else %}
-            <p class="error">There was an error sending your ShortMail to {{ recipient_email }}. Please try again later.</p>
+            <p class="error">There was an error sending your ShortMail. Please try again later.</p>
         {% endif %}
-        <a href="/send/{{ recipient_email }}">Back to {{ recipient_email }}'s ShortMail</a>
+        <div>
+            <a href="/send/{{ vanity_name }}">Back to {{ display_name }}'s ShortMail</a>
+        </div>
     </div>
 </body>
 </html>

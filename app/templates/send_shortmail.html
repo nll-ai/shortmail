@@ -25,7 +25,7 @@
 
         <h2>Send a Message</h2>
         <p>If your question isn't answered in the FAQ above, please feel free to send a message:</p>
-        <form action="/send/{{ user.email }}" method="post">
+        <form action="/send/{{ user.vanity_name }}" method="post">
             <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
             <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
 
