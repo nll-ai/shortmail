@@ -11,6 +11,10 @@
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
+        <div class="analytics-link">
+            <a href="/analytics" class="button-link">View Analytics</a>
+        </div>
+
         <h2>Configure Your ShortMail Landing Page</h2>
         {% if can_add_subject %}
             <form action="/add_subject_heading" method="post">

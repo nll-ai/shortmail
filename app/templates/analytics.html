@@ -8,20 +8,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>ShortMail Analytics for {{ user.email }}</h1>
+        <h1>ShortMail Analytics</h1>
 
-        <h2>Overview</h2>
-        <p>Total messages received: {{ analytics.total_messages }}</p>
-        <p>Average response time: {{ analytics.avg_response_time }}</p>
+        {% if user.is_paid %}
+            <div class="analytics-data">
+                <h2>Your Analytics</h2>
+                <p>Total messages: {{ analytics.total_messages }}</p>
+                <h3>Popular Subjects:</h3>
+                <ul>
+                    {% for subject in analytics.popular_subjects %}
+                        <li>{{ subject }}</li>
+                    {% endfor %}
+                </ul>
+                <p>Average response time: {{ analytics.avg_response_time }}</p>
+            </div>
+        {% else %}
+            <div class="upgrade-message">
+                <h2>Upgrade to Access Analytics</h2>
+                <p>Analytics are available only for paid tier users. Upgrade your account to unlock this feature and gain valuable insights into your ShortMail usage.</p>
+                <a href="/upgrade" class="button-link">Upgrade Now</a>
+            </div>
+        {% endif %}
 
-        <h2>Popular Subjects</h2>
-        <ul>
-            {% for subject in analytics.popular_subjects %}
-                <li>{{ subject }}</li>
-            {% endfor %}
-        </ul>
-
-        <a href="/dashboard">Back to Dashboard</a>
+        <div class="back-link">
+            <a href="/dashboard" class="button-link">Back to Dashboard</a>
+        </div>
     </div>
 </body>
 </html>

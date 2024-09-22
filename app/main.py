@@ -328,16 +328,17 @@ async def user_faq(request: Request, user_email: str, db: Session = Depends(get_
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics(request: Request, current_user: User = Depends(get_current_user)):
-    if not current_user or not current_user.is_paid:
-        raise HTTPException(status_code=403, detail="Paid tier feature")
+    if not current_user:
+        return RedirectResponse(url="/")
 
-    # Here you would typically fetch analytics data
-    # For now, we'll just pass some dummy data
-    analytics_data = {
-        "total_messages": 100,
-        "popular_subjects": ["Subject 1", "Subject 2", "Subject 3"],
-        "avg_response_time": "2 hours"
-    }
+    analytics_data = {}
+    if current_user.is_paid:
+        # Fetch real analytics data for paid users
+        analytics_data = {
+            "total_messages": 100,
+            "popular_subjects": ["Subject 1", "Subject 2", "Subject 3"],
+            "avg_response_time": "2 hours"
+        }
 
     return templates.TemplateResponse("analytics.html", {
         "request": request,
