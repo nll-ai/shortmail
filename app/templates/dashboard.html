@@ -53,13 +53,20 @@
         <div class="faqs">
             <h3>Your FAQs</h3>
             {% for faq in faqs %}
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="{{ faq.id }}">
                     <div class="faq-content">
-                        <h4>{{ faq.question }}</h4>
-                        <p>{{ faq.answer }}</p>
+                        <h4 class="faq-question">{{ faq.question }}</h4>
+                        <p class="faq-answer">{{ faq.answer }}</p>
                     </div>
-                    <form action="/remove_faq/{{ faq.id }}" method="post">
+                    <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
                         <button type="submit" class="remove-faq">Remove</button>
+                    </form>
+                    <button class="edit-faq">Edit</button>
+                    <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form" style="display: none;">
+                        <input type="text" name="question" value="{{ faq.question }}" required>
+                        <textarea name="answer" required>{{ faq.answer }}</textarea>
+                        <button type="submit">Save</button>
+                        <button type="button" class="cancel-edit">Cancel</button>
                     </form>
                 </div>
             {% else %}
@@ -128,6 +135,24 @@
                 }, 2000);
             }.bind(this), function(err) {
                 console.error('Could not copy text: ', err);
+            });
+        });
+
+        document.querySelectorAll('.edit-faq').forEach(button => {
+            button.addEventListener('click', function() {
+                const faqItem = this.closest('.faq-item');
+                faqItem.querySelector('.faq-content').style.display = 'none';
+                faqItem.querySelector('.remove-faq-form').style.display = 'none';
+                faqItem.querySelector('.edit-faq-form').style.display = 'block';
+            });
+        });
+
+        document.querySelectorAll('.cancel-edit').forEach(button => {
+            button.addEventListener('click', function() {
+                const faqItem = this.closest('.faq-item');
+                faqItem.querySelector('.faq-content').style.display = 'block';
+                faqItem.querySelector('.remove-faq-form').style.display = 'block';
+                faqItem.querySelector('.edit-faq-form').style.display = 'none';
             });
         });
     </script>

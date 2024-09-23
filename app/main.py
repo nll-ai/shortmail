@@ -359,6 +359,28 @@ async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
 
+@app.post("/edit_faq/{faq_id}")
+async def edit_faq(
+    request: Request,
+    faq_id: int,
+    question: str = Form(...),
+    answer: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    faq = db.query(FAQ).filter(FAQ.id == faq_id, FAQ.user_id == current_user.id).first()
+    if not faq:
+        raise HTTPException(status_code=404, detail="FAQ not found")
+
+    faq.question = question
+    faq.answer = answer
+    db.commit()
+
+    return RedirectResponse(url="/dashboard", status_code=303)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=os.getenv("PORT", 8000))
