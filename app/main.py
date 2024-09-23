@@ -1,6 +1,8 @@
 import os
 import secrets
 from datetime import datetime, timedelta
+import markdown
+import html2text
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
@@ -133,6 +135,10 @@ async def dashboard(
 
     subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == current_user.id).all()
     faqs = db.query(FAQ).filter(FAQ.user_id == current_user.id).all()
+
+    for faq in faqs:
+        faq.answer_html = markdown.markdown(faq.answer)
+        faq.answer_text = html2text.html2text(faq.answer_html).strip()
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -279,6 +285,9 @@ async def user_faq(request: Request, user_email: str, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="User not found")
 
     faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
+
+    for faq in faqs:
+        faq.answer = markdown.markdown(faq.answer)
 
     return templates.TemplateResponse("user_faq.html", {
         "request": request,
