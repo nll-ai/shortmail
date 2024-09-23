@@ -15,7 +15,7 @@
                 <div class="faq-item">
                     <div class="faq-content">
                         <h4>{{ faq.question }}</h4>
-                        <p>{{ faq.answer }}</p>
+                        <div>{{ faq.answer_html | safe }}</div>
                     </div>
                 </div>
             {% else %}

@@ -195,6 +195,9 @@ async def send_shortmail(request: Request, vanity_name: str, db: Session = Depen
     subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == user.id).all()
     faqs = db.query(FAQ).filter(FAQ.user_id == user.id).all()
 
+    for faq in faqs:
+        faq.answer_html = markdown.markdown(faq.answer)
+
     return templates.TemplateResponse("send_shortmail.html", {
         "request": request,
         "user": user,
