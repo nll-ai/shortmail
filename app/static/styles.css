@@ -382,3 +382,25 @@ input[readonly] {
         flex-direction: column;
     }
 }
+
+/* Ensure the faq-actions container is flex to align items */
+.faq-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Add some space between the buttons */
+}
+
+/* Example CSS for the remove-faq button */
+.remove-faq {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+.remove-faq:hover {
+    background-color: #ff1a1a;
+}

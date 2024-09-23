@@ -58,15 +58,19 @@
                         <h4 class="faq-question">{{ faq.question }}</h4>
                         <p class="faq-answer">{{ faq.answer }}</p>
                     </div>
-                    <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
-                        <button type="submit" class="remove-faq">Remove</button>
-                    </form>
-                    <button class="edit-faq">Edit</button>
+                    <div class="faq-actions">
+                        <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
+                            <button type="submit" class="remove-faq">Remove</button>
+                        </form>
+                        <button class="edit-faq remove-faq">Edit</button>
+                    </div>
                     <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form" style="display: none;">
                         <input type="text" name="question" value="{{ faq.question }}" required>
                         <textarea name="answer" required>{{ faq.answer }}</textarea>
-                        <button type="submit">Save</button>
-                        <button type="button" class="cancel-edit">Cancel</button>
+                        <div class="faq-actions">
+                            <button type="submit" class="remove-faq">Save</button>
+                            <button type="button" class="cancel-edit remove-faq">Cancel</button>
+                        </div>
                     </form>
                 </div>
             {% else %}
