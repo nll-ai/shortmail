@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Manage Users</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='layout.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='components.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='pages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
     <script src="https://unpkg.com/htmx.org@1.6.1"></script>
 </head>
 <body>
     <div class="container">
         <h1>Manage Users</h1>
-        <table>
+        <table class="manage-users-table">
             <thead>
                 <tr>
                     <th>Email</th>
