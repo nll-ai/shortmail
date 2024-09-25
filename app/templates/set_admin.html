@@ -1,8 +1,16 @@
 {% extends "base.html" %}
+
+{% block title %}Set Admin - ShortMail{% endblock %}
+
 {% block content %}
-<h1>Set Admin Email</h1>
-<form method="post" action="/set_admin">
-    <input type="email" name="email" required placeholder="Admin Email">
-    <button type="submit">Set Admin</button>
-</form>
+<div class="container">
+    <h1>Set Admin Email</h1>
+    <form method="post" action="/set_admin">
+        <div class="form-group">
+            <label for="email">Admin Email:</label>
+            <input type="email" id="email" name="email" required placeholder="Enter admin email">
+        </div>
+        <input type="submit" value="Set Admin" class="button-primary">
+    </form>
+</div>
 {% endblock %}
