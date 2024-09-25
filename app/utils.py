@@ -94,3 +94,17 @@ def migrate_users_vanity_names(db: Session) -> None:
     for user in users_without_vanity:
         user.vanity_name = generate_vanity_name(user.email)
     db.commit()
+
+
+def set_user_paid_status(user_id, paid_status):
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return False
+
+        user.paid = paid_status
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Error updating user paid status: {e}")
+        return False

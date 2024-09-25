@@ -393,6 +393,50 @@ async def edit_faq(
 
     return RedirectResponse(url="/dashboard", status_code=303)
 
+@app.get("/manage_users", response_class=HTMLResponse)
+async def manage_users(request: Request):
+    return templates.TemplateResponse("manage_users.html", {"request": request})
+
+@app.get("/users", response_class=HTMLResponse)
+async def get_users(request: Request, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": users})
+
+@app.get("/users/{user_id}/toggle-edit", response_class=HTMLResponse)
+async def toggle_user_edit(request: Request, user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return templates.TemplateResponse("partials/user_edit_row.html", {"request": request, "user": user})
+
+@app.post("/users/{user_id}", response_class=HTMLResponse)
+async def update_user(
+    request: Request,
+    user_id: int,
+    is_paid: bool = Form(False),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.is_paid = is_paid
+    db.commit()
+
+    return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": [user]})
+
+@app.delete("/users/{user_id}", response_class=HTMLResponse)
+async def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+
+    return ""  # Return an empty string as we're removing the row
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=os.getenv("PORT", 8000))

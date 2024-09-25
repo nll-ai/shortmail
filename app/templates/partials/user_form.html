@@ -1,0 +1,6 @@
+<form hx-post="/users/{{ user.id }}" hx-target="#user-list" hx-swap="outerHTML" hx-trigger="submit">
+    <input type="hidden" name="id" value="{{ user.id }}">
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <label>Paid: <input type="checkbox" name="is_paid" {% if user.is_paid %}checked{% endif %}></label><br>
+    <button type="submit">Save</button>
+</form>
