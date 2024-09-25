@@ -453,3 +453,366 @@ table tr:nth-child(even) {
 table tr:hover {
     background-color: #f1f1f1;
 }
+
+/* Table styles for manage_users page */
+.manage-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.manage-users-table th,
+.manage-users-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.manage-users-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+}
+
+.manage-users-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.manage-users-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Button styles for manage_users page */
+.manage-users-table .edit-button,
+.manage-users-table .delete-button,
+.manage-users-table .save-button,
+.manage-users-table .cancel-button,
+.manage-users-table button[type="submit"] {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    color: white;
+}
+
+.manage-users-table .edit-button,
+.manage-users-table .save-button {
+    background-color: #4CAF50;
+}
+
+.manage-users-table .edit-button:hover,
+.manage-users-table .save-button:hover {
+    background-color: #45a049;
+}
+
+.manage-users-table .delete-button,
+.manage-users-table .cancel-button {
+    background-color: #f44336;
+}
+
+.manage-users-table .delete-button:hover,
+.manage-users-table .cancel-button:hover {
+    background-color: #d32f2f;
+}
+
+.manage-users-table button[type="submit"] {
+    background-color: #2196F3;
+}
+
+.manage-users-table button[type="submit"]:hover {
+    background-color: #1e87db;
+}
+
+/* Checkbox style */
+.manage-users-table input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Add these styles to your existing CSS */
+.manage-users-table .save-button,
+.manage-users-table .cancel-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.back-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.info-boxes {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 20px; /* This adds space between the boxes */
+}
+
+.info-box {
+    flex-basis: calc(50% - 10px); /* Adjust the width to account for the gap */
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 20px; /* Increased padding inside the boxes */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-box h3 {
+    color: #4CAF50;
+    margin-top: 0;
+    margin-bottom: 15px; /* Add some space below the heading */
+}
+
+@media (max-width: 768px) {
+    .info-boxes {
+        flex-direction: column;
+    }
+
+    .info-box {
+        flex-basis: 100%;
+        margin-bottom: 20px; /* Increased margin for mobile view */
+    }
+}
+
+.two-column-form {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.form-column {
+    flex: 1;
+}
+
+.form-column input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.form-column input[type="submit"] {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.upgrade-message {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+    }
+}
+
+input[readonly] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.profile-setup {
+    margin-bottom: 30px; /* Increased margin to separate from the analytics link */
+    margin-top: 40px; /* Adds space above the profile section */
+}
+
+.profile-setup .two-column-form {
+    display: flex;
+    gap: 20px;
+}
+
+.profile-setup .form-column {
+    flex: 1;
+    min-width: 0; /* Allows flex items to shrink below content size */
+}
+
+.profile-setup form {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-setup label {
+    margin-bottom: 5px;
+}
+
+.profile-setup input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.profile-setup input[type="submit"] {
+    margin-top: 10px;
+    align-self: flex-start;
+}
+
+.profile-setup .upgrade-message {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .profile-setup .two-column-form {
+        flex-direction: column;
+    }
+}
+
+/* Ensure the faq-actions container is flex to align items */
+.faq-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Add some space between the buttons */
+}
+
+/* Example CSS for the remove-faq button */
+.remove-faq {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+.remove-faq:hover {
+    background-color: #ff1a1a;
+}
+
+/* Add styles for Edit and Delete buttons */
+button.edit-button, button.delete-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+button.edit-button:hover, button.delete-button:hover {
+    background-color: #45a049;
+}
+
+button.delete-button {
+    background-color: #ff4d4d;
+}
+
+button.delete-button:hover {
+    background-color: #ff1a1a;
+}
+
+/* Add styles for the table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Table styles for manage_users page */
+.manage-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.manage-users-table th,
+.manage-users-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.manage-users-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+}
+
+.manage-users-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.manage-users-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Button styles for manage_users page */
+.manage-users-table .edit-button,
+.manage-users-table .delete-button,
+.manage-users-table .save-button,
+.manage-users-table .cancel-button,
+.manage-users-table button[type="submit"] {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    color: white;
+}
+
+.manage-users-table .edit-button,
+.manage-users-table .save-button {
+    background-color: #4CAF50;
+}
+
+.manage-users-table .edit-button:hover,
+.manage-users-table .save-button:hover {
+    background-color: #45a049;
+}
+
+.manage-users-table .delete-button,
+.manage-users-table .cancel-button {
+    background-color: #f44336;
+}
+
+.manage-users-table .delete-button:hover,
+.manage-users-table .cancel-button:hover {
+    background-color: #d32f2f;
+}
+
+.manage-users-table button[type="submit"] {
+    background-color: #2196F3;
+}
+
+.manage-users-table button[type="submit"]:hover {
+    background-color: #1e87db;
+}
+
+/* Checkbox style */
+.manage-users-table input[type="checkbox"] {
+    margin-right: 10px;
+}
