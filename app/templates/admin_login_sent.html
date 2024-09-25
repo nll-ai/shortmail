@@ -1,5 +1,12 @@
 {% extends "base.html" %}
+
+{% block title %}Admin Login Link Sent - ShortMail{% endblock %}
+
 {% block content %}
 <h1>Admin Login Link Sent</h1>
 <p>An admin login link has been sent to your email. Please check your inbox and click the link to log in.</p>
+<p>The link will expire in 1 hour.</p>
+<div class="button-container">
+    <a href="/" class="button-primary">Back to Home</a>
+</div>
 {% endblock %}
