@@ -1,0 +1,11 @@
+{% for user in users %}
+<tr id="user-row-{{ user.id }}">
+    <td>{{ user.email }}</td>
+    <td>{{ user.vanity_name }}</td>
+    <td>{{ 'Yes' if user.is_paid else 'No' }}</td>
+    <td>
+        <button class="edit-button" hx-get="/users/{{ user.id }}/toggle-edit" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML">Edit</button>
+        <button class="delete-button" hx-delete="/users/{{ user.id }}" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML">Delete</button>
+    </td>
+</tr>
+{% endfor %}
