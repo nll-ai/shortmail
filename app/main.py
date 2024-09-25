@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Base, User, SubjectHeading, FAQ, get_db, engine
-from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names
+from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists
 
 load_dotenv()
 
@@ -36,6 +36,8 @@ def run_migrations(engine):
                 connection.execute(text("CREATE UNIQUE INDEX idx_users_vanity_name ON users(vanity_name)"))
             if 'display_name' not in columns:
                 connection.execute(text("ALTER TABLE users ADD COLUMN display_name VARCHAR"))
+            if 'is_admin' not in columns:
+                connection.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"))
             connection.commit()
 
     # Run the user migration after schema changes
@@ -394,8 +396,17 @@ async def edit_faq(
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @app.get("/manage_users", response_class=HTMLResponse)
-async def manage_users(request: Request):
-    return templates.TemplateResponse("manage_users.html", {"request": request})
+async def manage_users(request: Request, db: Session = Depends(get_db)):
+    admin_email = request.session.get("admin_email")
+    if not admin_email:
+        return RedirectResponse(url="/admin_login")
+
+    admin = db.query(User).filter(User.email == admin_email, User.is_admin == True).first()
+    if not admin:
+        return RedirectResponse(url="/admin_login")
+
+    users = db.query(User).all()
+    return templates.TemplateResponse("manage_users.html", {"request": request, "users": users})
 
 @app.get("/users", response_class=HTMLResponse)
 async def get_users(request: Request, db: Session = Depends(get_db)):
@@ -436,6 +447,57 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
     db.commit()
 
     return ""  # Return an empty string as we're removing the row
+
+@app.get("/admin_login", response_class=HTMLResponse)
+async def admin_login(request: Request, db: Session = Depends(get_db)):
+    if admin_exists(db):
+        return templates.TemplateResponse("admin_login.html", {"request": request})
+    else:
+        return templates.TemplateResponse("set_admin.html", {"request": request})
+
+@app.post("/admin_login")
+async def process_admin_login(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
+    admin = db.query(User).filter(User.email == email, User.is_admin == True).first()
+    if not admin:
+        return templates.TemplateResponse("admin_login.html", {"request": request, "error": "Invalid admin email"})
+
+    token = secrets.token_urlsafe(32)
+    admin.login_token = token
+    admin.token_expiry = datetime.utcnow() + timedelta(hours=1)
+    db.commit()
+
+    login_url = f"{request.base_url}admin_verify/{token}"
+    send_email("login@ericmjl.com", email, "ericmjl@hey.com", "Admin Login Link", f"Click here to log in as admin: {login_url}")
+
+    return templates.TemplateResponse("admin_login_sent.html", {"request": request})
+
+@app.post("/set_admin")
+async def set_admin(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
+    if admin_exists(db):
+        raise HTTPException(status_code=400, detail="Admin already exists")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(email=email, is_admin=True)
+        db.add(user)
+    else:
+        user.is_admin = True
+    db.commit()
+
+    return RedirectResponse(url="/admin_login", status_code=303)
+
+@app.get("/admin_verify/{token}")
+async def verify_admin_login(request: Request, token: str, db: Session = Depends(get_db)):
+    admin = db.query(User).filter(User.login_token == token, User.token_expiry > datetime.utcnow(), User.is_admin == True).first()
+    if not admin:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    admin.login_token = None
+    admin.token_expiry = None
+    db.commit()
+
+    request.session["admin_email"] = admin.email
+    return RedirectResponse(url="/manage_users")
 
 if __name__ == "__main__":
     import uvicorn

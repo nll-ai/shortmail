@@ -12,6 +12,8 @@ import markdown
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
+from app.models import User  # Make sure this import is at the top of the file
+
 load_dotenv()
 
 # Email configuration
@@ -96,14 +98,20 @@ def migrate_users_vanity_names(db: Session) -> None:
     db.commit()
 
 
-def set_user_paid_status(user_id, paid_status):
+def admin_exists(db: Session) -> bool:
+    """
+    Check if an admin user exists in the database.
+    """
+    return db.query(User).filter(User.is_admin == True).first() is not None
+
+def set_user_paid_status(db: Session, user_id: int, paid_status: bool) -> bool:
     try:
-        user = User.query.get(user_id)
+        user = db.query(User).filter(User.id == user_id).first()
         if not user:
             return False
 
-        user.paid = paid_status
-        db.session.commit()
+        user.is_paid = paid_status
+        db.commit()
         return True
     except Exception as e:
         print(f"Error updating user paid status: {e}")
