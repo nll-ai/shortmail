@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin Login</h1>
+<form method="post">
+    <input type="email" name="email" required placeholder="Admin Email">
+    <button type="submit">Send Login Link</button>
+</form>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+{% endblock %}

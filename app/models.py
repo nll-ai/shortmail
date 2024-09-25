@@ -16,9 +16,10 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     vanity_name = Column(String, unique=True, index=True)
     display_name = Column(String)
-    login_token = Column(String, unique=True, index=True)
-    token_expiry = Column(DateTime)
     is_paid = Column(Boolean, default=False)
+    login_token = Column(String)
+    token_expiry = Column(DateTime)
+    is_admin = Column(Boolean, default=False)  # New field
     subject_headings = relationship("SubjectHeading", back_populates="user")
     faqs = relationship("FAQ", back_populates="user")
 
