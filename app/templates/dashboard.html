@@ -12,6 +12,18 @@
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
+        <div class="user-info">
+            <h2>Welcome, {{ user.display_name or user.email }}</h2>
+            {% if user.is_paid %}
+                <p>You are on a paid plan.</p>
+            {% else %}
+                <p>You are on a free plan.</p>
+                {% if trial_status %}
+                    <p>{{ trial_status }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+
         <div class="analytics-link">
             <a href="/analytics" class="button-link">View Analytics</a>
         </div>
