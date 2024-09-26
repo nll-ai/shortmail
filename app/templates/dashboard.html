@@ -12,18 +12,6 @@
     <div class="container">
         <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
 
-        <div class="user-info">
-            <h2>Welcome, {{ user.display_name or user.email }}</h2>
-            {% if user.is_paid %}
-                <p>You are on a paid plan.</p>
-            {% else %}
-                <p>You are on a free plan.</p>
-                {% if trial_status %}
-                    <p>{{ trial_status }}</p>
-                {% endif %}
-            {% endif %}
-        </div>
-
         <div class="analytics-link">
             <a href="/analytics" class="button-link">View Analytics</a>
         </div>
@@ -138,21 +126,36 @@
 
     <script>
         document.getElementById('copy-button').addEventListener('click', function() {
-            var shareUrl = document.querySelector('.share-url').textContent;
-            navigator.clipboard.writeText(shareUrl).then(function() {
-                var icon = this.querySelector('i');
-                icon.classList.remove('fa-copy');
-                icon.classList.add('fa-check');
-                this.classList.add('copied');
+            var shareUrl = document.querySelector('.share-url a').href;  // Get the full URL
+            var tempInput = document.createElement('input');
+            tempInput.value = shareUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
 
-                setTimeout(() => {
-                    icon.classList.remove('fa-check');
-                    icon.classList.add('fa-copy');
-                    this.classList.remove('copied');
-                }, 2000);
-            }.bind(this), function(err) {
-                console.error('Could not copy text: ', err);
-            });
+            try {
+                var successful = document.execCommand('copy');
+                var msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying text command was ' + msg);
+
+                if (successful) {
+                    const icon = this.querySelector('i');
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    this.classList.add('copied');
+
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                        this.classList.remove('copied');
+                    }, 2000);
+                } else {
+                    console.error('Failed to copy');
+                }
+            } catch (err) {
+                console.error('Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(tempInput);
         });
 
         document.querySelectorAll('.edit-faq').forEach(button => {
