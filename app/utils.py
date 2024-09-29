@@ -88,7 +88,6 @@ def migrate_users_vanity_names(db: Session) -> None:
     The vanity name is generated based on the user's email.
 
     :param db: The database session.
-    :type db: Session
     """
     from app.models import User  # Import here to avoid circular imports
 
@@ -101,10 +100,27 @@ def migrate_users_vanity_names(db: Session) -> None:
 def admin_exists(db: Session) -> bool:
     """
     Check if an admin user exists in the database.
+
+    This function queries the database to determine if there
+    is at least one user with admin privileges.
+
+    :param db: The database session.
+    :return: True if an admin user exists, False otherwise.
     """
     return db.query(User).filter(User.is_admin == True).first() is not None
 
 def set_user_paid_status(db: Session, user_id: int, paid_status: bool) -> bool:
+    """
+    Set the paid status for a user.
+
+    This function updates the paid status of a user in the database.
+    If the user is not found, it returns False.
+
+    :param db: The database session.
+    :param user_id: The ID of the user to update.
+    :param paid_status: The new paid status to set for the user.
+    :return: True if the update was successful, False otherwise.
+    """
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
