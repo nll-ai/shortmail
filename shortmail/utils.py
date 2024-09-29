@@ -13,7 +13,7 @@ import markdown
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from app.models import User  # Make sure this import is at the top of the file
+from shortmail.models import User  # Make sure this import is at the top of the file
 
 load_dotenv()
 
@@ -94,7 +94,7 @@ def migrate_users_vanity_names(db: Session) -> None:
 
     :param db: The database session.
     """
-    from app.models import User  # Import here to avoid circular imports
+    from shortmail.models import User  # Import here to avoid circular imports
 
     users_without_vanity = db.query(User).filter(User.vanity_name == None).all()
     for user in users_without_vanity:

@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Base, User, SubjectHeading, FAQ, get_db, engine
-from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists, ensure_correct_vanity_name
+from shortmail.models import Base, User, SubjectHeading, FAQ, get_db, engine
+from shortmail.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists, ensure_correct_vanity_name
 
 load_dotenv()
 
