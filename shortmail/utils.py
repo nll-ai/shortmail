@@ -12,8 +12,9 @@ from loguru import logger
 import markdown
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+from fastapi import Depends, Request
 
-from shortmail.models import User  # Make sure this import is at the top of the file
+from shortmail.models import User, get_db
 
 load_dotenv()
 
@@ -150,3 +151,24 @@ def ensure_correct_vanity_name(user: User, db: Session) -> None:
         if user.vanity_name != generated_vanity_name:
             user.vanity_name = generated_vanity_name
             db.commit()
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """
+    Retrieve the current user based on the session information.
+
+    This function checks the session for a user email,
+    queries the database for the corresponding user,
+    and ensures the user's vanity name is correct.
+
+    :param request: The incoming request object containing session data.
+    :param db: The database session, obtained through dependency injection.
+    :return: The User object if found and authenticated, None otherwise.
+    """
+    user_email = request.session.get("user_email")
+    if user_email:
+        user = db.query(User).filter(User.email == user_email).first()
+        if user:
+            ensure_correct_vanity_name(user, db)
+        return user
+    return None

@@ -46,25 +46,6 @@ def run_migrations(engine):
 
 run_migrations(engine)
 
-def get_current_user(request: Request, db: Session = Depends(get_db)):
-    """
-    Retrieve the current user based on the session information.
-
-    This function checks the session for a user email,
-    queries the database for the corresponding user,
-    and ensures the user's vanity name is correct.
-
-    :param request: The incoming request object containing session data.
-    :param db: The database session, obtained through dependency injection.
-    :return: The User object if found and authenticated, None otherwise.
-    """
-    user_email = request.session.get("user_email")
-    if user_email:
-        user = db.query(User).filter(User.email == user_email).first()
-        if user:
-            ensure_correct_vanity_name(user, db)
-        return user
-    return None
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
