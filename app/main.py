@@ -460,9 +460,13 @@ async def update_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_paid = is_paid
+    db.commit()
     ensure_correct_vanity_name(user, db)
 
-    return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": [user]})
+    # Fetch the updated user from the database
+    updated_user = db.query(User).filter(User.id == user_id).first()
+
+    return templates.TemplateResponse("partials/user_row.html", {"request": request, "user": updated_user})
 
 @app.delete("/users/{user_id}", response_class=HTMLResponse)
 async def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
