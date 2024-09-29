@@ -46,13 +46,25 @@ def run_migrations(engine):
 
 run_migrations(engine)
 
+def ensure_correct_vanity_name(user: User, db: Session) -> None:
+    """
+    Ensure the user has the correct vanity name based on their paid status.
+
+    :param user: The User object to check and potentially update
+    :param db: The database session
+    """
+    if not user.is_paid:
+        generated_vanity_name = generate_vanity_name(user.email)
+        if user.vanity_name != generated_vanity_name:
+            user.vanity_name = generated_vanity_name
+            db.commit()
+
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     user_email = request.session.get("user_email")
     if user_email:
         user = db.query(User).filter(User.email == user_email).first()
-        if user and not user.vanity_name:
-            user.vanity_name = generate_vanity_name(user.email)
-            db.commit()
+        if user:
+            ensure_correct_vanity_name(user, db)
         return user
     return None
 
@@ -76,9 +88,11 @@ async def login(request: Request, email: str = Form(...), db: Session = Depends(
     user = db.query(User).filter(User.email == email).first()
     if not user:
         vanity_name = generate_vanity_name(email)
-        user = User(email=email, vanity_name=vanity_name)
+        user = User(email=email, vanity_name=vanity_name, is_paid=False)
         db.add(user)
         db.commit()
+    else:
+        ensure_correct_vanity_name(user, db)
 
     token = secrets.token_urlsafe(32)
     user.login_token = token
@@ -406,11 +420,17 @@ async def manage_users(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/admin_login")
 
     users = db.query(User).all()
+    for user in users:
+        ensure_correct_vanity_name(user, db)
+
     return templates.TemplateResponse("manage_users.html", {"request": request, "users": users})
 
 @app.get("/users", response_class=HTMLResponse)
 async def get_users(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).all()
+    for user in users:
+        ensure_correct_vanity_name(user, db)
+
     return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": users})
 
 @app.get("/users/{user_id}/toggle-edit", response_class=HTMLResponse)
@@ -433,7 +453,7 @@ async def update_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_paid = is_paid
-    db.commit()
+    ensure_correct_vanity_name(user, db)
 
     return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": [user]})
 
