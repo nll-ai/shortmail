@@ -116,3 +116,16 @@ def set_user_paid_status(db: Session, user_id: int, paid_status: bool) -> bool:
     except Exception as e:
         print(f"Error updating user paid status: {e}")
         return False
+
+def ensure_correct_vanity_name(user: User, db: Session) -> None:
+    """
+    Ensure the user has the correct vanity name based on their paid status.
+
+    :param user: The User object to check and potentially update
+    :param db: The database session
+    """
+    if not user.is_paid:
+        generated_vanity_name = generate_vanity_name(user.email)
+        if user.vanity_name != generated_vanity_name:
+            user.vanity_name = generated_vanity_name
+            db.commit()

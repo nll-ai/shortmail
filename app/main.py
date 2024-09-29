@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Base, User, SubjectHeading, FAQ, get_db, engine
-from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists
+from app.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists, ensure_correct_vanity_name
 
 load_dotenv()
 
@@ -45,19 +45,6 @@ def run_migrations(engine):
     migrate_users_vanity_names(db)
 
 run_migrations(engine)
-
-def ensure_correct_vanity_name(user: User, db: Session) -> None:
-    """
-    Ensure the user has the correct vanity name based on their paid status.
-
-    :param user: The User object to check and potentially update
-    :param db: The database session
-    """
-    if not user.is_paid:
-        generated_vanity_name = generate_vanity_name(user.email)
-        if user.vanity_name != generated_vanity_name:
-            user.vanity_name = generated_vanity_name
-            db.commit()
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
