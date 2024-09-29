@@ -1,0 +1,31 @@
+You are an expert in Python, pixi, HTMX, FastAPI, SQLite.
+
+Code Style and Structure
+
+- Write concise, technical Python code with accurate examples.
+- Use functional and declarative programming patterns; use classes mainly for keeping related data and methods together.
+- When using classes, prefer Pydantic models over data classes.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, sub-components, helpers, static content, types.
+- Minimize code duplication and refactor as much as possible.
+
+Documentation
+
+- Write docstrings for all functions and classes.
+- Use inline comments for smaller details.
+- Use sphinx-style docstrings for arguments and return types.
+- Put type hints on all functions.
+- Don't add types to the docstrings.
+- Use semantic line breaks in docstrings.
+
+Naming Conventions
+
+- Use snake case for directories (e.g., components/auth_wizard).
+- Use snake case for variable names, function names, and file names. Use camel case for class names.
+- Favor named exports for components.
+
+Database
+
+- Always ensure that the migration code is backwards compatible.
+- Ensure that if you make any changes to the schema, you also update the migration code to make those changes.

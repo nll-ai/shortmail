@@ -60,6 +60,17 @@ def ensure_correct_vanity_name(user: User, db: Session) -> None:
             db.commit()
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """
+    Retrieve the current user based on the session information.
+
+    This function checks the session for a user email,
+    queries the database for the corresponding user,
+    and ensures the user's vanity name is correct.
+
+    :param request: The incoming request object containing session data.
+    :param db: The database session, obtained through dependency injection.
+    :return: The User object if found and authenticated, None otherwise.
+    """
     user_email = request.session.get("user_email")
     if user_email:
         user = db.query(User).filter(User.email == user_email).first()
@@ -70,6 +81,15 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """
+    Render the root page of the application.
+
+    This function handles GET requests to the root URL ("/")
+    and returns the rendered "index.html" template.
+
+    :param request: The incoming request object.
+    :return: A TemplateResponse containing the rendered "index.html" template.
+    """
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/login")
