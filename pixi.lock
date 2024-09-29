@@ -12,6 +12,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2024.8.30-hbcca054_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/cffi-1.17.1-py312h06ac9bb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/cryptography-43.0.1-py312hda17c39_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/greenlet-3.1.1-py312h2ec8cdc_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html2text-2024.2.26-pyhd8ed1ab_1.conda
@@ -29,9 +31,11 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxcrypt-4.4.36-hd590300_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-h4ab18f5_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/loguru-0.7.2-py312h7900ff3_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/markdown-3.6-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-he02047a_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.3.2-hb9d3cd8_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.12.6-hc5c86c4_0_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/python_abi-3.12-5_cp312.conda
@@ -62,6 +66,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/bzip2-1.0.8-h68df207_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ca-certificates-2024.8.30-hcefe29a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/cffi-1.17.1-py312hac81daf_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/cryptography-43.0.1-py312he723553_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/greenlet-3.1.1-py312h6f74592_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html2text-2024.2.26-pyhd8ed1ab_1.conda
@@ -79,9 +85,11 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libuuid-2.38.1-hb4cce97_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libxcrypt-4.4.36-h31becfc_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libzlib-1.3.1-h68df207_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/loguru-0.7.2-py312h8025657_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/markdown-3.6-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ncurses-6.5-hcccb83c_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.3.2-h86ecc28_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/python-3.12.6-h5d932e8_0_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/python_abi-3.12-5_cp312.conda
@@ -111,6 +119,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.6.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h99b78c6_7.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ca-certificates-2024.8.30-hf0a4a13_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/cffi-1.17.1-py312h0fad829_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/cryptography-43.0.1-py312h3ddc590_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/greenlet-3.1.1-py312hde4cb15_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html2text-2024.2.26-pyhd8ed1ab_1.conda
@@ -121,9 +131,11 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libffi-3.4.2-h3422bc3_5.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.46.1-hc14010f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.1-hfb2fe0b_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/loguru-0.7.2-py312h81bd7bf_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/markdown-3.6-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h7bae524_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.3.2-h8359307_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python-3.12.6-h739c21a_0_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/python_abi-3.12-5_cp312.conda
@@ -317,6 +329,68 @@ packages:
   purls: []
   size: 158482
   timestamp: 1725019034582
+- kind: conda
+  name: cffi
+  version: 1.17.1
+  build: py312h06ac9bb_0
+  subdir: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/cffi-1.17.1-py312h06ac9bb_0.conda
+  sha256: cba6ea83c4b0b4f5b5dc59cb19830519b28f95d7ebef7c9c5cf1c14843621457
+  md5: a861504bbea4161a9170b85d4d2be840
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libffi >=3.4,<4.0a0
+  - libgcc >=13
+  - pycparser
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/cffi?source=hash-mapping
+  size: 294403
+  timestamp: 1725560714366
+- kind: conda
+  name: cffi
+  version: 1.17.1
+  build: py312h0fad829_0
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/cffi-1.17.1-py312h0fad829_0.conda
+  sha256: 8d91a0d01358b5c3f20297c6c536c5d24ccd3e0c2ddd37f9d0593d0f0070226f
+  md5: 19a5456f72f505881ba493979777b24e
+  depends:
+  - __osx >=11.0
+  - libffi >=3.4,<4.0a0
+  - pycparser
+  - python >=3.12,<3.13.0a0
+  - python >=3.12,<3.13.0a0 *_cpython
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/cffi?source=hash-mapping
+  size: 281206
+  timestamp: 1725560813378
+- kind: conda
+  name: cffi
+  version: 1.17.1
+  build: py312hac81daf_0
+  subdir: linux-aarch64
+  url: https://conda.anaconda.org/conda-forge/linux-aarch64/cffi-1.17.1-py312hac81daf_0.conda
+  sha256: 1162e3ca039e7ca7c0e78f0a020ed1bde968096841b663e3f393c966eb82f0f0
+  md5: 1a256e5581b1099e9295cb84d53db3ea
+  depends:
+  - libffi >=3.4,<4.0a0
+  - libgcc >=13
+  - pycparser
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/cffi?source=hash-mapping
+  size: 312892
+  timestamp: 1725561779888
 - kind: pypi
   name: click
   version: 8.1.7
@@ -326,6 +400,75 @@ packages:
   - colorama ; platform_system == 'Windows'
   - importlib-metadata ; python_full_version < '3.8'
   requires_python: '>=3.7'
+- kind: conda
+  name: cryptography
+  version: 43.0.1
+  build: py312h3ddc590_0
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/cryptography-43.0.1-py312h3ddc590_0.conda
+  sha256: 1e49eeb78df3dce44e31de0caceaf257a762b1450d124ebb1ff47047e5376039
+  md5: 9ba6237df44b576b5920c2fb0641d882
+  depends:
+  - __osx >=11.0
+  - cffi >=1.12
+  - openssl >=3.3.2,<4.0a0
+  - python >=3.12,<3.13.0a0
+  - python >=3.12,<3.13.0a0 *_cpython
+  - python_abi 3.12.* *_cp312
+  constrains:
+  - __osx >=11.0
+  license: Apache-2.0 AND BSD-3-Clause AND PSF-2.0 AND MIT
+  license_family: BSD
+  purls:
+  - pkg:pypi/cryptography?source=hash-mapping
+  size: 1358058
+  timestamp: 1725443650833
+- kind: conda
+  name: cryptography
+  version: 43.0.1
+  build: py312hda17c39_0
+  subdir: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/cryptography-43.0.1-py312hda17c39_0.conda
+  sha256: 691c9491da9e730b8b4f6903e05a05530a6699aa73dc483244448fed97348899
+  md5: 1b673277378cb4c80a061a4c6f453b6d
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - cffi >=1.12
+  - libgcc >=13
+  - openssl >=3.3.2,<4.0a0
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0 AND BSD-3-Clause AND PSF-2.0 AND MIT
+  license_family: BSD
+  purls:
+  - pkg:pypi/cryptography?source=hash-mapping
+  size: 1497649
+  timestamp: 1725443252315
+- kind: conda
+  name: cryptography
+  version: 43.0.1
+  build: py312he723553_0
+  subdir: linux-aarch64
+  url: https://conda.anaconda.org/conda-forge/linux-aarch64/cryptography-43.0.1-py312he723553_0.conda
+  sha256: 88e258b4b33346532989d942cfca04808829dbac8f60f4ed1fc6d60212ee17c7
+  md5: 9dc33a361ccddee90e9344c93befdebc
+  depends:
+  - cffi >=1.12
+  - libgcc >=13
+  - openssl >=3.3.2,<4.0a0
+  - python >=3.12,<3.13.0a0
+  - python >=3.12,<3.13.0a0 *_cpython
+  - python_abi 3.12.* *_cp312
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0 AND BSD-3-Clause AND PSF-2.0 AND MIT
+  license_family: BSD
+  purls:
+  - pkg:pypi/cryptography?source=hash-mapping
+  size: 1481546
+  timestamp: 1725443410772
 - kind: conda
   name: exceptiongroup
   version: 1.2.2
@@ -975,6 +1118,61 @@ packages:
   size: 46921
   timestamp: 1716874262512
 - kind: conda
+  name: loguru
+  version: 0.7.2
+  build: py312h7900ff3_2
+  build_number: 2
+  subdir: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/loguru-0.7.2-py312h7900ff3_2.conda
+  sha256: e5477e3fa7b4ef070e9ecae619cfc5845e14e3cdac8fbb2d158a03d51f967bef
+  md5: fddd3092f921be8e01b18f2a0266d98f
+  depends:
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/loguru?source=hash-mapping
+  size: 123047
+  timestamp: 1725349857430
+- kind: conda
+  name: loguru
+  version: 0.7.2
+  build: py312h8025657_2
+  build_number: 2
+  subdir: linux-aarch64
+  url: https://conda.anaconda.org/conda-forge/linux-aarch64/loguru-0.7.2-py312h8025657_2.conda
+  sha256: adccfa12dc866260f568f5d2a4bfac6c9142fdb68c4f70b765d0027e72e4b783
+  md5: ffae73022f1e85223fd1f2f7de8cf1b4
+  depends:
+  - python >=3.12,<3.13.0a0
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/loguru?source=hash-mapping
+  size: 123218
+  timestamp: 1725350987665
+- kind: conda
+  name: loguru
+  version: 0.7.2
+  build: py312h81bd7bf_2
+  build_number: 2
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/loguru-0.7.2-py312h81bd7bf_2.conda
+  sha256: 09c51d5b2c07232c9fa84bdd6f2c6f98536d3a2568ba427ab1d45b634bd30bf4
+  md5: c4bf17db944569f3b0e2e100c91c54e2
+  depends:
+  - python >=3.12,<3.13.0a0
+  - python >=3.12,<3.13.0a0 *_cpython
+  - python_abi 3.12.* *_cp312
+  license: MIT
+  license_family: MIT
+  purls:
+  - pkg:pypi/loguru?source=hash-mapping
+  size: 123434
+  timestamp: 1725349952242
+- kind: conda
   name: markdown
   version: '3.6'
   build: pyhd8ed1ab_0
@@ -1105,6 +1303,23 @@ packages:
   purls: []
   size: 2891789
   timestamp: 1725410790053
+- kind: conda
+  name: pycparser
+  version: '2.22'
+  build: pyhd8ed1ab_0
+  subdir: noarch
+  noarch: python
+  url: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyhd8ed1ab_0.conda
+  sha256: 406001ebf017688b1a1554b49127ca3a4ac4626ec0fd51dc75ffa4415b720b64
+  md5: 844d9eb3b43095b031874477f7d70088
+  depends:
+  - python >=3.8
+  license: BSD-3-Clause
+  license_family: BSD
+  purls:
+  - pkg:pypi/pycparser?source=hash-mapping
+  size: 105098
+  timestamp: 1711811634025
 - kind: pypi
   name: pydantic
   version: 2.9.2
@@ -1357,7 +1572,7 @@ packages:
   name: shortmail
   version: 0.1.0
   path: .
-  sha256: 61252de84ce1c2c5c4830a2d00901588ff7fec042dee7bc4cdfa27dbc4a61345
+  sha256: 4c50b596e88285c355874c9060ea451f6cc175c83f3f549d378ec86d39e5a1a3
   requires_dist:
   - fastapi>=0.115.0,<0.116
   - uvicorn>=0.30.6,<0.31
