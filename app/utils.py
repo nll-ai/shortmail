@@ -7,6 +7,7 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from loguru import logger
 
 import markdown
 from dotenv import load_dotenv
@@ -70,13 +71,17 @@ def send_email(
     msg.attach(html_part)
 
     try:
+        logger.info(f"Sending email to {to_email} with subject: {subject}")
         with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
+            logger.info(f"Connecting to SMTP server at {MAIL_HOST}:{MAIL_PORT}")
             server.starttls()
+            logger.info(f"Logging in to SMTP server as {MAIL_USERNAME}")
             server.login(MAIL_USERNAME, MAIL_PASSWORD)
             server.send_message(msg)
+        logger.info(f"Email sent successfully to {to_email}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Error sending email: {e}")
         return False
 
 
