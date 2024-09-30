@@ -1,6 +1,8 @@
 # ShortMail
 
-A simple web application inspired by Dan Ariely's ShortWhale, built with FastAPI and HTMX. It allows users to send short messages (max 500 characters) to the owner.
+A simple web application inspired by Dan Ariely's ShortWhale,
+built with FastAPI and HTMX.
+It allows users to send short messages (max 500 characters) to the owner.
 
 ## Setup
 

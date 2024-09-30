@@ -18,5 +18,8 @@
         "titleBar.inactiveBackground": "#14d3c299",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#14d3c2"
+    "peacock.color": "#14d3c2",
+    "cSpell.words": [
+        "Ariely's"
+    ]
 }
