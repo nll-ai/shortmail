@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import markdown
 import html2text
 
@@ -60,7 +60,7 @@ async def read_root(request: Request):
     :param request: The incoming request object.
     :return: A TemplateResponse containing the rendered "index.html" template.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {})
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
@@ -92,11 +92,11 @@ async def login(request: Request, email: str = Form(...), db: Session = Depends(
     login_url = f"{request.base_url}login/{token}"
     send_email("login@ericmjl.com", email, "ericmjl@hey.com","ShortMail Login Link", f"Click here to log in: {login_url}")
 
-    return templates.TemplateResponse("login_sent.html", {"request": request})
+    return templates.TemplateResponse(request, "login_sent.html", {})
 
 @app.get("/login/{token}")
 async def verify_login(request: Request, token: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.login_token == token, User.token_expiry > datetime.utcnow()).first()
+    user = db.query(User).filter(User.login_token == token, User.token_expiry > datetime.now(tz=timezone.utc)).first()
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 
@@ -105,7 +105,7 @@ async def verify_login(request: Request, token: str, db: Session = Depends(get_d
     db.commit()
 
     request.session["user_email"] = user.email
-    return RedirectResponse(url="/dashboard")
+    return RedirectResponse(url="/dashboard", status_code=307)
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, current_user: User = Depends(get_current_user)):
@@ -128,8 +128,7 @@ async def dashboard(request: Request, current_user: User = Depends(get_current_u
         faq.answer_html = markdown.markdown(faq.answer)
         faq.answer_text = html2text.html2text(faq.answer_html).strip()
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "user": current_user,
         "subject_headings": subject_headings,
         "faqs": faqs,
@@ -186,8 +185,7 @@ async def send_shortmail(request: Request, vanity_name: str, db: Session = Depen
     for faq in faqs:
         faq.answer_html = markdown.markdown(faq.answer)
 
-    return templates.TemplateResponse("send_shortmail.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "send_shortmail.html", {
         "user": user,
         "subject_headings": subject_headings,
         "faqs": faqs
@@ -225,8 +223,7 @@ async def process_shortmail(
     # Send email
     email_sent = send_email("koalamail@ericmjl.com", user.email, sender_email, email_subject, email_body)
 
-    return templates.TemplateResponse("send_result.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "send_result.html", {
         "email_sent": email_sent,
         "vanity_name": user.vanity_name,
         "display_name": user.display_name or user.email  # Fallback to email if display_name is not set
@@ -280,8 +277,7 @@ async def user_faq(request: Request, user_email: str, db: Session = Depends(get_
     for faq in faqs:
         faq.answer = markdown.markdown(faq.answer)
 
-    return templates.TemplateResponse("user_faq.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "user_faq.html", {
         "user": user,
         "faqs": faqs
     })
@@ -300,8 +296,7 @@ async def analytics(request: Request, current_user: User = Depends(get_current_u
             "avg_response_time": "2 hours"
         }
 
-    return templates.TemplateResponse("analytics.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "analytics.html", {
         "user": current_user,
         "analytics": analytics_data
     })
@@ -324,8 +319,7 @@ async def update_vanity_name(
         db.commit()
     except IntegrityError:
         db.rollback()
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "dashboard.html", {
             "user": current_user,
             "error": "This vanity name is already taken. Please choose another."
         })
@@ -343,8 +337,7 @@ async def update_display_name(
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     if not display_name:
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "dashboard.html", {
             "user": current_user,
             "error": "Display name is required."
         })
@@ -395,7 +388,7 @@ async def manage_users(request: Request, db: Session = Depends(get_db)):
     for user in users:
         ensure_correct_vanity_name(user, db)
 
-    return templates.TemplateResponse("manage_users.html", {"request": request, "users": users})
+    return templates.TemplateResponse(request, "manage_users.html", {"users": users})
 
 @app.get("/users", response_class=HTMLResponse)
 async def get_users(request: Request, db: Session = Depends(get_db)):
@@ -403,7 +396,7 @@ async def get_users(request: Request, db: Session = Depends(get_db)):
     for user in users:
         ensure_correct_vanity_name(user, db)
 
-    return templates.TemplateResponse("partials/user_list.html", {"request": request, "users": users})
+    return templates.TemplateResponse(request, "partials/user_list.html", {"users": users})
 
 @app.get("/users/{user_id}/toggle-edit", response_class=HTMLResponse)
 async def toggle_user_edit(request: Request, user_id: int, db: Session = Depends(get_db)):
@@ -411,7 +404,7 @@ async def toggle_user_edit(request: Request, user_id: int, db: Session = Depends
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return templates.TemplateResponse("partials/user_edit_row.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "partials/user_edit_row.html", {"user": user})
 
 @app.post("/users/{user_id}", response_class=HTMLResponse)
 async def update_user(
@@ -431,7 +424,7 @@ async def update_user(
     # Fetch the updated user from the database
     updated_user = db.query(User).filter(User.id == user_id).first()
 
-    return templates.TemplateResponse("partials/user_row.html", {"request": request, "user": updated_user})
+    return templates.TemplateResponse(request, "partials/user_row.html", {"user": updated_user})
 
 @app.delete("/users/{user_id}", response_class=HTMLResponse)
 async def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
@@ -447,15 +440,15 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login(request: Request, db: Session = Depends(get_db)):
     if admin_exists(db):
-        return templates.TemplateResponse("admin_login.html", {"request": request})
+        return templates.TemplateResponse(request, "admin_login.html", {})
     else:
-        return templates.TemplateResponse("set_admin.html", {"request": request})
+        return templates.TemplateResponse(request, "set_admin.html", {})
 
 @app.post("/admin_login")
 async def process_admin_login(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
     admin = db.query(User).filter(User.email == email, User.is_admin == True).first()
     if not admin:
-        return templates.TemplateResponse("admin_login.html", {"request": request, "error": "Invalid admin email"})
+        return templates.TemplateResponse(request, "admin_login.html", {"error": "Invalid admin email"})
 
     token = secrets.token_urlsafe(32)
     admin.login_token = token
@@ -465,7 +458,7 @@ async def process_admin_login(request: Request, email: str = Form(...), db: Sess
     login_url = f"{request.base_url}admin_verify/{token}"
     send_email("login@ericmjl.com", email, "ericmjl@hey.com", "Admin Login Link", f"Click here to log in as admin: {login_url}")
 
-    return templates.TemplateResponse("admin_login_sent.html", {"request": request})
+    return templates.TemplateResponse(request, "admin_login_sent.html", {})
 
 @app.post("/set_admin")
 async def set_admin(request: Request, email: str = Form(...), db: Session = Depends(get_db)):

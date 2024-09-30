@@ -3,43 +3,48 @@ from sqlalchemy.orm import Session
 from shortmail.models import User
 from shortmail.utils import ensure_correct_vanity_name, generate_vanity_name
 
-def test_ensure_correct_vanity_name(db_session: Session):
-    """
-    Test the ensure_correct_vanity_name function.
+def test_ensure_correct_vanity_name(db: Session):
+    # Create a paid user with a custom vanity name
+    paid_user = User(email="paid@example.com", vanity_name="custom_name", is_paid=True)
+    db.add(paid_user)
 
-    This test covers the following scenarios:
-    1. Unpaid user with incorrect vanity name
-    2. Unpaid user with correct vanity name
-    3. Paid user with custom vanity name
+    # Create a non-paid user with a generated vanity name
+    non_paid_user = User(email="non_paid@example.com", vanity_name=generate_vanity_name("non_paid@example.com"), is_paid=False)
+    db.add(non_paid_user)
 
-    :param db_session: The database session to use for the test.
-    """
-    # Create test users with unique vanity names
-    unpaid_user_incorrect = User(email="unpaid1@example.com", is_paid=False, vanity_name=generate_vanity_name("unpaid1@example.com"))
-    unpaid_user_correct = User(email="unpaid2@example.com", is_paid=False, vanity_name=generate_vanity_name("unpaid2@example.com"))
-    paid_user = User(email="paid@example.com", is_paid=True, vanity_name="custom2")
+    # Create a non-paid user without a vanity name
+    new_user = User(email="new@example.com", is_paid=False)
+    db.add(new_user)
 
-    db_session.add_all([unpaid_user_incorrect, unpaid_user_correct, paid_user])
-    db_session.commit()
+    db.commit()
 
-    # Test unpaid user with incorrect vanity name
-    ensure_correct_vanity_name(unpaid_user_incorrect, db_session)
-    assert unpaid_user_incorrect.vanity_name == generate_vanity_name("unpaid1@example.com")
+    # Test that the function doesn't change a paid user's vanity name
+    ensure_correct_vanity_name(paid_user, db)
+    assert paid_user.vanity_name == "custom_name"
 
-    # Test unpaid user with correct vanity name
-    original_vanity = unpaid_user_correct.vanity_name
-    ensure_correct_vanity_name(unpaid_user_correct, db_session)
-    assert unpaid_user_correct.vanity_name == original_vanity
+    # Test that the function doesn't change a non-paid user's correct vanity name
+    original_vanity = non_paid_user.vanity_name
+    ensure_correct_vanity_name(non_paid_user, db)
+    assert non_paid_user.vanity_name == original_vanity
 
-    # Test paid user with custom vanity name
-    ensure_correct_vanity_name(paid_user, db_session)
-    assert paid_user.vanity_name == "custom2"
+    # Test that the function sets a vanity name for a user without one
+    ensure_correct_vanity_name(new_user, db)
+    assert new_user.vanity_name == generate_vanity_name(new_user.email)
 
-    # Clean up
-    db_session.delete(unpaid_user_incorrect)
-    db_session.delete(unpaid_user_correct)
-    db_session.delete(paid_user)
-    db_session.commit()
+    # Test that the function changes an incorrect vanity name for a non-paid user
+    non_paid_user.vanity_name = "incorrect_name"
+    db.commit()
+    ensure_correct_vanity_name(non_paid_user, db)
+    assert non_paid_user.vanity_name == generate_vanity_name(non_paid_user.email)
+
+def test_generate_vanity_name():
+    # Test the generate_vanity_name function
+    email = "test.user@example.com"
+    vanity_name = generate_vanity_name(email)
+    assert isinstance(vanity_name, str)
+    assert len(vanity_name) > 0
+
+# Add more tests for other utility functions as needed
 
 import pytest
 from unittest.mock import patch, MagicMock

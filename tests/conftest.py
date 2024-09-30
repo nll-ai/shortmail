@@ -1,22 +1,42 @@
 import pytest
-from sqlalchemy import create_engine
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
-from shortmail.models import Base
+from shortmail.models import Base, User  # Make sure User is imported
+from shortmail.app.main import app, get_db
+
+# Use an in-memory SQLite database for testing
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @pytest.fixture(scope="function")
-def db_session():
-    # Create an in-memory SQLite database for testing
-    engine = create_engine("sqlite:///:memory:")
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-    # Create all tables in the test database
+def db():
     Base.metadata.create_all(bind=engine)
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
 
-    # Create a new session for the test
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        # Drop all tables after the test
-        Base.metadata.drop_all(bind=engine)
+    # Debug: Print table names
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    print(f"Tables created: {table_names}")
+
+    yield session
+
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+@pytest.fixture(scope="function")
+def client(db):
+    def override_get_db():
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    del app.dependency_overrides[get_db]

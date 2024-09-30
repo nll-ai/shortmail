@@ -2,6 +2,10 @@ from fastapi.testclient import TestClient
 from shortmail.app.main import app, get_current_user
 from shortmail.models import User, SubjectHeading, FAQ
 from unittest.mock import patch, MagicMock
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from datetime import timezone
+from sqlalchemy import inspect
 
 client = TestClient(app)
 
@@ -68,3 +72,66 @@ def test_dashboard_unauthenticated():
 
     # Remove the dependency override after the test
     app.dependency_overrides.clear()
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+from shortmail.models import User
+from datetime import datetime, timedelta, timezone
+
+@pytest.mark.usefixtures("client")
+def test_verify_login(client: TestClient, db: Session):
+    # Debug: Print table names before adding the user
+    inspector = inspect(db.bind)
+    table_names = inspector.get_table_names()
+    print(f"Tables before adding user: {table_names}")
+
+    # Create a test user with a valid login token
+    test_user = User(
+        email="test@example.com",
+        login_token="valid_token",
+        token_expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1)
+    )
+    db.add(test_user)
+    db.commit()
+
+    # Debug: Print table names after adding the user
+    table_names = inspector.get_table_names()
+    print(f"Tables after adding user: {table_names}")
+
+    # Debug: Check if the user was actually added
+    users = db.query(User).all()
+    print(f"Users in database: {users}")
+
+    # Test with valid token
+    response = client.get("/login/valid_token", follow_redirects=False)
+    print(f"Response status code: {response.status_code}")
+    print(f"Response headers: {response.headers}")
+
+    assert response.status_code == 307  # Expect a temporary redirect
+    assert response.headers["location"] == "/dashboard"
+
+    # Retrieve the user from the database again
+    updated_user = db.query(User).filter(User.email == "test@example.com").first()
+
+    # Verify that the token and expiry are cleared
+    assert updated_user.login_token is None
+    assert updated_user.token_expiry is None
+
+    # Test with invalid token
+    response = client.get("/login/invalid_token")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired token"
+
+    # Test with expired token
+    expired_user = User(
+        email="expired@example.com",
+        login_token="expired_token",
+        token_expiry=datetime.now(tz=timezone.utc) - timedelta(hours=1)
+    )
+    db.add(expired_user)
+    db.commit()
+
+    response = client.get("/login/expired_token")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired token"

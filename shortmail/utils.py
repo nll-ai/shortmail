@@ -151,6 +151,7 @@ def ensure_correct_vanity_name(user: User, db: Session) -> None:
         if user.vanity_name != generated_vanity_name:
             user.vanity_name = generated_vanity_name
             db.commit()
+    # If the user is paid, we don't change their vanity name
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
