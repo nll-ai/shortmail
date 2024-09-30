@@ -1,58 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send ShortMail to {{ user.display_name }}</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-</head>
-<body>
-    <div class="container">
-        <h1>Send ShortMail to {{ user.display_name }}</h1>
+{% extends "base.html" %}
 
-        <div class="faqs">
-            <h2>Frequently Asked Questions</h2>
-            {% for faq in faqs %}
-                <div class="faq-item">
-                    <div class="faq-content">
-                        <h4>{{ faq.question }}</h4>
-                        <div>{{ faq.answer_html | safe }}</div>
-                    </div>
+{% block title %}Send ShortMail to {{ user.display_name }}{% endblock %}
+
+{% block content %}
+    <h1>Send ShortMail to {{ user.display_name }}</h1>
+
+    <div class="faqs">
+        <h2>Frequently Asked Questions</h2>
+        {% for faq in faqs %}
+            <div class="faq-item">
+                <div class="faq-content">
+                    <h4>{{ faq.question }}</h4>
+                    <div>{{ faq.answer_html | safe }}</div>
                 </div>
-            {% else %}
-                <p>No FAQs available.</p>
-            {% endfor %}
+            </div>
+        {% else %}
+            <p>No FAQs available.</p>
+        {% endfor %}
+    </div>
+
+    <h2>Send a Message</h2>
+    <p>If your question isn't answered in the FAQ above, please feel free to send a message:</p>
+    <form action="/send/{{ user.vanity_name }}" method="post">
+        <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
+        <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
+
+        <div class="reply-option">
+            <p>Would you like {{ user.display_name }} to reply?</p>
+            <label>
+                <input type="radio" name="reply_needed" value="yes" required> Yes
+            </label>
+            <label>
+                <input type="radio" name="reply_needed" value="no" required checked> No
+            </label>
         </div>
 
-        <h2>Send a Message</h2>
-        <p>If your question isn't answered in the FAQ above, please feel free to send a message:</p>
-        <form action="/send/{{ user.vanity_name }}" method="post">
-            <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
-            <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
-
-            <div class="reply-option">
-                <p>Reply needed?</p>
-                <label>
-                    <input type="radio" name="reply_needed" value="yes" required> Yes
-                </label>
-                <label>
-                    <input type="radio" name="reply_needed" value="no" required checked> No
-                </label>
-            </div>
-
-            <select name="subject" id="subject-select" required>
-                <option value="">Select a subject</option>
-                {% for heading in subject_headings %}
-                    <option value="{{ heading.heading }}">{{ heading.heading }}</option>
-                {% endfor %}
-                <option value="OTHER">OTHER</option>
-            </select>
-            <input type="text" id="custom-subject" name="custom_subject" placeholder="Enter custom subject">
-            <textarea name="message" id="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
-            <div id="char-count">0 / 500</div>
-            <input type="submit" value="Send ShortMail">
-        </form>
-    </div>
+        <select name="subject" id="subject-select" required>
+            <option value="">Select a subject</option>
+            {% for heading in subject_headings %}
+                <option value="{{ heading.heading }}">{{ heading.heading }}</option>
+            {% endfor %}
+            <option value="OTHER">OTHER</option>
+        </select>
+        <input type="text" id="custom-subject" name="custom_subject" placeholder="Enter custom subject">
+        <textarea name="message" id="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
+        <div id="char-count">0 / 500</div>
+        <input type="submit" value="Send ShortMail">
+    </form>
 
     <script>
         document.getElementById('subject-select').addEventListener('change', function() {
@@ -81,5 +75,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}
