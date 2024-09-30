@@ -1,3 +1,4 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -5,6 +6,7 @@ body {
     padding: 20px;
     background-color: #f4f4f4;
 }
+
 .container {
     max-width: 800px;
     margin: auto;
@@ -13,12 +15,22 @@ body {
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
+
 h1, h2 {
     color: #333;
+    margin-bottom: 20px;
 }
+
+p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Form Styles */
 form {
     margin-bottom: 20px;
 }
+
 textarea, input[type="text"], input[type="email"], select {
     width: 100%;
     padding: 10px;
@@ -27,25 +39,38 @@ textarea, input[type="text"], input[type="email"], select {
     border-radius: 4px;
     box-sizing: border-box;
 }
+
 textarea {
     height: 100px;
     resize: vertical;
 }
-input[type="submit"] {
+
+input[type="submit"], .button-primary {
     background-color: #4CAF50;
     color: white;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
 }
-input[type="submit"]:hover {
+
+input[type="submit"]:hover, .button-primary:hover {
     background-color: #45a049;
 }
+
+input[readonly] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+/* List Styles */
 ul {
     list-style-type: none;
     padding: 0;
 }
+
 li {
     background: #f9f9f9;
     border: 1px solid #ddd;
@@ -53,18 +78,34 @@ li {
     padding: 10px;
     border-radius: 4px;
 }
-.logout {
-    display: block;
+
+/* Logout Styles */
+.logout-container {
     margin-top: 20px;
-    color: #666;
-    text-decoration: none;
+    text-align: center;
 }
-.logout:hover {
+
+.logout, .logout-button {
+    display: inline-block;
+    margin-top: 20px;
+    color: white;
+    text-decoration: none;
+    background-color: #f44336;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.logout:hover, .logout-button:hover {
+    background-color: #d32f2f;
     text-decoration: underline;
 }
+
+/* Subject Headings and FAQs */
 .subject-headings, .faqs {
     margin-top: 20px;
 }
+
 .subject-heading, .faq-item {
     display: flex;
     justify-content: space-between;
@@ -75,31 +116,69 @@ li {
     padding: 5px 10px;
     border-radius: 4px;
 }
+
 .faq-content {
     flex-grow: 1;
     margin-right: 10px;
 }
+
 .faq-content h4 {
     margin-top: 0;
     margin-bottom: 5px;
 }
+
 .faq-content p {
     margin: 0;
 }
-.remove-heading, .remove-faq {
+
+.remove-heading, .remove-faq, .edit-faq {
     background-color: #ff4d4d;
     color: white;
     border: none;
     padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 12px;
 }
-.remove-heading:hover, .remove-faq:hover {
+
+.remove-heading:hover, .remove-faq:hover, .edit-faq:hover {
     background-color: #ff3333;
 }
+
+.faq-item {
+    position: relative;
+    padding-right: 150px;
+    margin-bottom: 20px;
+}
+
+.faq-actions {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.faq-actions form,
+.faq-actions button {
+    margin: 0;
+}
+
+.remove-faq,
+.edit-faq {
+    height: 30px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+/* Custom Subject */
 #custom-subject {
     display: none;
 }
+
+/* Character Count */
 #char-count {
     text-align: right;
     font-size: 0.9em;
@@ -107,9 +186,12 @@ li {
     margin-top: -10px;
     margin-bottom: 10px;
 }
+
 .over-limit {
     color: #f44336;
 }
+
+/* FAQ Section */
 .faq-section {
     margin-bottom: 30px;
     border: 1px solid #ddd;
@@ -117,26 +199,29 @@ li {
     padding: 20px;
     background-color: #f9f9f9;
 }
-.faq-item {
-    margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
-}
+
 .faq-question {
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
+
 .faq-answer {
     margin-left: 20px;
     color: #666;
 }
+
+/* Messages */
 .success {
     color: #4CAF50;
 }
+
 .error {
     color: #f44336;
+    margin-top: 10px;
 }
+
+/* Reply Options */
 .reply-option {
     margin-bottom: 15px;
 }
@@ -149,11 +234,7 @@ li {
     margin-right: 15px;
 }
 
-/* Add this to the end of your existing CSS */
-.logout-container {
-    margin-top: 20px;
-}
-
+/* URL Box */
 .url-box {
     display: flex;
     margin-bottom: 20px;
@@ -184,17 +265,18 @@ li {
     background-color: #45a049;
 }
 
+/* Share URL */
 .share-url-container {
     position: relative;
-    margin-bottom: 30px; /* Increased margin to separate from the profile setup */
-    margin-top: 40px; /* Adds space above the URL section */
+    margin-bottom: 30px;
+    margin-top: 40px;
 }
 
 .share-url {
     background: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 10px 40px 10px 10px; /* Increased right padding for button */
+    padding: 10px 40px 10px 10px;
     font-size: 14px;
     word-break: break-all;
 }
@@ -224,6 +306,7 @@ li {
     transition: all 0.3s ease;
 }
 
+/* Analytics Link */
 .analytics-link {
     margin-bottom: 20px;
 }
@@ -235,12 +318,14 @@ li {
     padding: 10px 15px;
     text-decoration: none;
     border-radius: 4px;
+    margin-top: 20px;
 }
 
 .button-link:hover {
     background-color: #45a049;
 }
 
+/* Upgrade Message */
 .upgrade-message {
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -248,7 +333,7 @@ li {
     padding: 20px;
     margin-bottom: 20px;
     text-align: center;
-    font-size: 0.8em;
+    font-size: 0.9em;
     color: #666;
     margin-top: 5px;
 }
@@ -258,44 +343,36 @@ li {
     margin-bottom: 10px;
 }
 
+/* Back Link */
 .back-link {
     margin-top: 20px;
     text-align: center;
 }
 
+/* Info Boxes */
 .info-boxes {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    gap: 20px; /* This adds space between the boxes */
+    gap: 20px;
 }
 
 .info-box {
-    flex-basis: calc(50% - 10px); /* Adjust the width to account for the gap */
+    flex-basis: calc(50% - 10px);
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
     border-radius: 4px;
-    padding: 20px; /* Increased padding inside the boxes */
+    padding: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .info-box h3 {
     color: #4CAF50;
     margin-top: 0;
-    margin-bottom: 15px; /* Add some space below the heading */
+    margin-bottom: 15px;
 }
 
-@media (max-width: 768px) {
-    .info-boxes {
-        flex-direction: column;
-    }
-
-    .info-box {
-        flex-basis: 100%;
-        margin-bottom: 20px; /* Increased margin for mobile view */
-    }
-}
-
+/* Two Column Form */
 .two-column-form {
     display: flex;
     justify-content: space-between;
@@ -314,32 +391,12 @@ li {
 
 .form-column input[type="submit"] {
     padding: 8px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
 }
 
-.upgrade-message {
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 5px;
-}
-
-@media (max-width: 600px) {
-    .form-row {
-        flex-direction: column;
-    }
-}
-
-input[readonly] {
-    background-color: #f0f0f0;
-    cursor: not-allowed;
-}
-
+/* Profile Setup */
 .profile-setup {
-    margin-bottom: 30px; /* Increased margin to separate from the analytics link */
-    margin-top: 40px; /* Adds space above the profile section */
+    margin-bottom: 30px;
+    margin-top: 40px;
 }
 
 .profile-setup .two-column-form {
@@ -349,7 +406,7 @@ input[readonly] {
 
 .profile-setup .form-column {
     flex: 1;
-    min-width: 0; /* Allows flex items to shrink below content size */
+    min-width: 0;
 }
 
 .profile-setup form {
@@ -371,91 +428,8 @@ input[readonly] {
     align-self: flex-start;
 }
 
-.profile-setup .upgrade-message {
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 5px;
-}
-
-@media (max-width: 768px) {
-    .profile-setup .two-column-form {
-        flex-direction: column;
-    }
-}
-
-/* Ensure the faq-actions container is flex to align items */
-.faq-actions {
-    display: flex;
-    align-items: center;
-    gap: 5px; /* Add some space between the buttons */
-}
-
-/* Example CSS for the remove-faq button */
-.remove-faq {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
-    margin-left: 5px;
-}
-
-.remove-faq:hover {
-    background-color: #ff1a1a;
-}
-
-/* Add styles for Edit and Delete buttons */
-button.edit-button, button.delete-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 5px;
-}
-
-button.edit-button:hover, button.delete-button:hover {
-    background-color: #45a049;
-}
-
-button.delete-button {
-    background-color: #ff4d4d;
-}
-
-button.delete-button:hover {
-    background-color: #ff1a1a;
-}
-
-/* Add styles for the table */
+/* Table Styles */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-table th, table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-table th {
-    background-color: #f2f2f2;
-    color: #333;
-}
-
-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-table tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Table styles for manage_users page */
-.manage-users-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
@@ -463,33 +437,32 @@ table tr:hover {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.manage-users-table th,
-.manage-users-table td {
+table th, table td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
 
-.manage-users-table th {
+table th {
     background-color: #f2f2f2;
     color: #333;
     font-weight: bold;
 }
 
-.manage-users-table tr:nth-child(even) {
+table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.manage-users-table tr:hover {
+table tr:hover {
     background-color: #f5f5f5;
 }
 
-/* Button styles for manage_users page */
-.manage-users-table .edit-button,
-.manage-users-table .delete-button,
-.manage-users-table .save-button,
-.manage-users-table .cancel-button,
-.manage-users-table button[type="submit"] {
+/* Button Styles for Tables */
+table .edit-button,
+table .delete-button,
+table .save-button,
+table .cancel-button,
+table button[type="submit"] {
     padding: 8px 12px;
     border: none;
     border-radius: 4px;
@@ -499,51 +472,34 @@ table tr:hover {
     color: white;
 }
 
-.manage-users-table .edit-button,
-.manage-users-table .save-button {
+table .edit-button,
+table .save-button {
     background-color: #4CAF50;
 }
 
-.manage-users-table .edit-button:hover,
-.manage-users-table .save-button:hover {
+table .edit-button:hover,
+table .save-button:hover {
     background-color: #45a049;
 }
 
-.manage-users-table .delete-button,
-.manage-users-table .cancel-button {
+table .delete-button,
+table .cancel-button {
     background-color: #f44336;
 }
 
+table .delete-button:hover,
+table .cancel-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Admin Controls */
 .admin-controls {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
 }
 
-.logout-container {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.logout-button {
-    background-color: #f44336;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.logout-button:hover {
-    background-color: #d32f2f;
-}
-
-/* Add these styles to your existing CSS file */
-
+/* Form Group */
 .form-group {
     margin-bottom: 15px;
 }
@@ -553,92 +509,26 @@ table tr:hover {
     margin-bottom: 5px;
 }
 
-.button-primary {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.button-primary:hover {
-    background-color: #45a049;
-}
-
-.error {
-    color: #f44336;
-    margin-top: 10px;
-}
-
-.button-link {
-    display: inline-block;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 4px;
-    margin-top: 20px;
-}
-
-.button-link:hover {
-    background-color: #45a049;
-}
-
-/* Add these styles to your existing CSS file */
-
+/* Button Container */
 .button-container {
     margin-top: 20px;
     text-align: center;
 }
 
-.button-primary {
-    display: inline-block;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: background-color 0.3s;
+/* Media Queries */
+@media (max-width: 768px) {
+    .info-boxes, .profile-setup .two-column-form {
+        flex-direction: column;
+    }
+
+    .info-box, .profile-setup .form-column {
+        flex-basis: 100%;
+        margin-bottom: 20px;
+    }
 }
 
-.button-primary:hover {
-    background-color: #45a049;
-    text-decoration: none;
-}
-
-/* Ensure consistent paragraph styling */
-p {
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-/* Add or update these styles */
-.button-container {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.button-primary {
-    display: inline-block;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-.button-primary:hover {
-    background-color: #45a049;
-}
-
-h1 {
-    margin-bottom: 20px;
-}
-
-p {
-    margin-bottom: 10px;
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+    }
 }
