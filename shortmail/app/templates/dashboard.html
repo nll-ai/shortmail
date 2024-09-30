@@ -1,127 +1,120 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShortMail Dashboard</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="/static/js/dashboard.js" defer></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to your ShortMail Dashboard, {{ user.email }}</h1>
+{% extends "base.html" %}
 
-        <div class="analytics-link">
-            <a href="/analytics" class="button-link">View Analytics</a>
-        </div>
+{% block title %}ShortMail Dashboard{% endblock %}
 
-        <h2>Configure Your ShortMail Landing Page</h2>
-        {% if can_add_subject %}
-            <form action="/add_subject_heading" method="post">
-                <input type="text" name="heading" required placeholder="Add a new subject heading">
-                <input type="submit" value="Add Heading">
-            </form>
+{% block content %}
+    <h2>Welcome to your ShortMail Dashboard, {{ user.email }}</h2>
+
+    <div class="analytics-link">
+        <a href="/analytics" class="button-link">View Analytics</a>
+    </div>
+
+    <h2>Configure Your ShortMail Landing Page</h2>
+    {% if can_add_subject %}
+        <form action="/add_subject_heading" method="post">
+            <input type="text" name="heading" required placeholder="Add a new subject heading">
+            <input type="submit" value="Add Heading">
+        </form>
+    {% else %}
+        <p>You've reached the maximum number of subject headings for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
+    {% endif %}
+
+    <div class="subject-headings">
+        <h3>Your Subject Headings</h3>
+        {% for heading in subject_headings %}
+            <div class="subject-heading">
+                <span>{{ heading.heading }}</span>
+                <form action="/remove_subject_heading/{{ heading.id }}" method="post">
+                    <button type="submit" class="remove-heading">Remove</button>
+                </form>
+            </div>
         {% else %}
-            <p>You've reached the maximum number of subject headings for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
-        {% endif %}
+            <p>No subject headings configured yet.</p>
+        {% endfor %}
+    </div>
 
-        <div class="subject-headings">
-            <h3>Your Subject Headings</h3>
-            {% for heading in subject_headings %}
-                <div class="subject-heading">
-                    <span>{{ heading.heading }}</span>
-                    <form action="/remove_subject_heading/{{ heading.id }}" method="post">
-                        <button type="submit" class="remove-heading">Remove</button>
-                    </form>
+    <h2>Manage Your FAQs</h2>
+    {% if can_add_faq %}
+        <form action="/add_faq" method="post">
+            <input type="text" name="question" required placeholder="Question">
+            <textarea name="answer" required placeholder="Answer"></textarea>
+            <input type="submit" value="Add FAQ">
+        </form>
+    {% else %}
+        <p>You've reached the maximum number of FAQs for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
+    {% endif %}
+
+    <div class="faqs">
+        <h3>Your FAQs</h3>
+        {% for faq in faqs %}
+            <div class="faq-item" data-faq-id="{{ faq.id }}">
+                <div class="faq-content">
+                    <h4 class="faq-question">{{ faq.question }}</h4>
+                    <p class="faq-answer">{{ faq.answer_html | safe }}</p>
                 </div>
-            {% else %}
-                <p>No subject headings configured yet.</p>
-            {% endfor %}
-        </div>
-
-        <h2>Manage Your FAQs</h2>
-        {% if can_add_faq %}
-            <form action="/add_faq" method="post">
-                <input type="text" name="question" required placeholder="Question">
-                <textarea name="answer" required placeholder="Answer"></textarea>
-                <input type="submit" value="Add FAQ">
-            </form>
-        {% else %}
-            <p>You've reached the maximum number of FAQs for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
-        {% endif %}
-
-        <div class="faqs">
-            <h3>Your FAQs</h3>
-            {% for faq in faqs %}
-                <div class="faq-item" data-faq-id="{{ faq.id }}">
-                    <div class="faq-content">
-                        <h4 class="faq-question">{{ faq.question }}</h4>
-                        <p class="faq-answer">{{ faq.answer_html | safe }}</p>
-                    </div>
+                <div class="faq-actions">
+                    <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
+                        <button type="submit" class="remove-faq">Remove</button>
+                    </form>
+                    <button class="edit-faq remove-faq">Edit</button>
+                </div>
+                <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form" style="display: none;">
+                    <input type="text" name="question" value="{{ faq.question }}" required>
+                    <textarea name="answer" required>{{ faq.answer_text }}</textarea>
                     <div class="faq-actions">
-                        <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
-                            <button type="submit" class="remove-faq">Remove</button>
-                        </form>
-                        <button class="edit-faq remove-faq">Edit</button>
+                        <button type="submit" class="remove-faq">Save</button>
+                        <button type="button" class="cancel-edit remove-faq">Cancel</button>
                     </div>
-                    <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form" style="display: none;">
-                        <input type="text" name="question" value="{{ faq.question }}" required>
-                        <textarea name="answer" required>{{ faq.answer_text }}</textarea>
-                        <div class="faq-actions">
-                            <button type="submit" class="remove-faq">Save</button>
-                            <button type="button" class="cancel-edit remove-faq">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            {% else %}
-                <p>No FAQs added yet.</p>
-            {% endfor %}
-        </div>
+                </form>
+            </div>
+        {% else %}
+            <p>No FAQs added yet.</p>
+        {% endfor %}
+    </div>
 
-        <!-- Moved sections start here -->
-        <h2>Your ShortMail Landing Page URL</h2>
-        <p>Share this URL with others to let them send you ShortMail:</p>
-        <div class="share-url-container">
-            <div class="share-url"><a href="{{ request.base_url }}send/{{ user.vanity_name or '' }}">{{ request.base_url }}send/{{ user.vanity_name or '' }}</a></div>
-            <button id="copy-button" class="copy-button" title="Copy URL">
-                <i class="fas fa-copy"></i>
-            </button>
-        </div>
+    <h2>Your ShortMail Landing Page URL</h2>
+    <p>Share this URL with others to let them send you ShortMail:</p>
+    <div class="share-url-container">
+        <div class="share-url"><a href="{{ request.base_url }}send/{{ user.vanity_name or '' }}">{{ request.base_url }}send/{{ user.vanity_name or '' }}</a></div>
+        <button id="copy-button" class="copy-button" title="Copy URL">
+            <i class="fas fa-copy"></i>
+        </button>
+    </div>
 
-        <div class="profile-setup">
-            <h2>Your ShortMail Profile</h2>
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
-            <div class="two-column-form">
-                <div class="form-column">
-                    <h3>Vanity Name</h3>
-                    <form action="/update_vanity_name" method="post">
-                        <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
-                        <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
-                        {% if not user.is_paid %}
-                            <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
-                        {% else %}
-                            <input type="submit" value="Update Vanity Name">
-                        {% endif %}
-                    </form>
-                </div>
-                <div class="form-column">
-                    <h3>Display Name</h3>
-                    <form action="/update_display_name" method="post">
-                        <label for="display_name">Your display name:</label>
-                        <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
-                        <input type="submit" value="Update Display Name">
-                    </form>
-                </div>
+    <div class="profile-setup">
+        <h2>Your ShortMail Profile</h2>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <div class="two-column-form">
+            <div class="form-column">
+                <h3>Vanity Name</h3>
+                <form action="/update_vanity_name" method="post">
+                    <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
+                    <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
+                    {% if not user.is_paid %}
+                        <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
+                    {% else %}
+                        <input type="submit" value="Update Vanity Name">
+                    {% endif %}
+                </form>
+            </div>
+            <div class="form-column">
+                <h3>Display Name</h3>
+                <form action="/update_display_name" method="post">
+                    <label for="display_name">Your display name:</label>
+                    <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
+                    <input type="submit" value="Update Display Name">
+                </form>
             </div>
         </div>
-        <!-- Moved sections end here -->
-
-        <div class="logout-container">
-            <a href="/logout" class="logout">Logout</a>
-        </div>
     </div>
-</body>
-</html>
+
+    <div class="logout-container">
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="/static/js/dashboard.js" defer></script>
+{% endblock %}
