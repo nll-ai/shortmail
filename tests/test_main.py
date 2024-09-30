@@ -1,11 +1,12 @@
 from fastapi.testclient import TestClient
 from shortmail.app.main import app, get_current_user
 from shortmail.models import User, SubjectHeading, FAQ
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from datetime import timezone
 from sqlalchemy import inspect
+from sqlalchemy.sql import Select
 
 client = TestClient(app)
 

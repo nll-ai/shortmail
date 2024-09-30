@@ -86,7 +86,7 @@ async def login(request: Request, email: str = Form(...), db: Session = Depends(
 
     token = secrets.token_urlsafe(32)
     user.login_token = token
-    user.token_expiry = datetime.utcnow() + timedelta(hours=1)
+    user.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
     db.commit()
 
     login_url = f"{request.base_url}login/{token}"
