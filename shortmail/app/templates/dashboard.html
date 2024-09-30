@@ -6,6 +6,7 @@
     <title>ShortMail Dashboard</title>
     <link rel="stylesheet" href='/static/styles.css'>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="/static/js/dashboard.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -122,58 +123,5 @@
             <a href="/logout" class="logout">Logout</a>
         </div>
     </div>
-
-    <script>
-        document.getElementById('copy-button').addEventListener('click', function() {
-            var shareUrl = document.querySelector('.share-url a').href;  // Get the full URL
-            var tempInput = document.createElement('input');
-            tempInput.value = shareUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-
-            try {
-                var successful = document.execCommand('copy');
-                var msg = successful ? 'successful' : 'unsuccessful';
-                console.log('Copying text command was ' + msg);
-
-                if (successful) {
-                    const icon = this.querySelector('i');
-                    icon.classList.remove('fa-copy');
-                    icon.classList.add('fa-check');
-                    this.classList.add('copied');
-
-                    setTimeout(() => {
-                        icon.classList.remove('fa-check');
-                        icon.classList.add('fa-copy');
-                        this.classList.remove('copied');
-                    }, 2000);
-                } else {
-                    console.error('Failed to copy');
-                }
-            } catch (err) {
-                console.error('Oops, unable to copy', err);
-            }
-
-            document.body.removeChild(tempInput);
-        });
-
-        document.querySelectorAll('.edit-faq').forEach(button => {
-            button.addEventListener('click', function() {
-                const faqItem = this.closest('.faq-item');
-                faqItem.querySelector('.faq-content').style.display = 'none';
-                faqItem.querySelector('.remove-faq-form').style.display = 'none';
-                faqItem.querySelector('.edit-faq-form').style.display = 'block';
-            });
-        });
-
-        document.querySelectorAll('.cancel-edit').forEach(button => {
-            button.addEventListener('click', function() {
-                const faqItem = this.closest('.faq-item');
-                faqItem.querySelector('.faq-content').style.display = 'block';
-                faqItem.querySelector('.remove-faq-form').style.display = 'block';
-                faqItem.querySelector('.edit-faq-form').style.display = 'none';
-            });
-        });
-    </script>
 </body>
 </html>
