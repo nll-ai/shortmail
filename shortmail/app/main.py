@@ -15,14 +15,16 @@ from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import IntegrityError
 
 from shortmail.models import Base, User, SubjectHeading, FAQ, get_db, engine
-from shortmail.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists, ensure_correct_vanity_name
+from shortmail.utils import generate_vanity_name, send_email, migrate_users_vanity_names, admin_exists, ensure_correct_vanity_name, get_current_user
 
 load_dotenv()
 
+from pyprojroot import here
+
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
-templates = Jinja2Templates(directory="app/templates")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory=here() / "shortmail" / "app" / "templates")
+app.mount("/static", StaticFiles(directory=here() / "shortmail" / "app" / "static"), name="static")
 
 def run_migrations(engine):
     inspector = inspect(engine)
@@ -106,39 +108,21 @@ async def verify_login(request: Request, token: str, db: Session = Depends(get_d
     return RedirectResponse(url="/dashboard")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(
-    request: Request,
-    vanity_name: str = Form(None),
-    display_name: str = Form(None),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+async def dashboard(request: Request, current_user: User = Depends(get_current_user)):
+    print("Current user:", current_user)  # Keep this debug line
     if not current_user:
-        return RedirectResponse(url="/")
+        print("Redirecting to home page")  # Add this debug line
+        return RedirectResponse(url="/", status_code=303)
 
-    if request.method == "POST":
-        if not display_name:
-            return templates.TemplateResponse("dashboard.html", {
-                "request": request,
-                "user": current_user,
-                "error": "Display name is required."
-            })
-
-        try:
-            if current_user.is_paid and vanity_name:
-                current_user.vanity_name = vanity_name
-            current_user.display_name = display_name
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            return templates.TemplateResponse("dashboard.html", {
-                "request": request,
-                "user": current_user,
-                "error": "This vanity name is already taken. Please choose another."
-            })
-
+    db = next(get_db())
     subject_headings = db.query(SubjectHeading).filter(SubjectHeading.user_id == current_user.id).all()
     faqs = db.query(FAQ).filter(FAQ.user_id == current_user.id).all()
+
+    # Print data for debugging
+    print("User:", current_user)
+    print("Is paid:", current_user.is_paid)
+    print("Subject headings:", subject_headings)
+    print("FAQs:", faqs)
 
     for faq in faqs:
         faq.answer_html = markdown.markdown(faq.answer)
