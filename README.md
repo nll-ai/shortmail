@@ -4,17 +4,25 @@ A simple web application inspired by Dan Ariely's ShortWhale, built with FastAPI
 
 ## Setup
 
-1. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+Install pixi if you haven't already:
 
-2. Run the application:
-   ```
-   uvicorn app.main:app --reload
-   ```
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+```
 
-3. Open your browser and navigate to `http://localhost:8000`
+Initialize the project environment:
+
+```bash
+pixi install
+```
+
+Run the application:
+
+```bash
+pixi run app
+```
+
+Open your browser and navigate to `http://localhost:7196`
 
 ## Features
 
