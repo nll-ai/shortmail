@@ -1,30 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Users</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Manage Users</h1>
-        <table class="manage-users-table">
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Vanity Name</th>
-                    <th>Paid</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="user-table-body" hx-get="/users" hx-trigger="load">
-                <!-- User list will be loaded here -->
-            </tbody>
-        </table>
+{% extends "base.html" %}
 
-        <!-- Simple text logout link at the bottom -->
+{% block title %}Manage Users - ShortMail{% endblock %}
+
+{% block extra_head %}
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+{% endblock %}
+
+{% block content %}
+    <h2>Manage Users</h2>
+    <table class="manage-users-table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Vanity Name</th>
+                <th>Paid</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body" hx-get="/users" hx-trigger="load">
+            <!-- User list will be loaded here -->
+        </tbody>
+    </table>
+
+    <!-- Simple text logout link at the bottom -->
+    <div class="logout-container">
         <a href="/logout" class="logout">Logout</a>
     </div>
-</body>
-</html>
+{% endblock %}
