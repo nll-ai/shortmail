@@ -1,22 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShortMail Result</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-</head>
-<body>
-    <div class="container">
-        <h1>ShortMail Result</h1>
-        {% if email_sent %}
-            <p class="success">Your ShortMail has been sent successfully to {{ display_name }}!</p>
-        {% else %}
-            <p class="error">There was an error sending your ShortMail. Please try again later.</p>
-        {% endif %}
-        <div>
-            <a href="/send/{{ vanity_name }}">Back to {{ display_name }}'s ShortMail</a>
-        </div>
+{% extends "base.html" %}
+
+{% block title %}ShortMail Result{% endblock %}
+
+{% block content %}
+    <h2>ShortMail Result</h2>
+    {% if email_sent %}
+        <p class="success">Your ShortMail has been sent successfully to {{ display_name }}!</p>
+    {% else %}
+        <p class="error">There was an error sending your ShortMail. Please try again later.</p>
+    {% endif %}
+    <div>
+        <a href="/send/{{ vanity_name }}">Back to {{ display_name }}'s ShortMail</a>
     </div>
-</body>
-</html>
+{% endblock %}
