@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShortMail - Login Link Sent</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-</head>
-<body>
-    <h1>Login Link Sent</h1>
+{% extends "base.html" %}
+
+{% block title %}ShortMail - Login Link Sent{% endblock %}
+
+{% block content %}
+    <h2>Login Link Sent</h2>
     <p>Please check your email for the login link. The link will expire in 1 hour.</p>
-</body>
-</html>
+{% endblock %}
