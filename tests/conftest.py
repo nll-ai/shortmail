@@ -1,33 +1,35 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from shortmail.models import Base, User  # Make sure User is imported
+from sqlalchemy.pool import StaticPool
+from shortmail.models import Base
 from shortmail.app.main import app, get_db
 
-# Use an in-memory SQLite database for testing
+# Use an in-memory SQLite database for testing with thread-local connections
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @pytest.fixture(scope="function")
 def db():
+    # Create all tables in the test database
     Base.metadata.create_all(bind=engine)
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
 
-    # Debug: Print table names
-    inspector = inspect(engine)
-    table_names = inspector.get_table_names()
-    print(f"Tables created: {table_names}")
+    # Create a new session for the test
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
+    # Drop all tables after the test
+    Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
 def client(db):
@@ -38,5 +40,6 @@ def client(db):
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    yield TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
     del app.dependency_overrides[get_db]

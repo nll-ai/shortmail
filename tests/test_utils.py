@@ -1,7 +1,7 @@
 """Tests for the utils module."""
 from sqlalchemy.orm import Session
 from shortmail.models import User
-from shortmail.utils import ensure_correct_vanity_name, generate_vanity_name
+from shortmail.utils import ensure_correct_vanity_name, generate_vanity_name, admin_exists
 
 def test_ensure_correct_vanity_name(db: Session):
     # Create a paid user with a custom vanity name
@@ -48,7 +48,7 @@ def test_generate_vanity_name():
 
 import pytest
 from unittest.mock import patch, MagicMock
-from shortmail.utils import send_email
+from shortmail.utils import send_email, admin_exists
 
 @pytest.fixture
 def mock_smtp():
@@ -125,3 +125,27 @@ def test_send_email_smtp_config(mock_smtp):
     mock_smtp.assert_called_once_with('test_host', 587)
     mock_smtp.return_value.__enter__.return_value.starttls.assert_called_once()
     mock_smtp.return_value.__enter__.return_value.login.assert_called_once_with('test_user', 'test_pass')
+
+def test_admin_exists(db: Session):
+    # Test when no admin exists
+    assert not admin_exists(db)
+
+    # Create a non-admin user
+    non_admin_user = User(email="user@example.com", is_admin=False)
+    db.add(non_admin_user)
+    db.commit()
+
+    # Test that admin still doesn't exist
+    assert not admin_exists(db)
+
+    # Create an admin user
+    admin_user = User(email="admin@example.com", is_admin=True)
+    db.add(admin_user)
+    db.commit()
+
+    # Test that admin now exists
+    assert admin_exists(db)
+
+    # Clean up
+    db.query(User).delete()
+    db.commit()
