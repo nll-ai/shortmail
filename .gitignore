@@ -180,3 +180,6 @@ pyrightconfig.json
 *.egg-info
 .env
 *.db
+
+# SQLite database
+message_log.db

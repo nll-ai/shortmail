@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from fastapi import Depends, Request
 
-from shortmail.models import User, get_db
+from shortmail.models.application import User, get_db
 
 load_dotenv()
 
@@ -29,7 +29,8 @@ def generate_vanity_name(email: str) -> str:
     """
     Generate a vanity name based on the user's email.
 
-    This function creates a SHA256 hash of the email and returns the first 6 characters of the hash.
+    This function creates a SHA256 hash of the email
+    and returns the first 6 characters of the hash.
 
     :param email: The user's email address.
     :return: A 6-character string derived from the SHA256 hash of the email.
@@ -95,9 +96,11 @@ def migrate_users_vanity_names(db: Session) -> None:
 
     :param db: The database session.
     """
-    from shortmail.models import User  # Import here to avoid circular imports
+    from shortmail.models.application import (
+        User,
+    )  # Import here to avoid circular imports
 
-    users_without_vanity = db.query(User).filter(User.vanity_name == None).all()
+    users_without_vanity = db.query(User).filter(User.vanity_name is None).all()
     for user in users_without_vanity:
         user.vanity_name = generate_vanity_name(user.email)
     db.commit()
@@ -113,7 +116,8 @@ def admin_exists(db: Session) -> bool:
     :param db: The database session.
     :return: True if an admin user exists, False otherwise.
     """
-    return db.query(User).filter(User.is_admin == True).first() is not None
+    return db.query(User).filter(User.is_admin is True).first() is not None
+
 
 def set_user_paid_status(db: Session, user_id: int, paid_status: bool) -> bool:
     """
@@ -138,6 +142,7 @@ def set_user_paid_status(db: Session, user_id: int, paid_status: bool) -> bool:
     except Exception as e:
         print(f"Error updating user paid status: {e}")
         return False
+
 
 def ensure_correct_vanity_name(user: User, db: Session) -> None:
     """

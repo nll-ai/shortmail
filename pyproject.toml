@@ -31,3 +31,20 @@ loguru = ">=0.7.2,<0.8"
 pytest = ">=8.3.3,<9"
 pyprojroot = ">=0.3.0,<0.4"
 httpx = ">=0.27.2,<0.28"
+
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+fail-under = 100
+exclude = ["setup.py", "docs", "build", "examples"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
