@@ -1,11 +1,19 @@
-<tr id="user-row-{{ user.id }}">
+<tr id="user-row-{{ user.id }}" hx-target="this" hx-swap="outerHTML">
     <td>{{ user.email }}</td>
     <td>{{ user.vanity_name }}</td>
     <td>
-        {{ "Yes" if user.is_paid else "No" }}
+        <span class="status-badge {% if user.is_paid %}status-paid{% else %}status-free{% endif %}">
+            {{ "Paid" if user.is_paid else "Free" }}
+        </span>
     </td>
-    <td>
-        <button class="edit-button" hx-get="/users/{{ user.id }}/toggle-edit" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML">Edit</button>
-        <button class="delete-button" hx-delete="/users/{{ user.id }}" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this user?">Delete</button>
+    <td class="actions-cell">
+        <button class="button button-small" hx-get="/users/{{ user.id }}/toggle-edit">
+            Edit
+        </button>
+        <button class="button button-small button-danger"
+                hx-delete="/users/{{ user.id }}"
+                hx-confirm="Are you sure you want to delete this user?">
+            Delete
+        </button>
     </td>
 </tr>

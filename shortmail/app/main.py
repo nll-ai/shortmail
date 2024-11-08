@@ -30,6 +30,7 @@ from shortmail.utils import (
 from shortmail.models.rate_limits import RateLimiter
 import re
 from pyprojroot import here
+from typing import Optional
 
 load_dotenv()
 
@@ -45,6 +46,22 @@ app.mount(
 
 rate_limiter = RateLimiter()
 DISPOSABLE_EMAILS_PATH = here() / "data" / "disposable_emails.txt"
+
+
+def get_admin_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    """Get the currently logged in admin user."""
+    admin_email = request.session.get("admin_email")
+    if not admin_email:
+        return None
+
+    return (
+        db.query(User)
+        .filter(
+            User.email == admin_email,
+            User.is_admin.is_(True),  # Fix the boolean comparison
+        )
+        .first()
+    )
 
 
 def is_disposable_email(email: str) -> bool:
@@ -754,33 +771,22 @@ async def edit_faq(
 
 
 @app.get("/manage_users", response_class=HTMLResponse)
-async def manage_users(request: Request, db: Session = Depends(get_db)):
-    """
-    Render the user management page for admin users.
-
-    This endpoint checks if the user is an authenticated admin
-    and displays a list of all users in the system.
-    Each user's vanity name is validated before display.
-
-    :param request: The incoming request object containing session data
-    :param db: The database session
-    :return: HTML response with user management page or redirect to admin login
-    """
-    admin_email = request.session.get("admin_email")
-    if not admin_email:
-        return RedirectResponse(url="/admin_login")
-
-    admin = (
-        db.query(User).filter(User.email == admin_email, User.is_admin is True).first()
-    )
-    if not admin:
-        return RedirectResponse(url="/admin_login")
+async def manage_users(
+    request: Request,
+    admin_user: Optional[User] = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Render the user management page for admin users."""
+    if not admin_user:
+        return RedirectResponse(url="/admin_login", status_code=303)
 
     users = db.query(User).all()
     for user in users:
         ensure_correct_vanity_name(user, db)
 
-    return templates.TemplateResponse(request, "manage_users.html", {"users": users})
+    return templates.TemplateResponse(
+        request, "manage_users.html", {"users": users, "admin": admin_user}
+    )
 
 
 @app.get("/users", response_class=HTMLResponse)
@@ -892,18 +898,17 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
 
 
 @app.get("/admin_login", response_class=HTMLResponse)
-async def admin_login(request: Request, db: Session = Depends(get_db)):
-    """
-    Handle admin login page requests.
+async def admin_login(
+    request: Request,
+    admin_user: Optional[User] = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Handle admin login page requests."""
+    # If already logged in as admin, redirect to manage users
+    if admin_user:
+        return RedirectResponse(url="/manage_users", status_code=303)
 
-    This endpoint checks if an admin user exists in the database.
-    If an admin exists, it displays the admin login form.
-    If no admin exists, it displays the form to set up the first admin user.
-
-    :param request: The incoming request object containing session data
-    :param db: The database session
-    :return: HTML response with either admin login or set admin template
-    """
+    # Check if any admin exists
     if admin_exists(db):
         return templates.TemplateResponse(request, "admin_login.html", {})
     else:
@@ -914,19 +919,15 @@ async def admin_login(request: Request, db: Session = Depends(get_db)):
 async def process_admin_login(
     request: Request, email: str = Form(...), db: Session = Depends(get_db)
 ):
-    """
-    Process admin login request and send login link via email.
+    """Process admin login request and send login link via email."""
+    admin = (
+        db.query(User)
+        .filter(
+            User.email == email, User.is_admin.is_(True)  # Fix the boolean comparison
+        )
+        .first()
+    )
 
-    This endpoint validates the admin email, generates a login token,
-    and sends a login link to the admin's email address.
-    The login token expires after 1 hour.
-
-    :param request: The incoming request object containing session data
-    :param email: The admin's email address
-    :param db: The database session
-    :return: HTML response with confirmation message
-    """
-    admin = db.query(User).filter(User.email == email, User.is_admin is True).first()
     if not admin:
         return templates.TemplateResponse(
             request, "admin_login.html", {"error": "Invalid admin email"}
@@ -934,7 +935,7 @@ async def process_admin_login(
 
     token = secrets.token_urlsafe(32)
     admin.login_token = token
-    admin.token_expiry = datetime.utcnow() + timedelta(hours=1)
+    admin.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
     db.commit()
 
     login_url = f"{request.base_url}admin_verify/{token}"
@@ -949,63 +950,21 @@ async def process_admin_login(
     return templates.TemplateResponse(request, "admin_login_sent.html", {})
 
 
-@app.post("/set_admin")
-async def set_admin(
-    request: Request, email: str = Form(...), db: Session = Depends(get_db)
-):
-    """
-    Set up the initial admin user for the application.
-
-    This endpoint creates a new admin user or promotes an existing user to admin status.
-    It can only be used when no admin exists in the system yet.
-
-    :param request: The incoming request object containing session data
-    :param email: The email address of the user to make admin
-    :param db: The database session
-    :return: Redirect response to admin login page
-    :raises HTTPException: If an admin user already exists
-    """
-    if admin_exists(db):
-        raise HTTPException(status_code=400, detail="Admin already exists")
-
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        user = User(email=email, is_admin=True)
-        db.add(user)
-    else:
-        user.is_admin = True
-    db.commit()
-
-    return RedirectResponse(url="/admin_login", status_code=303)
-
-
 @app.get("/admin_verify/{token}")
 async def verify_admin_login(
     request: Request, token: str, db: Session = Depends(get_db)
 ):
-    """
-    Verify an admin login token and authenticate the admin user.
-
-    This endpoint validates the provided login token against the database,
-    checking that it matches an admin user and hasn't expired.
-    If valid, it authenticates the admin by storing their email in the session
-    and redirects them to the user management page.
-
-    :param request: The incoming request object containing session data
-    :param token: The login token to verify
-    :param db: The database session
-    :return: Redirect response to the user management page
-    :raises HTTPException: If the token is invalid or expired
-    """
+    """Verify an admin login token and authenticate the admin user."""
     admin = (
         db.query(User)
         .filter(
             User.login_token == token,
-            User.token_expiry > datetime.utcnow(),
-            User.is_admin is True,
+            User.token_expiry > datetime.now(timezone.utc),
+            User.is_admin.is_(True),  # Fix the boolean comparison
         )
         .first()
     )
+
     if not admin:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 
@@ -1014,7 +973,7 @@ async def verify_admin_login(
     db.commit()
 
     request.session["admin_email"] = admin.email
-    return RedirectResponse(url="/manage_users")
+    return RedirectResponse(url="/manage_users", status_code=303)
 
 
 @app.get("/generate-captcha")
