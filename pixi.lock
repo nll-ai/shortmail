@@ -1844,7 +1844,7 @@ packages:
   name: shortmail
   version: 0.1.0
   path: .
-  sha256: 5c48f29cd4355981b73dd2beac4c67b61b9a17bb8ff26490e38c516b8a5ace61
+  sha256: afcfd42c0e662615e149023605a072901e7a4144c2190c3c542c606c80ef5734
   requires_dist:
   - fastapi>=0.115.0,<0.116
   - uvicorn>=0.30.6,<0.31
