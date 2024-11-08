@@ -30,6 +30,7 @@ from shortmail.utils import (
 from shortmail.models.rate_limits import RateLimiter
 import re
 from pyprojroot import here
+from typing import Optional
 
 load_dotenv()
 
@@ -753,34 +754,49 @@ async def edit_faq(
     return RedirectResponse(url="/dashboard", status_code=303)
 
 
-@app.get("/manage_users", response_class=HTMLResponse)
-async def manage_users(request: Request, db: Session = Depends(get_db)):
+def get_admin_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
     """
-    Render the user management page for admin users.
+    Get the currently logged in admin user.
 
-    This endpoint checks if the user is an authenticated admin
-    and displays a list of all users in the system.
-    Each user's vanity name is validated before display.
-
-    :param request: The incoming request object containing session data
-    :param db: The database session
-    :return: HTML response with user management page or redirect to admin login
+    :param request: The incoming request object
+    :param db: Database session
+    :return: Admin user if authenticated, None otherwise
     """
     admin_email = request.session.get("admin_email")
     if not admin_email:
-        return RedirectResponse(url="/admin_login")
+        return None
 
-    admin = (
-        db.query(User).filter(User.email == admin_email, User.is_admin is True).first()
+    return (
+        db.query(User)
+        .filter(User.email == admin_email, User.is_admin.is_(True))
+        .first()
     )
-    if not admin:
-        return RedirectResponse(url="/admin_login")
+
+
+@app.get("/manage_users", response_class=HTMLResponse)
+async def manage_users(
+    request: Request,
+    admin_user: Optional[User] = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Render the user management page for admin users.
+
+    :param request: The incoming request object
+    :param admin_user: The authenticated admin user
+    :param db: The database session
+    :return: HTML response with user management page or redirect to admin login
+    """
+    if not admin_user:
+        return RedirectResponse(url="/admin_login", status_code=303)
 
     users = db.query(User).all()
     for user in users:
         ensure_correct_vanity_name(user, db)
 
-    return templates.TemplateResponse(request, "manage_users.html", {"users": users})
+    return templates.TemplateResponse(
+        request, "manage_users.html", {"users": users, "admin": admin_user}
+    )
 
 
 @app.get("/users", response_class=HTMLResponse)
@@ -892,18 +908,20 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
 
 
 @app.get("/admin_login", response_class=HTMLResponse)
-async def admin_login(request: Request, db: Session = Depends(get_db)):
+async def admin_login(
+    request: Request,
+    admin_user: Optional[User] = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+):
     """
     Handle admin login page requests.
-
-    This endpoint checks if an admin user exists in the database.
-    If an admin exists, it displays the admin login form.
-    If no admin exists, it displays the form to set up the first admin user.
-
-    :param request: The incoming request object containing session data
-    :param db: The database session
-    :return: HTML response with either admin login or set admin template
+    If user is already logged in as admin, redirect to manage_users.
     """
+    # If already logged in as admin, redirect to manage users
+    if admin_user:
+        return RedirectResponse(url="/manage_users", status_code=303)
+
+    # Check if any admin exists
     if admin_exists(db):
         return templates.TemplateResponse(request, "admin_login.html", {})
     else:
@@ -914,19 +932,10 @@ async def admin_login(request: Request, db: Session = Depends(get_db)):
 async def process_admin_login(
     request: Request, email: str = Form(...), db: Session = Depends(get_db)
 ):
-    """
-    Process admin login request and send login link via email.
+    """Process admin login request and send login link via email."""
+    # Check if user exists and is admin
+    admin = db.query(User).filter(User.email == email, User.is_admin.is_(True)).first()
 
-    This endpoint validates the admin email, generates a login token,
-    and sends a login link to the admin's email address.
-    The login token expires after 1 hour.
-
-    :param request: The incoming request object containing session data
-    :param email: The admin's email address
-    :param db: The database session
-    :return: HTML response with confirmation message
-    """
-    admin = db.query(User).filter(User.email == email, User.is_admin is True).first()
     if not admin:
         return templates.TemplateResponse(
             request, "admin_login.html", {"error": "Invalid admin email"}
@@ -934,7 +943,7 @@ async def process_admin_login(
 
     token = secrets.token_urlsafe(32)
     admin.login_token = token
-    admin.token_expiry = datetime.utcnow() + timedelta(hours=1)
+    admin.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
     db.commit()
 
     login_url = f"{request.base_url}admin_verify/{token}"
@@ -956,56 +965,84 @@ async def set_admin(
     """
     Set up the initial admin user for the application.
 
-    This endpoint creates a new admin user or promotes an existing user to admin status.
-    It can only be used when no admin exists in the system yet.
-
-    :param request: The incoming request object containing session data
-    :param email: The email address of the user to make admin
-    :param db: The database session
-    :return: Redirect response to admin login page
-    :raises HTTPException: If an admin user already exists
+    :param request: The incoming request object
+    :param email: Email address for the admin user
+    :param db: Database session
+    :return: Redirect to admin login page or error response
     """
-    if admin_exists(db):
-        raise HTTPException(status_code=400, detail="Admin already exists")
+    try:
+        if admin_exists(db):
+            return templates.TemplateResponse(
+                request, "set_admin.html", {"error": "Admin already exists"}
+            )
 
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        user = User(email=email, is_admin=True)
-        db.add(user)
-    else:
-        user.is_admin = True
-    db.commit()
+        # Create or update user as admin
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            vanity_name = generate_vanity_name(email)
+            user = User(
+                email=email,
+                is_admin=True,
+                vanity_name=vanity_name,
+                is_paid=True,  # Admins get paid features
+            )
+            db.add(user)
+        else:
+            user.is_admin = True
+            user.is_paid = True  # Admins get paid features
 
-    return RedirectResponse(url="/admin_login", status_code=303)
+        db.commit()
+
+        # Generate and send login token
+        token = secrets.token_urlsafe(32)
+        user.login_token = token
+        user.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        db.commit()
+
+        # Send login email
+        login_url = f"{request.base_url}admin_verify/{token}"
+        send_email(
+            "login@ericmjl.com",
+            email,
+            "ericmjl@hey.com",
+            "ShortMail Admin Setup",
+            f"Click here to complete admin setup: {login_url}",
+        )
+
+        return templates.TemplateResponse(
+            request,
+            "admin_login_sent.html",
+            {
+                "message": "Admin account created. Please check your email for the login link."
+            },
+        )
+
+    except Exception as e:
+        print(f"Error setting admin: {str(e)}")  # For debugging
+        return templates.TemplateResponse(
+            request,
+            "set_admin.html",
+            {
+                "error": "An error occurred while setting up the admin account. Please try again."
+            },
+        )
 
 
 @app.get("/admin_verify/{token}")
 async def verify_admin_login(
     request: Request, token: str, db: Session = Depends(get_db)
 ):
-    """
-    Verify an admin login token and authenticate the admin user.
-
-    This endpoint validates the provided login token against the database,
-    checking that it matches an admin user and hasn't expired.
-    If valid, it authenticates the admin by storing their email in the session
-    and redirects them to the user management page.
-
-    :param request: The incoming request object containing session data
-    :param token: The login token to verify
-    :param db: The database session
-    :return: Redirect response to the user management page
-    :raises HTTPException: If the token is invalid or expired
-    """
+    """Verify an admin login token and authenticate the admin user."""
     admin = (
         db.query(User)
         .filter(
             User.login_token == token,
-            User.token_expiry > datetime.utcnow(),
-            User.is_admin is True,
+            User.token_expiry > datetime.now(timezone.utc),
+            User.is_admin.is_(True),
         )
         .first()
     )
+
     if not admin:
         raise HTTPException(status_code=400, detail="Invalid or expired token")
 
@@ -1013,8 +1050,11 @@ async def verify_admin_login(
     admin.token_expiry = None
     db.commit()
 
+    # Set the admin session
     request.session["admin_email"] = admin.email
-    return RedirectResponse(url="/manage_users")
+
+    # Redirect to manage_users with 303 See Other
+    return RedirectResponse(url="/manage_users", status_code=303)
 
 
 @app.get("/generate-captcha")
@@ -1035,6 +1075,23 @@ async def generate_captcha(request: Request):
     )
     request.session["captcha"] = captcha
     return {"captcha": captcha}
+
+
+@app.get("/admin_logout")
+async def admin_logout(request: Request):
+    """Log out the admin user."""
+    if "admin_email" in request.session:
+        del request.session["admin_email"]
+    return RedirectResponse(url="/admin_login", status_code=303)
+
+
+@app.get("/debug/session")
+async def debug_session(request: Request):
+    """Debug endpoint to view session data."""
+    return {
+        "session": dict(request.session),
+        "admin_email": request.session.get("admin_email"),
+    }
 
 
 if __name__ == "__main__":

@@ -1,13 +1,18 @@
-<tr id="user-row-{{ user.id }}">
+<tr id="user-row-{{ user.id }}" hx-target="this" hx-swap="outerHTML">
     <td>{{ user.email }}</td>
     <td>{{ user.vanity_name }}</td>
-    <td>
-        <form id="edit-form-{{ user.id }}" hx-post="/users/{{ user.id }}" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML">
-            <input type="checkbox" name="is_paid" {% if user.is_paid %}checked{% endif %}>
+    <td colspan="2">
+        <form class="edit-form" hx-post="/users/{{ user.id }}">
+            <label>
+                <input type="checkbox" name="is_paid" {% if user.is_paid %}checked{% endif %}>
+                Paid Status
+            </label>
+            <button type="submit" class="button button-small">Save</button>
+            <button type="button"
+                    class="button button-small button-danger"
+                    hx-get="/users/{{ user.id }}/toggle-edit">
+                Cancel
+            </button>
         </form>
-    </td>
-    <td>
-        <button class="save-button" form="edit-form-{{ user.id }}">Save</button>
-        <button class="cancel-button" hx-get="/users/{{ user.id }}/toggle-edit" hx-target="#user-row-{{ user.id }}" hx-swap="outerHTML">Cancel</button>
     </td>
 </tr>

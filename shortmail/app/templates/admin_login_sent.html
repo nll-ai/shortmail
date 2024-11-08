@@ -3,10 +3,46 @@
 {% block title %}Admin Login Link Sent - ShortMail{% endblock %}
 
 {% block content %}
-<h1>Admin Login Link Sent</h1>
-<p>An admin login link has been sent to your email. Please check your inbox and click the link to log in.</p>
-<p>The link will expire in 1 hour.</p>
-<div class="button-container">
-    <a href="/" class="button-primary">Back to Home</a>
+<div class="login-sent-container">
+    <h1>Admin Login Link Sent</h1>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% else %}
+        <p>A login link has been sent to your email address. Please check your inbox and click the link to log in.</p>
+    {% endif %}
+    <p>The link will expire in 1 hour.</p>
+
+    <div class="actions">
+        <a href="/admin_login" class="button">Back to Admin Login</a>
+    </div>
 </div>
+
+<style>
+.login-sent-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.actions {
+    margin-top: 2rem;
+}
+
+.button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.button:hover {
+    background: #45a049;
+}
+</style>
 {% endblock %}
