@@ -15,7 +15,6 @@ image = (
     modal.Image.debian_slim()
     .run_commands("apt-get update && apt-get install curl -y")
     .run_commands("curl -fsSL https://pixi.sh/install.sh | sh")
-    .add_local_dir("./app", "/usr/local/src/app", copy=True)
     .add_local_dir("./shortmail", "/usr/local/src/shortmail", copy=True)
     .add_local_file("./pyproject.toml", "/usr/local/src/pyproject.toml", copy=True)
     .add_local_file("./pixi.lock", "/usr/local/src/pixi.lock", copy=True)
