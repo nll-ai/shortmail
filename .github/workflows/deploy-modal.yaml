@@ -22,10 +22,6 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install Modal
-        run: |
-          uv tool install modal
-
       - name: Deploy job
         run: |
-          modal deploy deployments/app_deploy.py
+          uvx modal deploy deployments/app_deploy.py
