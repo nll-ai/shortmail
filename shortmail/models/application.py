@@ -2,6 +2,8 @@
 Models for the ShortMail application.
 """
 
+import os
+from pathlib import Path
 from sqlalchemy import (
     Boolean,
     Column,
@@ -17,7 +19,10 @@ from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 
 Base = declarative_base()
 
-# Database setup
+# Database setup - ensure data directory exists
+data_dir = Path("./data")
+data_dir.mkdir(exist_ok=True)
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///./data/shortmail.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

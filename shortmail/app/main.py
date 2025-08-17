@@ -247,7 +247,7 @@ async def login(
 
     login_url = f"{request.base_url}login/{token}"
     send_email(
-        "login@ericmjl.com",
+        "onboarding@nonlinearlabs.ai",
         email,
         "ericmjl@hey.com",
         "ShortMail Login Link",
@@ -923,7 +923,8 @@ async def process_admin_login(
     admin = (
         db.query(User)
         .filter(
-            User.email == email, User.is_admin.is_(True)  # Fix the boolean comparison
+            User.email == email,
+            User.is_admin.is_(True),  # Fix the boolean comparison
         )
         .first()
     )

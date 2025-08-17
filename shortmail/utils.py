@@ -4,11 +4,9 @@ Utility functions for the ShortMail application.
 
 import hashlib
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from loguru import logger
 
+import resend
 import markdown
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
@@ -19,10 +17,9 @@ from shortmail.models.application import User, get_db
 load_dotenv()
 
 # Email configuration
-MAIL_HOST = os.getenv("MAIL_HOST")
-MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+resend.api_key = (
+    "re_XskzuAKx_F8TkuVjf22wo1dVk7TqykdiG"  # Replace with your actual API key
+)
 
 
 def generate_vanity_name(email: str) -> str:
@@ -47,7 +44,7 @@ def send_email(
     from_email: str, to_email: str, reply_to_email: str, subject: str, body: str
 ) -> bool:
     """
-    Send an email with both plain text and HTML content.
+    Send an email using Resend.
 
     :param from_email: The sender's email address.
     :param to_email: The recipient's email address.
@@ -56,34 +53,29 @@ def send_email(
     :param body: The body of the email in plain text.
     :return: True if the email was sent successfully, False otherwise.
     """
-    msg = MIMEMultipart("alternative")
-    msg["From"] = from_email
-    msg["To"] = to_email
-    msg["Subject"] = subject
-    # Add Reply-To header
-    msg["Reply-To"] = reply_to_email
-
-    # Create plain text version of the message
-    text_part = MIMEText(body, "plain")
-    msg.attach(text_part)
-
-    # Create HTML version of the message
-    html_body = markdown.markdown(body)
-    html_part = MIMEText(html_body, "html")
-    msg.attach(html_part)
-
     try:
         logger.info(f"Sending email to {to_email} with subject: {subject}")
-        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
-            logger.info(f"Connecting to SMTP server at {MAIL_HOST}:{MAIL_PORT}")
-            server.starttls()
-            logger.info(f"Logging in to SMTP server as {MAIL_USERNAME}")
-            server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            server.send_message(msg)
-        logger.info(f"Email sent successfully to {to_email}")
+
+        # Convert plain text body to HTML using markdown
+        html_body = markdown.markdown(body)
+
+        params: resend.Emails.SendParams = {
+            "from": from_email,
+            "to": [to_email],  # to should be a list
+            "reply_to": reply_to_email,
+            "subject": subject,
+            "html": html_body,
+            "text": body,
+        }
+
+        email: resend.Email = resend.Emails.send(params)
+
+        logger.info(
+            f"Email sent successfully to {to_email}. Email information: {email}"
+        )
         return True
     except Exception as e:
-        logger.error(f"Error sending email: {e}")
+        logger.error(f"Error sending email with Resend: {type(e).__name__}: {e}")
         return False
 
 
