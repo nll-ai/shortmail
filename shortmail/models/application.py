@@ -2,7 +2,6 @@
 Models for the ShortMail application.
 """
 
-import os
 from pathlib import Path
 from sqlalchemy import (
     Boolean,

@@ -1,3 +1,5 @@
+"""Configuration for the tests."""
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -16,8 +18,10 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="function")
 def db():
+    """Create a test database."""
     # Create all tables in the test database
     Base.metadata.create_all(bind=engine)
 
@@ -31,9 +35,13 @@ def db():
     # Drop all tables after the test
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture(scope="function")
 def client(db):
+    """Create a test client for the application."""
+
     def override_get_db():
+        """Override the get_db function to use the test database."""
         try:
             yield db
         finally:

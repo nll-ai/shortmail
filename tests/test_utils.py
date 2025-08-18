@@ -1,15 +1,29 @@
 """Tests for the utils module."""
+
+import pytest
+from unittest.mock import patch
+from shortmail.utils import send_email
 from sqlalchemy.orm import Session
 from shortmail.models import User
-from shortmail.utils import ensure_correct_vanity_name, generate_vanity_name, admin_exists
+from shortmail.utils import (
+    ensure_correct_vanity_name,
+    generate_vanity_name,
+    admin_exists,
+)
+
 
 def test_ensure_correct_vanity_name(db: Session):
+    """Test the ensure_correct_vanity_name function."""
     # Create a paid user with a custom vanity name
     paid_user = User(email="paid@example.com", vanity_name="custom_name", is_paid=True)
     db.add(paid_user)
 
     # Create a non-paid user with a generated vanity name
-    non_paid_user = User(email="non_paid@example.com", vanity_name=generate_vanity_name("non_paid@example.com"), is_paid=False)
+    non_paid_user = User(
+        email="non_paid@example.com",
+        vanity_name=generate_vanity_name("non_paid@example.com"),
+        is_paid=False,
+    )
     db.add(non_paid_user)
 
     # Create a non-paid user without a vanity name
@@ -37,25 +51,27 @@ def test_ensure_correct_vanity_name(db: Session):
     ensure_correct_vanity_name(non_paid_user, db)
     assert non_paid_user.vanity_name == generate_vanity_name(non_paid_user.email)
 
+
 def test_generate_vanity_name():
+    """Test the generate_vanity_name function."""
     # Test the generate_vanity_name function
     email = "test.user@example.com"
     vanity_name = generate_vanity_name(email)
     assert isinstance(vanity_name, str)
     assert len(vanity_name) > 0
 
+
 # Add more tests for other utility functions as needed
 
-import pytest
-from unittest.mock import patch, MagicMock
-from shortmail.utils import send_email, admin_exists
 
 @pytest.fixture
 def mock_smtp():
-    with patch('shortmail.utils.smtplib.SMTP') as mock_smtp:
+    with patch("shortmail.utils.smtplib.SMTP") as mock_smtp:
         yield mock_smtp
 
+
 def test_send_email_success(mock_smtp):
+    """Test the send_email function."""
     # Arrange
     from_email = "sender@example.com"
     to_email = "recipient@example.com"
@@ -70,7 +86,9 @@ def test_send_email_success(mock_smtp):
     assert result is True
     mock_smtp.return_value.__enter__.return_value.send_message.assert_called_once()
 
+
 def test_send_email_failure(mock_smtp):
+    """Test the send_email function."""
     # Arrange
     from_email = "sender@example.com"
     to_email = "recipient@example.com"
@@ -78,7 +96,9 @@ def test_send_email_failure(mock_smtp):
     subject = "Test Subject"
     body = "Test Body"
 
-    mock_smtp.return_value.__enter__.return_value.send_message.side_effect = Exception("SMTP error")
+    mock_smtp.return_value.__enter__.return_value.send_message.side_effect = Exception(
+        "SMTP error"
+    )
 
     # Act
     result = send_email(from_email, to_email, reply_to_email, subject, body)
@@ -86,7 +106,9 @@ def test_send_email_failure(mock_smtp):
     # Assert
     assert result is False
 
+
 def test_send_email_content(mock_smtp):
+    """Test the send_email function."""
     # Arrange
     from_email = "sender@example.com"
     to_email = "recipient@example.com"
@@ -98,19 +120,25 @@ def test_send_email_content(mock_smtp):
     send_email(from_email, to_email, reply_to_email, subject, body)
 
     # Assert
-    called_with = mock_smtp.return_value.__enter__.return_value.send_message.call_args[0][0]
-    assert called_with['From'] == from_email
-    assert called_with['To'] == to_email
-    assert called_with['Subject'] == subject
-    assert called_with['Reply-To'] == reply_to_email
+    called_with = mock_smtp.return_value.__enter__.return_value.send_message.call_args[
+        0
+    ][0]
+    assert called_with["From"] == from_email
+    assert called_with["To"] == to_email
+    assert called_with["Subject"] == subject
+    assert called_with["Reply-To"] == reply_to_email
     assert "Test Body with **markdown**" in str(called_with.get_payload()[0])
-    assert "<p>Test Body with <strong>markdown</strong></p>" in str(called_with.get_payload()[1])
+    assert "<p>Test Body with <strong>markdown</strong></p>" in str(
+        called_with.get_payload()[1]
+    )
 
-@patch('shortmail.utils.MAIL_HOST', 'test_host')
-@patch('shortmail.utils.MAIL_PORT', 587)
-@patch('shortmail.utils.MAIL_USERNAME', 'test_user')
-@patch('shortmail.utils.MAIL_PASSWORD', 'test_pass')
+
+@patch("shortmail.utils.MAIL_HOST", "test_host")
+@patch("shortmail.utils.MAIL_PORT", 587)
+@patch("shortmail.utils.MAIL_USERNAME", "test_user")
+@patch("shortmail.utils.MAIL_PASSWORD", "test_pass")
 def test_send_email_smtp_config(mock_smtp):
+    """Test the send_email function."""
     # Arrange
     from_email = "sender@example.com"
     to_email = "recipient@example.com"
@@ -122,11 +150,15 @@ def test_send_email_smtp_config(mock_smtp):
     send_email(from_email, to_email, reply_to_email, subject, body)
 
     # Assert
-    mock_smtp.assert_called_once_with('test_host', 587)
+    mock_smtp.assert_called_once_with("test_host", 587)
     mock_smtp.return_value.__enter__.return_value.starttls.assert_called_once()
-    mock_smtp.return_value.__enter__.return_value.login.assert_called_once_with('test_user', 'test_pass')
+    mock_smtp.return_value.__enter__.return_value.login.assert_called_once_with(
+        "test_user", "test_pass"
+    )
+
 
 def test_admin_exists(db: Session):
+    """Test the admin_exists function."""
     # Test when no admin exists
     assert not admin_exists(db)
 

@@ -1,0 +1,1 @@
+"""ShortMail application."""
