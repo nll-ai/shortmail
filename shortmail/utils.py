@@ -17,9 +17,7 @@ from shortmail.models.application import User, get_db
 load_dotenv()
 
 # Email configuration
-resend.api_key = (
-    "re_XskzuAKx_F8TkuVjf22wo1dVk7TqykdiG"  # Replace with your actual API key
-)
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 
 def generate_vanity_name(email: str) -> str:
