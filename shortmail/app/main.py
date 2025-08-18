@@ -496,7 +496,11 @@ async def process_shortmail(
 
     # Send email
     email_sent = send_email(
-        "koalamail@ericmjl.com", user.email, sender_email, email_subject, email_body
+        "shortmail@nonlinearlabs.ai",
+        user.email,
+        sender_email,
+        email_subject,
+        email_body,
     )
 
     return templates.TemplateResponse(
