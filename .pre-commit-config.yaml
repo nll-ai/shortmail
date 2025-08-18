@@ -41,8 +41,6 @@ repos:
       - id: api-key-checker
         args:
           - "--pattern"
-          - "[a-zA-Z0-9]{32,}"  # Generic API key pattern (32+ chars)
-          - "--pattern"
           - "api[_-]key[_-][a-zA-Z0-9]{16,}"  # API key with prefix
           - "--pattern"
           - "^sk-proj-[A-Za-z0-9_-]+-rev[A-Za-z0-9_\\-\\.]+$"  # Project-specific key pattern

@@ -1,23 +1,27 @@
+"""Tests for the main application."""
+
+import pytest
 from fastapi.testclient import TestClient
 from shortmail.app.main import app, get_current_user
 from shortmail.models import User, SubjectHeading, FAQ
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from datetime import timezone
 from sqlalchemy import inspect
-from sqlalchemy.sql import Select
 
 client = TestClient(app)
 
+
 def test_dashboard_authenticated():
+    """Test the dashboard endpoint for authenticated users."""
     # Create a mock user
     mock_user = User(
         id=1,
         email="test@example.com",
         vanity_name="test_user",
         display_name="Test User",
-        is_paid=False
+        is_paid=False,
     )
 
     # Override the get_current_user dependency
@@ -29,13 +33,16 @@ def test_dashboard_authenticated():
         mock_get_db.return_value.__next__.return_value = mock_db
 
         # Mock the database queries
-        mock_subject_headings = [SubjectHeading(id=1, heading="Test Subject", user_id=1)]
-        mock_faqs = [FAQ(id=1, question="Test Question", answer="Test Answer", user_id=1)]
+        mock_subject_headings = [
+            SubjectHeading(id=1, heading="Test Subject", user_id=1)
+        ]
+        mock_faqs = [
+            FAQ(id=1, question="Test Question", answer="Test Answer", user_id=1)
+        ]
 
-        mock_db.query.return_value.filter.return_value.all = MagicMock(side_effect=[
-            mock_subject_headings,
-            mock_faqs
-        ])
+        mock_db.query.return_value.filter.return_value.all = MagicMock(
+            side_effect=[mock_subject_headings, mock_faqs]
+        )
 
         # Print mocked data for debugging
         print("Mocked subject headings:", mock_subject_headings)
@@ -54,14 +61,18 @@ def test_dashboard_authenticated():
         assert "Test Subject" in response.text
         assert "Test Question" in response.text
         assert "Test Answer" in response.text
-        assert "Upgrade to a paid account to change your vanity name" in response.text  # Check for upgrade message
+        assert (
+            "Upgrade to a paid account to change your vanity name" in response.text
+        )  # Check for upgrade message
 
     # Remove the dependency override after the test
     app.dependency_overrides.clear()
 
     print("Test completed successfully")
 
+
 def test_dashboard_unauthenticated():
+    """Test the dashboard endpoint for unauthenticated users."""
     # Override the get_current_user dependency to return None (unauthenticated)
     app.dependency_overrides[get_current_user] = lambda: None
 
@@ -74,14 +85,10 @@ def test_dashboard_unauthenticated():
     # Remove the dependency override after the test
     app.dependency_overrides.clear()
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from shortmail.models import User
-from datetime import datetime, timedelta, timezone
 
 @pytest.mark.usefixtures("client")
 def test_verify_login(client: TestClient, db: Session):
+    """Test the login endpoint."""
     # Debug: Print table names before adding the user
     inspector = inspect(db.bind)
     table_names = inspector.get_table_names()
@@ -91,7 +98,7 @@ def test_verify_login(client: TestClient, db: Session):
     test_user = User(
         email="test@example.com",
         login_token="valid_token",
-        token_expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1)
+        token_expiry=datetime.now(tz=timezone.utc) + timedelta(hours=1),
     )
     db.add(test_user)
     db.commit()
@@ -128,7 +135,7 @@ def test_verify_login(client: TestClient, db: Session):
     expired_user = User(
         email="expired@example.com",
         login_token="expired_token",
-        token_expiry=datetime.now(tz=timezone.utc) - timedelta(hours=1)
+        token_expiry=datetime.now(tz=timezone.utc) - timedelta(hours=1),
     )
     db.add(expired_user)
     db.commit()
