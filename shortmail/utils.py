@@ -4,13 +4,13 @@ Utility functions for the ShortMail application.
 
 import hashlib
 import os
-from loguru import logger
 
-import resend
 import markdown
+import resend
 from dotenv import load_dotenv
-from sqlalchemy.orm import Session
 from fastapi import Depends, Request
+from loguru import logger
+from sqlalchemy.orm import Session
 
 from shortmail.models.application import User, get_db
 
