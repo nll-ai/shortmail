@@ -151,11 +151,10 @@ def ensure_correct_vanity_name(user: User, db: Session) -> None:
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
-    Retrieve the current user based on the session information.
+    Retrieve the current user based on session information.
 
-    This function checks the session for a user email,
-    queries the database for the corresponding user,
-    and ensures the user's vanity name is correct.
+    This function checks the session for a user email and retrieves
+    the corresponding user from the database.
 
     :param request: The incoming request object containing session data.
     :param db: The database session, obtained through dependency injection.

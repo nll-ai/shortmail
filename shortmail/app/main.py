@@ -17,6 +17,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import IntegrityError
+import workos
 
 from shortmail.models.application import User, SubjectHeading, FAQ, get_db, engine
 from shortmail.utils import (
@@ -43,6 +44,14 @@ app.mount(
     StaticFiles(directory=here() / "shortmail" / "app" / "static"),
     name="static",
 )
+
+# Initialize WorkOS
+workos.api_key = os.getenv("WORKOS_API_KEY")
+WORKOS_CLIENT_ID = os.getenv("WORKOS_CLIENT_ID")
+WORKOS_REDIRECT_URI = os.getenv("WORKOS_REDIRECT_URI", "http://localhost:7196/callback")
+
+# Create WorkOS client
+workos_client = workos.client.SyncClient(api_key=os.getenv("WORKOS_API_KEY"))
 
 rate_limiter = RateLimiter()
 DISPOSABLE_EMAILS_PATH = here() / "data" / "disposable_emails.txt"
@@ -171,123 +180,77 @@ async def read_root(request: Request):
     return templates.TemplateResponse(request, "index.html", {})
 
 
-@app.post("/login")
-async def login(
-    request: Request,
-    email: str = Form(...),
-    captcha: str = Form(...),
-    db: Session = Depends(get_db),
-):
+@app.get("/login")
+async def login(request: Request):
     """
-    Handle user login or registration with anti-spam measures.
+    Redirect users to WorkOS AuthKit for authentication.
 
-    This endpoint processes login attempts and new user registrations.
-    It implements several security measures including:
-    - CAPTCHA verification
-    - Rate limiting by IP address
-    - Email validation
-    - Disposable email blocking
-
-    For new users, it creates an account with a generated vanity name.
-    For existing users, it ensures their vanity name is correct based on paid status.
-
-    After validation, sends a login link via email that expires in 1 hour.
-
-    :param request: The incoming request object containing session data and client info
-    :param email: The email address provided by the user
-    :param captcha: The CAPTCHA response provided by the user
-    :param db: Database session for user operations
-    :return: Template response - either error page or login confirmation
-    """
-    # Check CAPTCHA
-    if captcha.lower() != request.session.get("captcha", "").lower():
-        return templates.TemplateResponse(
-            request, "index.html", {"error": "Invalid CAPTCHA. Please try again."}
-        )
-
-    # Get client IP
-    client_ip = request.client.host
-
-    # Check rate limit
-    try:
-        rate_limiter.check_rate_limit(client_ip)
-    except HTTPException as e:
-        return templates.TemplateResponse(
-            request, "index.html", {"error": str(e.detail)}
-        )
-
-    # Validate email
-    if not is_valid_email(email):
-        return templates.TemplateResponse(
-            request, "index.html", {"error": "Invalid email format"}
-        )
-
-    # Check for disposable email
-    if is_disposable_email(email):
-        return templates.TemplateResponse(
-            request,
-            "index.html",
-            {"error": "Disposable email addresses are not allowed"},
-        )
-
-    # Existing login logic continues here...
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        vanity_name = generate_vanity_name(email)
-        user = User(email=email, vanity_name=vanity_name, is_paid=False)
-        db.add(user)
-        db.commit()
-    else:
-        ensure_correct_vanity_name(user, db)
-
-    token = secrets.token_urlsafe(32)
-    user.login_token = token
-    user.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
-    db.commit()
-
-    login_url = f"{request.base_url}login/{token}"
-    send_email(
-        "onboarding@nonlinearlabs.ai",
-        email,
-        "ericmjl@hey.com",
-        "ShortMail Login Link",
-        f"Click here to log in: {login_url}",
-    )
-
-    return templates.TemplateResponse(request, "login_sent.html", {})
-
-
-@app.get("/login/{token}")
-async def verify_login(request: Request, token: str, db: Session = Depends(get_db)):
-    """
-    Verify a login token and authenticate the user.
-
-    This endpoint validates the provided login token, checks if it's still valid,
-    and authenticates the user by setting their email in the session.
-    If successful, redirects to the dashboard.
+    This endpoint generates a WorkOS AuthKit authorization URL and redirects
+    the user to the WorkOS hosted authentication page.
 
     :param request: The incoming request object
-    :param token: The login token to verify
-    :param db: The database session
-    :raises HTTPException: If the token is invalid or expired
-    :return: A redirect response to the dashboard
+    :return: Redirect response to WorkOS AuthKit
     """
-    user = (
-        db.query(User)
-        .filter(
-            User.login_token == token, User.token_expiry > datetime.now(tz=timezone.utc)
-        )
-        .first()
+    authorization_url = workos_client.user_management.get_authorization_url(
+        provider="authkit",
+        redirect_uri=WORKOS_REDIRECT_URI,
     )
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
 
-    user.login_token = None
-    user.token_expiry = None
-    db.commit()
+    return RedirectResponse(url=authorization_url, status_code=302)
 
-    request.session["user_email"] = user.email
-    return RedirectResponse(url="/dashboard", status_code=307)
+
+@app.get("/callback")
+async def callback(request: Request, code: str = None, db: Session = Depends(get_db)):
+    """
+    Handle the WorkOS AuthKit authentication callback.
+
+    This endpoint processes the authorization code returned by WorkOS AuthKit
+    and authenticates the user. It creates or updates the user in the database
+    and sets up the session.
+
+    :param request: The incoming request object
+    :param code: The authorization code from WorkOS
+    :param db: The database session
+    :return: Redirect response to dashboard or login page
+    """
+    if not code:
+        return RedirectResponse(url="/login", status_code=302)
+
+    try:
+        # Authenticate with WorkOS AuthKit
+        authenticate_response = workos_client.user_management.authenticate_with_code(
+            code=code,
+        )
+
+        user_data = authenticate_response.user
+        access_token = authenticate_response.access_token
+
+        # Find or create user in our database
+        user = db.query(User).filter(User.email == user_data.email).first()
+        if not user:
+            vanity_name = generate_vanity_name(user_data.email)
+            user = User(
+                email=user_data.email,
+                vanity_name=vanity_name,
+                is_paid=False,
+                display_name=user_data.first_name + " " + user_data.last_name
+                if user_data.first_name and user_data.last_name
+                else user_data.email,
+            )
+            db.add(user)
+            db.commit()
+        else:
+            ensure_correct_vanity_name(user, db)
+
+        # Store the user email in session
+        request.session["user_email"] = user.email
+        request.session["access_token"] = access_token
+
+        return RedirectResponse(url="/dashboard", status_code=302)
+
+    except Exception as e:
+        print(f"WorkOS AuthKit authentication error: {e}")
+        return RedirectResponse(url="/login", status_code=302)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -979,26 +942,6 @@ async def verify_admin_login(
 
     request.session["admin_email"] = admin.email
     return RedirectResponse(url="/manage_users", status_code=303)
-
-
-@app.get("/generate-captcha")
-async def generate_captcha(request: Request):
-    """
-    Generate a simple CAPTCHA string and store it in the session.
-
-    This endpoint creates a random 6-character CAPTCHA string using digits 2-9
-    and uppercase letters (excluding O and I to avoid confusion).
-    The CAPTCHA is stored in the session for later verification
-    and returned to the client.
-
-    :param request: The incoming request object containing session data
-    :return: Dictionary containing the generated CAPTCHA string
-    """
-    captcha = "".join(
-        secrets.choice("23456789ABCDEFGHJKLMNPQRSTUVWXYZ") for _ in range(6)
-    )
-    request.session["captcha"] = captcha
-    return {"captcha": captcha}
 
 
 if __name__ == "__main__":
