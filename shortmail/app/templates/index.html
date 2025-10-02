@@ -9,16 +9,8 @@
 
     <div class="signup-container">
         <h2>Get Started – It's Free</h2>
-        <p>Enter your email to log in or create an account:</p>
-        <form action="/login" method="post">
-            <input type="email" name="email" required placeholder="Your Email Address">
-            <div class="captcha-container">
-                <input type="text" name="captcha" required placeholder="Enter CAPTCHA">
-                <div id="captcha-display"></div>
-                <button type="button" onclick="refreshCaptcha()">↻</button>
-            </div>
-            <input type="submit" value="Log In / Sign Up">
-        </form>
+        <p>Sign in with your email to log in or create an account:</p>
+        <a href="/login" class="login-button">Sign In / Sign Up</a>
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
@@ -54,31 +46,23 @@
         <p>Inspired by the now-defunct Shortwhale, ShortMail brings you a streamlined, user-friendly solution to take control of your inbox.</p>
     </div>
 
-    <script>
-    async function refreshCaptcha() {
-        const response = await fetch('/generate-captcha');
-        const data = await response.json();
-        document.getElementById('captcha-display').textContent = data.captcha;
-    }
-
-    // Load initial CAPTCHA when page loads
-    document.addEventListener('DOMContentLoaded', refreshCaptcha);
-    </script>
-
     <style>
-    .captcha-container {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin: 10px 0;
+    .login-button {
+        display: inline-block;
+        background-color: #007bff;
+        color: white;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s;
     }
 
-    #captcha-display {
-        font-family: monospace;
-        font-size: 1.2em;
-        padding: 5px 10px;
-        background: #f0f0f0;
-        border-radius: 4px;
+    .login-button:hover {
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
     }
 
     .error {
