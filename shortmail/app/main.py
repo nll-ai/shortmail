@@ -3,8 +3,6 @@ Main application code for the ShortMail application.
 """
 
 import os
-import secrets
-from datetime import datetime, timedelta, timezone
 import markdown
 import html2text
 
@@ -24,7 +22,6 @@ from shortmail.utils import (
     generate_vanity_name,
     send_email,
     migrate_users_vanity_names,
-    admin_exists,
     ensure_correct_vanity_name,
     get_current_user,
 )
@@ -58,19 +55,74 @@ DISPOSABLE_EMAILS_PATH = here() / "data" / "disposable_emails.txt"
 
 
 def get_admin_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
-    """Get the currently logged in admin user."""
-    admin_email = request.session.get("admin_email")
-    if not admin_email:
+    """Get the currently logged in admin user using WorkOS AuthKit."""
+    user_email = request.session.get("user_email")
+    if not user_email:
         return None
 
-    return (
-        db.query(User)
-        .filter(
-            User.email == admin_email,
-            User.is_admin.is_(True),  # Fix the boolean comparison
-        )
-        .first()
-    )
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user or not user.admin_role:
+        return None
+
+    return user
+
+
+def require_admin_role(required_role: str = "admin"):
+    """
+    Create a FastAPI dependency that requires a specific admin role.
+
+    This function returns a dependency that can be used with FastAPI route
+    handlers to enforce role-based access control. The dependency checks if
+    the current user has the required admin role or higher in the hierarchy.
+
+    :param required_role: The minimum admin role required (default: "admin").
+                         Valid roles: "moderator", "admin", "super_admin"
+    :return: A FastAPI dependency function that validates admin access
+    :raises HTTPException: 401 if user is not authenticated
+    :raises HTTPException: 403 if user lacks required admin role
+    """
+
+    def admin_dependency(request: Request, db: Session = Depends(get_db)) -> User:
+        """
+        FastAPI dependency that validates admin role requirements.
+
+        This dependency function is returned by require_admin_role and performs
+        the actual role validation. It checks the user's session, retrieves
+        their admin role from the database, and validates they have sufficient
+        privileges based on the role hierarchy.
+
+        Role hierarchy (higher numbers have more privileges):
+        - super_admin (3): Full administrative access
+        - admin (2): Standard administrative access
+        - moderator (1): Limited administrative access
+
+        :param request: FastAPI Request object containing session data
+        :param db: Database session dependency
+        :return: The authenticated User object with admin privileges
+        :raises HTTPException: 401 if no user session found
+        :raises HTTPException: 403 if user has no admin role or insufficient privileges
+        """
+        user_email = request.session.get("user_email")
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        user = db.query(User).filter(User.email == user_email).first()
+        if not user or not user.admin_role:
+            raise HTTPException(status_code=403, detail="Admin access required")
+
+        # Role hierarchy: super_admin > admin > moderator
+        role_hierarchy = {"super_admin": 3, "admin": 2, "moderator": 1}
+        user_level = role_hierarchy.get(user.admin_role, 0)
+        required_level = role_hierarchy.get(required_role, 0)
+
+        if user_level < required_level:
+            raise HTTPException(
+                status_code=403, detail=f"{required_role} role required"
+            )
+
+        return user
+
+    return admin_dependency
 
 
 def is_disposable_email(email: str) -> bool:
@@ -156,11 +208,24 @@ def run_migrations(engine):
                 connection.execute(
                     text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE")
                 )
+            if "admin_role" not in columns:
+                connection.execute(
+                    text("ALTER TABLE users ADD COLUMN admin_role VARCHAR")
+                )
             connection.commit()
 
     # Run the user migration after schema changes
     db = next(get_db())
     migrate_users_vanity_names(db)
+
+    # Initialize super admin if environment variable is set
+    super_admin_email = os.getenv("SUPER_ADMIN_EMAIL")
+    if super_admin_email:
+        super_admin = db.query(User).filter(User.email == super_admin_email).first()
+        if super_admin and not super_admin.admin_role:
+            super_admin.admin_role = "super_admin"
+            db.commit()
+            print(f"Initialized super admin: {super_admin_email}")
 
 
 run_migrations(engine)
@@ -737,16 +802,41 @@ async def edit_faq(
     return RedirectResponse(url="/dashboard", status_code=303)
 
 
-@app.get("/manage_users", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(
+    request: Request,
+    admin_user: User = Depends(require_admin_role("admin")),
+    db: Session = Depends(get_db),
+):
+    """Render the secure admin dashboard."""
+    # Get basic stats
+    total_users = db.query(User).count()
+    paid_users = db.query(User).filter(User.is_paid).count()
+    admin_users = db.query(User).filter(User.admin_role.isnot(None)).count()
+
+    # Get recent users (last 10)
+    recent_users = db.query(User).order_by(User.id.desc()).limit(10).all()
+
+    stats = {
+        "total_users": total_users,
+        "paid_users": paid_users,
+        "free_users": total_users - paid_users,
+        "admin_users": admin_users,
+        "recent_users": recent_users,
+    }
+
+    return templates.TemplateResponse(
+        request, "admin_dashboard.html", {"admin": admin_user, "stats": stats}
+    )
+
+
+@app.get("/admin/users", response_class=HTMLResponse)
 async def manage_users(
     request: Request,
-    admin_user: Optional[User] = Depends(get_admin_user),
+    admin_user: User = Depends(require_admin_role("admin")),
     db: Session = Depends(get_db),
 ):
     """Render the user management page for admin users."""
-    if not admin_user:
-        return RedirectResponse(url="/admin_login", status_code=303)
-
     users = db.query(User).all()
     for user in users:
         ensure_correct_vanity_name(user, db)
@@ -756,8 +846,12 @@ async def manage_users(
     )
 
 
-@app.get("/users", response_class=HTMLResponse)
-async def get_users(request: Request, db: Session = Depends(get_db)):
+@app.get("/admin/users/list", response_class=HTMLResponse)
+async def get_users(
+    request: Request,
+    admin_user: User = Depends(require_admin_role("admin")),
+    db: Session = Depends(get_db),
+):
     """
     Get all users and ensure their vanity names are correct.
 
@@ -765,6 +859,7 @@ async def get_users(request: Request, db: Session = Depends(get_db)):
     Each user's vanity name is validated before returning the response.
 
     :param request: The incoming request object containing session data
+    :param admin_user: The authenticated admin user
     :param db: The database session
     :return: HTML response with partial template containing user list
     """
@@ -777,9 +872,12 @@ async def get_users(request: Request, db: Session = Depends(get_db)):
     )
 
 
-@app.get("/users/{user_id}/toggle-edit", response_class=HTMLResponse)
+@app.get("/admin/users/{user_id}/toggle-edit", response_class=HTMLResponse)
 async def toggle_user_edit(
-    request: Request, user_id: int, db: Session = Depends(get_db)
+    request: Request,
+    user_id: int,
+    admin_user: User = Depends(require_admin_role("admin")),
+    db: Session = Depends(get_db),
 ):
     """
     Toggle the edit mode for a user row in the user management interface.
@@ -789,6 +887,7 @@ async def toggle_user_edit(
 
     :param request: The incoming request object containing session data
     :param user_id: The ID of the user to edit
+    :param admin_user: The authenticated admin user
     :param db: The database session
     :return: HTML response with partial template containing editable user form
     :raises HTTPException: If user with given ID is not found
@@ -802,32 +901,44 @@ async def toggle_user_edit(
     )
 
 
-@app.post("/users/{user_id}", response_class=HTMLResponse)
+@app.post("/admin/users/{user_id}", response_class=HTMLResponse)
 async def update_user(
     request: Request,
     user_id: int,
     is_paid: bool = Form(False),
+    admin_role: str = Form(None),
+    admin_user: User = Depends(require_admin_role("admin")),
     db: Session = Depends(get_db),
 ):
     """
-    Update a user's paid status and ensure their vanity name is correct.
+    Update a user's paid status and admin role.
 
-    This endpoint updates the paid status of a user and ensures their vanity name
-    matches their paid status. It returns a partial HTML template containing
-    the updated user row.
+    This endpoint updates the paid status and admin role of a user.
+    Only super_admins can assign admin roles.
 
     :param request: The incoming request object containing session data
     :param user_id: The ID of the user to update
     :param is_paid: The new paid status for the user
+    :param admin_role: The new admin role for the user (None, 'moderator', 'admin', 'super_admin')
+    :param admin_user: The authenticated admin user
     :param db: The database session
     :return: HTML response with partial template containing updated user row
-    :raises HTTPException: If user with given ID is not found
+    :raises HTTPException: If user with given ID is not found or insufficient permissions
     """
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_paid = is_paid
+
+    # Only super_admins can assign admin roles
+    if admin_role and admin_user.admin_role == "super_admin":
+        user.admin_role = admin_role if admin_role != "none" else None
+    elif admin_role and admin_user.admin_role != "super_admin":
+        raise HTTPException(
+            status_code=403, detail="Only super admins can assign admin roles"
+        )
+
     db.commit()
     ensure_correct_vanity_name(user, db)
 
@@ -839,8 +950,13 @@ async def update_user(
     )
 
 
-@app.delete("/users/{user_id}", response_class=HTMLResponse)
-async def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
+@app.delete("/admin/users/{user_id}", response_class=HTMLResponse)
+async def delete_user(
+    request: Request,
+    user_id: int,
+    admin_user: User = Depends(require_admin_role("admin")),
+    db: Session = Depends(get_db),
+):
     """
     Delete a user from the database.
 
@@ -850,6 +966,7 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
 
     :param request: The incoming request object containing session data
     :param user_id: The ID of the user to delete
+    :param admin_user: The authenticated admin user
     :param db: The database session
     :return: Empty string response
     :raises HTTPException: If user with given ID is not found
@@ -864,84 +981,10 @@ async def delete_user(request: Request, user_id: int, db: Session = Depends(get_
     return ""  # Return an empty string as we're removing the row
 
 
-@app.get("/admin_login", response_class=HTMLResponse)
-async def admin_login(
-    request: Request,
-    admin_user: Optional[User] = Depends(get_admin_user),
-    db: Session = Depends(get_db),
-):
-    """Handle admin login page requests."""
-    # If already logged in as admin, redirect to manage users
-    if admin_user:
-        return RedirectResponse(url="/manage_users", status_code=303)
-
-    # Check if any admin exists
-    if admin_exists(db):
-        return templates.TemplateResponse(request, "admin_login.html", {})
-    else:
-        return templates.TemplateResponse(request, "set_admin.html", {})
-
-
-@app.post("/admin_login")
-async def process_admin_login(
-    request: Request, email: str = Form(...), db: Session = Depends(get_db)
-):
-    """Process admin login request and send login link via email."""
-    admin = (
-        db.query(User)
-        .filter(
-            User.email == email,
-            User.is_admin.is_(True),  # Fix the boolean comparison
-        )
-        .first()
-    )
-
-    if not admin:
-        return templates.TemplateResponse(
-            request, "admin_login.html", {"error": "Invalid admin email"}
-        )
-
-    token = secrets.token_urlsafe(32)
-    admin.login_token = token
-    admin.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
-    db.commit()
-
-    login_url = f"{request.base_url}admin_verify/{token}"
-    send_email(
-        "login@ericmjl.com",
-        email,
-        "ericmjl@hey.com",
-        "Admin Login Link",
-        f"Click here to log in as admin: {login_url}",
-    )
-
-    return templates.TemplateResponse(request, "admin_login_sent.html", {})
-
-
-@app.get("/admin_verify/{token}")
-async def verify_admin_login(
-    request: Request, token: str, db: Session = Depends(get_db)
-):
-    """Verify an admin login token and authenticate the admin user."""
-    admin = (
-        db.query(User)
-        .filter(
-            User.login_token == token,
-            User.token_expiry > datetime.now(timezone.utc),
-            User.is_admin.is_(True),  # Fix the boolean comparison
-        )
-        .first()
-    )
-
-    if not admin:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
-
-    admin.login_token = None
-    admin.token_expiry = None
-    db.commit()
-
-    request.session["admin_email"] = admin.email
-    return RedirectResponse(url="/manage_users", status_code=303)
+@app.get("/admin_login")
+async def admin_login_redirect(request: Request):
+    """Redirect to main login for admin access."""
+    return RedirectResponse(url="/login", status_code=302)
 
 
 if __name__ == "__main__":
