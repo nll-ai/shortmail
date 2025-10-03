@@ -12,6 +12,8 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.deployment-url }}
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
@@ -26,11 +28,48 @@ jobs:
           version: "latest"
 
       - name: Deploy to test environment
+        id: deploy
         if: github.event_name == 'pull_request'
         run: |
-          uvx modal deploy deployments/app_deploy.py -e test
+          # Capture the deployment output and extract the URL
+          DEPLOY_OUTPUT=$(uvx modal deploy deployments/app_deploy.py -e test 2>&1)
+          echo "Deployment output:"
+          echo "$DEPLOY_OUTPUT"
+
+          # Extract the deployment URL from the output
+          DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^[:space:]]*\.modal\.run' | head -1)
+
+          if [ -n "$DEPLOYMENT_URL" ]; then
+            echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+            echo "✅ Test deployment successful: $DEPLOYMENT_URL"
+          else
+            echo "❌ Failed to extract deployment URL from output"
+            exit 1
+          fi
 
       - name: Deploy to production environment
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           uvx modal deploy deployments/app_deploy.py
+
+      - name: Comment on PR with deployment URL
+        if: github.event_name == 'pull_request' && steps.deploy.outputs.deployment-url
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const deploymentUrl = '${{ steps.deploy.outputs.deployment-url }}';
+            const comment = `## 🚀 Test Deployment Ready!
+
+            Your test deployment is now live and ready for testing:
+
+            **🔗 [View Test Deployment](${deploymentUrl})**
+
+            ---
+            *This deployment will be automatically updated when you push new commits to this PR.*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
