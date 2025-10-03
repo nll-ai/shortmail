@@ -3,71 +3,86 @@
 {% block title %}ShortMail - Receive fewer, shorter, and better emails{% endblock %}
 
 {% block content %}
-    <h1>ShortMail: Stop drowning in email</h1>
-    <h2>Receive fewer, shorter, and better emails.</h2>
-    <p>Create a ShortMail page to tell the world how you prefer email.</p>
-
-    <div class="signup-container">
-        <h2>Get Started – It's Free</h2>
-        <p>Sign in with your email to log in or create an account:</p>
-        <a href="/login" class="login-button">Sign In / Sign Up</a>
-        {% if error %}
-        <p class="error">{{ error }}</p>
-        {% endif %}
-        <p>It takes 5 minutes to set up and saves hours – every month.</p>
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-4">ShortMail: Stop drowning in email</h1>
+        <h2 class="text-2xl text-muted-foreground mb-6">Receive fewer, shorter, and better emails.</h2>
+        <p class="text-lg">Create a ShortMail page to tell the world how you prefer email.</p>
     </div>
 
-    <div class="info-boxes">
-        <div class="info-box">
-            <h3>Let your contacts know in your email signature</h3>
-            <p>They will understand that you're managing your email load and will follow your requests.</p>
+    <div class="card mb-8">
+        <div class="card-header text-center">
+            <h2 class="card-title">Get Started – It's Free</h2>
+            <p class="card-description">Sign in with your email to log in or create an account</p>
         </div>
-        <div class="info-box">
-            <h3>Let new people know by linking from your website</h3>
-            <p>Link from your website, blog, or social media profiles. No need to publish your email address anymore.</p>
+        <div class="card-content text-center">
+            <a href="/login" class="btn btn-primary btn-lg">Sign In / Sign Up</a>
+            {% if error %}
+            <div class="alert alert-destructive mt-4">
+                {{ error }}
+            </div>
+            {% endif %}
+            <p class="mt-4">It takes 5 minutes to set up and saves hours – every month.</p>
         </div>
     </div>
 
-    <p><em>ShortMail does not have access to your inbox, and messages sent via the contact form are not stored.</em></p>
-
-    <h2>Benefits of using ShortMail</h2>
-    <ul>
-        <li><strong>Fewer emails:</strong> Some people will find their answer in your FAQ or will realize that it's not that important after all.</li>
-        <li><strong>Shorter emails:</strong> Unsolicited messages sent via contact form are limited to 500 characters.</li>
-        <li><strong>Better emails:</strong> People will understand how you prefer email and will follow your requests.</li>
-        <li><strong>Organized inbox:</strong> Use filters in your email client to group and sort messages, for instance by topic.</li>
-        <li><strong>Analytics:</strong> See how many people have visited your ShortMail page but have decided not to email you.</li>
-        <li><strong>No software:</strong> There's nothing to install. ShortMail works with every email client.</li>
-    </ul>
-
-    <div class="about-section">
-        <h2>About ShortMail</h2>
-        <p>ShortMail is a tool designed to help people manage high email loads effectively. It provides a simple contact form and a place to tell the world how you prefer to receive email. By setting clear expectations and providing essential information upfront, ShortMail helps you receive fewer and better emails, saving you time and reducing email-related stress.</p>
-        <p>Inspired by the now-defunct Shortwhale, ShortMail brings you a streamlined, user-friendly solution to take control of your inbox.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Let your contacts know in your email signature</h3>
+            </div>
+            <div class="card-content">
+                <p>They will understand that you're managing your email load and will follow your requests.</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Let new people know by linking from your website</h3>
+            </div>
+            <div class="card-content">
+                <p>Link from your website, blog, or social media profiles. No need to publish your email address anymore.</p>
+            </div>
+        </div>
     </div>
 
-    <style>
-    .login-button {
-        display: inline-block;
-        background-color: #007bff;
-        color: white;
-        padding: 12px 24px;
-        text-decoration: none;
-        border-radius: 4px;
-        font-size: 16px;
-        font-weight: bold;
-        transition: background-color 0.3s;
-    }
+    <div class="alert mb-8">
+        <p><em>ShortMail does not have access to your inbox, and messages sent via the contact form are not stored.</em></p>
+    </div>
 
-    .login-button:hover {
-        background-color: #0056b3;
-        color: white;
-        text-decoration: none;
-    }
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Benefits of using ShortMail</h2>
+        </div>
+        <div class="card-content">
+            <ul class="list">
+                <li class="list-item">
+                    <strong>Fewer emails:</strong> Some people will find their answer in your FAQ or will realize that it's not that important after all.
+                </li>
+                <li class="list-item">
+                    <strong>Shorter emails:</strong> Unsolicited messages sent via contact form are limited to 500 characters.
+                </li>
+                <li class="list-item">
+                    <strong>Better emails:</strong> People will understand how you prefer email and will follow your requests.
+                </li>
+                <li class="list-item">
+                    <strong>Organized inbox:</strong> Use filters in your email client to group and sort messages, for instance by topic.
+                </li>
+                <li class="list-item">
+                    <strong>Analytics:</strong> See how many people have visited your ShortMail page but have decided not to email you.
+                </li>
+                <li class="list-item">
+                    <strong>No software:</strong> There's nothing to install. ShortMail works with every email client.
+                </li>
+            </ul>
+        </div>
+    </div>
 
-    .error {
-        color: red;
-        margin-top: 10px;
-    }
-    </style>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">About ShortMail</h2>
+        </div>
+        <div class="card-content">
+            <p>ShortMail is a tool designed to help people manage high email loads effectively. It provides a simple contact form and a place to tell the world how you prefer to receive email. By setting clear expectations and providing essential information upfront, ShortMail helps you receive fewer and better emails, saving you time and reducing email-related stress.</p>
+            <p>Inspired by the now-defunct Shortwhale, ShortMail brings you a streamlined, user-friendly solution to take control of your inbox.</p>
+        </div>
+    </div>
 {% endblock %}

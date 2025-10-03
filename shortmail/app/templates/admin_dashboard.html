@@ -7,43 +7,55 @@
 {% endblock %}
 
 {% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>Admin Dashboard</h1>
-        <div class="admin-controls">
-            <span class="admin-email">Logged in as: {{ admin.email }} ({{ admin.admin_role }})</span>
-            <a href="/logout" class="button button-danger">Logout</a>
+<div class="mb-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-muted-foreground">Logged in as: {{ admin.email }} ({{ admin.admin_role }})</span>
+            <a href="/logout" class="btn btn-destructive">Logout</a>
         </div>
     </div>
 
-    <div class="admin-nav">
-        <a href="/admin" class="nav-link active">Dashboard</a>
-        <a href="/admin/users" class="nav-link">User Management</a>
+    <div class="flex gap-2 mb-8">
+        <a href="/admin" class="btn btn-primary">Dashboard</a>
+        <a href="/admin/users" class="btn btn-outline">User Management</a>
     </div>
+</div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-number">{{ stats.total_users }}</div>
-            <div class="stat-label">Total Users</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ stats.paid_users }}</div>
-            <div class="stat-label">Paid Users</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ stats.free_users }}</div>
-            <div class="stat-label">Free Users</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ stats.admin_users }}</div>
-            <div class="stat-label">Admin Users</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="card">
+        <div class="card-content text-center">
+            <div class="text-3xl font-bold text-primary mb-2">{{ stats.total_users }}</div>
+            <div class="text-sm text-muted-foreground uppercase tracking-wide">Total Users</div>
         </div>
     </div>
+    <div class="card">
+        <div class="card-content text-center">
+            <div class="text-3xl font-bold text-primary mb-2">{{ stats.paid_users }}</div>
+            <div class="text-sm text-muted-foreground uppercase tracking-wide">Paid Users</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-content text-center">
+            <div class="text-3xl font-bold text-primary mb-2">{{ stats.free_users }}</div>
+            <div class="text-sm text-muted-foreground uppercase tracking-wide">Free Users</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-content text-center">
+            <div class="text-3xl font-bold text-primary mb-2">{{ stats.admin_users }}</div>
+            <div class="text-sm text-muted-foreground uppercase tracking-wide">Admin Users</div>
+        </div>
+    </div>
+</div>
 
-    <div class="recent-users">
-        <h2>Recent Users</h2>
-        <div class="users-table">
-            <table>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Recent Users</h2>
+    </div>
+    <div class="card-content p-0">
+        <div class="overflow-x-auto">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Email</th>
@@ -60,17 +72,21 @@
                         <td>{{ user.display_name or user.email }}</td>
                         <td>{{ user.vanity_name }}</td>
                         <td>
-                            <span class="status-badge {% if user.is_paid %}status-paid{% else %}status-free{% endif %}">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if user.is_paid %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
                                 {{ "Paid" if user.is_paid else "Free" }}
                             </span>
                         </td>
                         <td>
                             {% if user.admin_role %}
-                                <span class="role-badge role-{{ user.admin_role }}">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if user.admin_role == 'super_admin' %}bg-red-100 text-red-800
+                                    {% elif user.admin_role == 'admin' %}bg-green-100 text-green-800
+                                    {% elif user.admin_role == 'moderator' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {{ user.admin_role.replace('_', ' ').title() }}
                                 </span>
                             {% else %}
-                                <span class="role-badge role-user">User</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">User</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -81,205 +97,4 @@
     </div>
 </div>
 
-<style>
-.admin-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-.admin-controls {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.admin-email {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.admin-nav {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-.nav-link {
-    padding: 0.5rem 1rem;
-    text-decoration: none;
-    color: #666;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.nav-link:hover {
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-.nav-link.active {
-    background-color: #007bff;
-    color: white;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #007bff;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: #666;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.recent-users {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.recent-users h2 {
-    margin: 0;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    font-size: 1.1rem;
-}
-
-.users-table {
-    overflow-x: auto;
-}
-
-.users-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.users-table th,
-.users-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.users-table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #444;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-}
-
-.users-table tr:last-child td {
-    border-bottom: none;
-}
-
-.users-table tr:hover {
-    background-color: #f8f9fa;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.status-paid {
-    background-color: #e3f2fd;
-    color: #1976d2;
-}
-
-.status-free {
-    background-color: #f5f5f5;
-    color: #666;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.role-super_admin {
-    background-color: #ffebee;
-    color: #c62828;
-}
-
-.role-admin {
-    background-color: #e8f5e8;
-    color: #2e7d32;
-}
-
-.role-moderator {
-    background-color: #fff3e0;
-    color: #ef6c00;
-}
-
-.role-user {
-    background-color: #f5f5f5;
-    color: #666;
-}
-
-.button {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #dc3545;
-    color: white;
-    text-decoration: none;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
-}
-
-.button:hover {
-    background-color: #c82333;
-}
-
-.button-danger {
-    background-color: #dc3545;
-}
-
-.button-danger:hover {
-    background-color: #c82333;
-}
-</style>
 {% endblock %}

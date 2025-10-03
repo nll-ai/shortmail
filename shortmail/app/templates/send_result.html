@@ -3,13 +3,17 @@
 {% block title %}ShortMail Result{% endblock %}
 
 {% block content %}
-    <h2>ShortMail Result</h2>
-    {% if email_sent %}
-        <p class="success">Your ShortMail has been sent successfully to {{ display_name }}!</p>
-    {% else %}
-        <p class="error">There was an error sending your ShortMail. Please try again later.</p>
-    {% endif %}
-    <div>
-        <a href="/send/{{ vanity_name }}">Back to {{ display_name }}'s ShortMail</a>
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold mb-4">ShortMail Result</h1>
+        {% if email_sent %}
+            <div class="alert alert-success mb-6">
+                <p class="text-lg">Your ShortMail has been sent successfully to {{ display_name }}!</p>
+            </div>
+        {% else %}
+            <div class="alert alert-destructive mb-6">
+                <p class="text-lg">There was an error sending your ShortMail. Please try again later.</p>
+            </div>
+        {% endif %}
+        <a href="/send/{{ vanity_name }}" class="btn btn-primary">Back to {{ display_name }}'s ShortMail</a>
     </div>
 {% endblock %}

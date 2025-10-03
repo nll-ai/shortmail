@@ -1,38 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShortMail Analytics</title>
-    <link rel="stylesheet" href='/static/styles.css'>
-</head>
-<body>
-    <div class="container">
-        <h1>ShortMail Analytics</h1>
+{% extends "base.html" %}
 
-        {% if user.is_paid %}
-            <div class="analytics-data">
-                <h2>Your Analytics</h2>
-                <p>Total messages: {{ analytics.total_messages }}</p>
-                <h3>Popular Subjects:</h3>
-                <ul>
-                    {% for subject in analytics.popular_subjects %}
-                        <li>{{ subject }}</li>
-                    {% endfor %}
-                </ul>
-                <p>Average response time: {{ analytics.avg_response_time }}</p>
-            </div>
-        {% else %}
-            <div class="upgrade-message">
-                <h2>Upgrade to Access Analytics</h2>
-                <p>Analytics are available only for paid tier users. Upgrade your account to unlock this feature and gain valuable insights into your ShortMail usage.</p>
-                <a href="/upgrade" class="button-link">Upgrade Now</a>
-            </div>
-        {% endif %}
+{% block title %}ShortMail Analytics{% endblock %}
 
-        <div class="back-link">
-            <a href="/dashboard" class="button-link">Back to Dashboard</a>
-        </div>
+{% block content %}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">ShortMail Analytics</h1>
     </div>
-</body>
-</html>
+
+    {% if user.is_paid %}
+        <div class="card mb-8">
+            <div class="card-header">
+                <h2 class="card-title">Your Analytics</h2>
+            </div>
+            <div class="card-content">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-primary mb-2">{{ analytics.total_messages }}</div>
+                        <div class="text-sm text-muted-foreground uppercase tracking-wide">Total Messages</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-primary mb-2">{{ analytics.avg_response_time }}</div>
+                        <div class="text-sm text-muted-foreground uppercase tracking-wide">Avg Response Time</div>
+                    </div>
+                </div>
+
+                {% if analytics.popular_subjects %}
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Popular Subjects</h3>
+                    <ul class="list">
+                        {% for subject in analytics.popular_subjects %}
+                            <li class="list-item">{{ subject }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="card mb-8">
+            <div class="card-header text-center">
+                <h2 class="card-title">Upgrade to Access Analytics</h2>
+            </div>
+            <div class="card-content text-center">
+                <p class="mb-6">Analytics are available only for paid tier users. Upgrade your account to unlock this feature and gain valuable insights into your ShortMail usage.</p>
+                <a href="/upgrade" class="btn btn-primary">Upgrade Now</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="text-center">
+        <a href="/dashboard" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+{% endblock %}

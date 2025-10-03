@@ -3,59 +3,89 @@
 {% block title %}Send ShortMail to {{ user.display_name }}{% endblock %}
 
 {% block content %}
-    <h1>Send ShortMail to {{ user.display_name }}</h1>
-
-    <div class="faqs">
-        <h2>Frequently Asked Questions</h2>
-        {% for faq in faqs %}
-            <div class="faq-item">
-                <div class="faq-content">
-                    <h4>{{ faq.question }}</h4>
-                    <div>{{ faq.answer_html | safe }}</div>
-                </div>
-            </div>
-        {% else %}
-            <p>No FAQs available.</p>
-        {% endfor %}
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold mb-2">Send ShortMail to {{ user.display_name }}</h1>
     </div>
 
-    <h2>Send a Message</h2>
-    <p>If your question isn't answered in the FAQ above, please feel free to send a message:</p>
-    <form action="/send/{{ user.vanity_name }}" method="post">
-        <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name">
-        <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address">
-
-        <div class="reply-option">
-            <p>Would you like {{ user.display_name }} to reply?</p>
-            <label>
-                <input type="radio" name="reply_needed" value="yes" required> Yes
-            </label>
-            <label>
-                <input type="radio" name="reply_needed" value="no" required checked> No
-            </label>
+    {% if faqs %}
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Frequently Asked Questions</h2>
         </div>
-
-        <select name="subject" id="subject-select" required>
-            <option value="">Select a subject</option>
-            {% for heading in subject_headings %}
-                <option value="{{ heading.heading }}">{{ heading.heading }}</option>
+        <div class="card-content">
+            {% for faq in faqs %}
+                <div class="mb-6 last:mb-0">
+                    <h4 class="font-semibold mb-2">{{ faq.question }}</h4>
+                    <div class="text-muted-foreground">{{ faq.answer_html | safe }}</div>
+                </div>
             {% endfor %}
-            <option value="OTHER">OTHER</option>
-        </select>
-        <input type="text" id="custom-subject" name="custom_subject" placeholder="Enter custom subject">
-        <textarea name="message" id="message" maxlength="500" required placeholder="Type your message here (max 500 characters)"></textarea>
-        <div id="char-count">0 / 500</div>
-        <input type="submit" value="Send ShortMail">
-    </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Send a Message</h2>
+            <p class="card-description">If your question isn't answered in the FAQ above, please feel free to send a message</p>
+        </div>
+        <div class="card-content">
+            <form action="/send/{{ user.vanity_name }}" method="post">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label for="sender-name" class="form-label">Your Name</label>
+                        <input type="text" name="sender_name" id="sender-name" required placeholder="Your Name" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="sender-email" class="form-label">Your Email Address</label>
+                        <input type="email" name="sender_email" id="sender-email" required placeholder="Your Email Address" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <p class="form-label mb-2">Would you like {{ user.display_name }} to reply?</p>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="reply_needed" value="yes" required class="form-radio">
+                            <span class="ml-2">Yes</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="reply_needed" value="no" required checked class="form-radio">
+                            <span class="ml-2">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="subject-select" class="form-label">Subject</label>
+                    <select name="subject" id="subject-select" required class="form-select">
+                        <option value="">Select a subject</option>
+                        {% for heading in subject_headings %}
+                            <option value="{{ heading.heading }}">{{ heading.heading }}</option>
+                        {% endfor %}
+                        <option value="OTHER">OTHER</option>
+                    </select>
+                    <input type="text" id="custom-subject" name="custom_subject" placeholder="Enter custom subject" class="form-input mt-2 hidden">
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea name="message" id="message" maxlength="500" required placeholder="Type your message here (max 500 characters)" class="form-textarea"></textarea>
+                    <div id="char-count" class="char-count">0 / 500</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-full">Send ShortMail</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         document.getElementById('subject-select').addEventListener('change', function() {
             var customSubject = document.getElementById('custom-subject');
             if (this.value === 'OTHER') {
-                customSubject.style.display = 'block';
+                customSubject.classList.remove('hidden');
                 customSubject.required = true;
             } else {
-                customSubject.style.display = 'none';
+                customSubject.classList.add('hidden');
                 customSubject.required = false;
             }
         });

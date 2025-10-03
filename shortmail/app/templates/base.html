@@ -4,21 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ShortMail{% endblock %}</title>
-    <link rel="stylesheet" href='/static/styles.css'>
+    <link rel="stylesheet" href='/static/shadcn.css'>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>ShortMail</h1>
-        </header>
+        <nav class="nav">
+            <a href="/" class="nav-brand">ShortMail</a>
+            <div class="nav-links">
+                {% if user %}
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/logout" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="/login" class="nav-link">Login</a>
+                {% endif %}
+            </div>
+        </nav>
         <main>
             {% block content %}
             {% endblock %}
         </main>
-        <footer>
+        <footer class="text-center text-sm text-muted-foreground mt-8">
             <p>&copy; 2024 ShortMail. All rights reserved.</p>
         </footer>
     </div>

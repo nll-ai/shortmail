@@ -3,115 +3,162 @@
 {% block title %}ShortMail Dashboard{% endblock %}
 
 {% block content %}
-    <h2>Welcome to your ShortMail Dashboard, {{ user.email }}</h2>
-
-    <div class="analytics-link">
-        <a href="/analytics" class="button-link">View Analytics</a>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Welcome to your ShortMail Dashboard</h1>
+        <p class="text-muted-foreground">{{ user.email }}</p>
     </div>
 
-    <h2>Configure Your ShortMail Landing Page</h2>
-    {% if can_add_subject %}
-        <form action="/add_subject_heading" method="post">
-            <input type="text" name="heading" required placeholder="Add a new subject heading">
-            <input type="submit" value="Add Heading">
-        </form>
-    {% else %}
-        <p>You've reached the maximum number of subject headings for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
-    {% endif %}
+    <div class="mb-8">
+        <a href="/analytics" class="btn btn-outline">View Analytics</a>
+    </div>
 
-    <div class="subject-headings">
-        <h3>Your Subject Headings</h3>
-        {% for heading in subject_headings %}
-            <div class="subject-heading">
-                <span>{{ heading.heading }}</span>
-                <form action="/remove_subject_heading/{{ heading.id }}" method="post">
-                    <button type="submit" class="remove-heading">Remove</button>
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Configure Your ShortMail Landing Page</h2>
+        </div>
+        <div class="card-content">
+            {% if can_add_subject %}
+                <form action="/add_subject_heading" method="post" class="flex gap-2 mb-4">
+                    <input type="text" name="heading" required placeholder="Add a new subject heading" class="form-input flex-1">
+                    <button type="submit" class="btn btn-primary">Add Heading</button>
                 </form>
-            </div>
-        {% else %}
-            <p>No subject headings configured yet.</p>
-        {% endfor %}
-    </div>
-
-    <h2>Manage Your FAQs</h2>
-    {% if can_add_faq %}
-        <form action="/add_faq" method="post">
-            <input type="text" name="question" required placeholder="Question">
-            <textarea name="answer" required placeholder="Answer"></textarea>
-            <input type="submit" value="Add FAQ">
-        </form>
-    {% else %}
-        <p>You've reached the maximum number of FAQs for the free tier. <a href="/upgrade">Upgrade to add more!</a></p>
-    {% endif %}
-
-    <div class="faqs">
-        <h3>Your FAQs</h3>
-        {% for faq in faqs %}
-            <div class="faq-item" data-faq-id="{{ faq.id }}">
-                <div class="faq-content">
-                    <h4 class="faq-question">{{ faq.question }}</h4>
-                    <p class="faq-answer">{{ faq.answer_html | safe }}</p>
+            {% else %}
+                <div class="alert alert-warning">
+                    <p>You've reached the maximum number of subject headings for the free tier. <a href="/upgrade" class="btn-link">Upgrade to add more!</a></p>
                 </div>
-                <div class="faq-actions">
-                    <form action="/remove_faq/{{ faq.id }}" method="post" class="remove-faq-form">
-                        <button type="submit" class="remove-faq">Remove</button>
-                    </form>
-                    <button class="edit-faq remove-faq">Edit</button>
-                </div>
-                <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form" style="display: none;">
-                    <input type="text" name="question" value="{{ faq.question }}" required>
-                    <textarea name="answer" required>{{ faq.answer_text }}</textarea>
-                    <div class="faq-actions">
-                        <button type="submit" class="remove-faq">Save</button>
-                        <button type="button" class="cancel-edit remove-faq">Cancel</button>
+            {% endif %}
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-4">Your Subject Headings</h3>
+                {% for heading in subject_headings %}
+                    <div class="flex items-center justify-between p-3 border rounded-md mb-2">
+                        <span>{{ heading.heading }}</span>
+                        <form action="/remove_subject_heading/{{ heading.id }}" method="post" class="inline">
+                            <button type="submit" class="btn btn-destructive btn-sm">Remove</button>
+                        </form>
                     </div>
-                </form>
-            </div>
-        {% else %}
-            <p>No FAQs added yet.</p>
-        {% endfor %}
-    </div>
-
-    <h2>Your ShortMail Landing Page URL</h2>
-    <p>Share this URL with others to let them send you ShortMail:</p>
-    <div class="share-url-container">
-        <div class="share-url"><a href="{{ request.base_url }}send/{{ user.vanity_name or '' }}">{{ request.base_url }}send/{{ user.vanity_name or '' }}</a></div>
-        <button id="copy-button" class="copy-button" title="Copy URL">
-            <i class="fas fa-copy"></i>
-        </button>
-    </div>
-
-    <div class="profile-setup">
-        <h2>Your ShortMail Profile</h2>
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-        <div class="two-column-form">
-            <div class="form-column">
-                <h3>Vanity Name</h3>
-                <form action="/update_vanity_name" method="post">
-                    <label for="vanity_name">Your vanity name (for your ShortMail URL):</label>
-                    <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %}>
-                    {% if not user.is_paid %}
-                        <p class="upgrade-message">Upgrade to a paid account to change your vanity name.</p>
-                    {% else %}
-                        <input type="submit" value="Update Vanity Name">
-                    {% endif %}
-                </form>
-            </div>
-            <div class="form-column">
-                <h3>Display Name</h3>
-                <form action="/update_display_name" method="post">
-                    <label for="display_name">Your display name:</label>
-                    <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}">
-                    <input type="submit" value="Update Display Name">
-                </form>
+                {% else %}
+                    <p class="text-muted-foreground">No subject headings configured yet.</p>
+                {% endfor %}
             </div>
         </div>
     </div>
 
-    <div class="logout-container">
-        <a href="/logout" class="logout">Logout</a>
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Manage Your FAQs</h2>
+        </div>
+        <div class="card-content">
+            {% if can_add_faq %}
+                <form action="/add_faq" method="post" class="mb-6">
+                    <div class="form-group">
+                        <input type="text" name="question" required placeholder="Question" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <textarea name="answer" required placeholder="Answer" class="form-textarea"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add FAQ</button>
+                </form>
+            {% else %}
+                <div class="alert alert-warning mb-6">
+                    <p>You've reached the maximum number of FAQs for the free tier. <a href="/upgrade" class="btn-link">Upgrade to add more!</a></p>
+                </div>
+            {% endif %}
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Your FAQs</h3>
+                {% for faq in faqs %}
+                    <div class="border rounded-md p-4 mb-4" data-faq-id="{{ faq.id }}">
+                        <div class="faq-content">
+                            <h4 class="font-semibold mb-2">{{ faq.question }}</h4>
+                            <p class="text-muted-foreground mb-3">{{ faq.answer_html | safe }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <form action="/remove_faq/{{ faq.id }}" method="post" class="inline">
+                                <button type="submit" class="btn btn-destructive btn-sm">Remove</button>
+                            </form>
+                            <button class="btn btn-outline btn-sm edit-faq">Edit</button>
+                        </div>
+                        <form action="/edit_faq/{{ faq.id }}" method="post" class="edit-faq-form hidden mt-4">
+                            <div class="form-group">
+                                <input type="text" name="question" value="{{ faq.question }}" required class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <textarea name="answer" required class="form-textarea">{{ faq.answer_text }}</textarea>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                <button type="button" class="btn btn-outline btn-sm cancel-edit">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <p class="text-muted-foreground">No FAQs added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Your ShortMail Landing Page URL</h2>
+            <p class="card-description">Share this URL with others to let them send you ShortMail</p>
+        </div>
+        <div class="card-content">
+            <div class="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <div class="flex-1 text-sm font-mono break-all">
+                    <a href="{{ request.base_url }}send/{{ user.vanity_name or '' }}" class="text-primary">{{ request.base_url }}send/{{ user.vanity_name or '' }}</a>
+                </div>
+                <button id="copy-button" class="copy-button" title="Copy URL">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="card-title">Your ShortMail Profile</h2>
+        </div>
+        <div class="card-content">
+            {% if error %}
+                <div class="alert alert-destructive mb-4">
+                    {{ error }}
+                </div>
+            {% endif %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Vanity Name</h3>
+                    <form action="/update_vanity_name" method="post">
+                        <div class="form-group">
+                            <label for="vanity_name" class="form-label">Your vanity name (for your ShortMail URL):</label>
+                            <input type="text" id="vanity_name" name="vanity_name" required value="{{ user.vanity_name or '' }}" {% if not user.is_paid %}readonly{% endif %} class="form-input">
+                        </div>
+                        {% if not user.is_paid %}
+                            <div class="alert alert-warning">
+                                <p>Upgrade to a paid account to change your vanity name.</p>
+                            </div>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary">Update Vanity Name</button>
+                        {% endif %}
+                    </form>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Display Name</h3>
+                    <form action="/update_display_name" method="post">
+                        <div class="form-group">
+                            <label for="display_name" class="form-label">Your display name:</label>
+                            <input type="text" id="display_name" name="display_name" required value="{{ user.display_name or '' }}" class="form-input">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Display Name</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="/logout" class="btn btn-destructive">Logout</a>
     </div>
 {% endblock %}
 
