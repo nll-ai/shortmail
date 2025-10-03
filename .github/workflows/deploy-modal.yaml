@@ -53,13 +53,17 @@ jobs:
           uvx modal deploy deployments/app_deploy.py
 
       - name: Create deployment summary
-        if: github.event_name == 'pull_request' && steps.deploy.outputs.deployment-url
+        if: github.event_name == 'pull_request' && steps.deploy.outputs.deployment-url != ''
         run: |
-          echo "## 🚀 Test Deployment Ready!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Your test deployment is now live and ready for testing:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**🔗 [View Test Deployment](${{ steps.deploy.outputs.deployment-url })**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*This deployment will be automatically updated when you push new commits to this PR.*" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🚀 Test Deployment Ready!"
+            echo
+            echo "Your test deployment is now live and ready for testing:"
+            echo
+            echo "**🔗 [View Test Deployment](${DEPLOYMENT_URL})**"
+            echo
+            echo "---"
+            echo "*This deployment will be automatically updated when you push new commits to this PR.*"
+          } >> $GITHUB_STEP_SUMMARY
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
