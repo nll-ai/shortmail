@@ -259,6 +259,7 @@ p {
   padding: 0.5rem 0.75rem;
   transition: border-color 0.2s;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -285,6 +286,7 @@ p {
   resize: vertical;
   transition: border-color 0.2s;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .form-textarea:focus {
