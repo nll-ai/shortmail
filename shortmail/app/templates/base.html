@@ -14,8 +14,11 @@
         <nav class="nav">
             <a href="/" class="nav-brand">ShortMail</a>
             <div class="nav-links">
-                {% if user %}
+                {% if user or admin %}
                     <a href="/dashboard" class="nav-link">Dashboard</a>
+                    {% if admin and admin.admin_role %}
+                        <a href="/admin" class="nav-link">Admin</a>
+                    {% endif %}
                     <a href="/logout" class="nav-link">Logout</a>
                 {% else %}
                     <a href="/login" class="nav-link">Login</a>
