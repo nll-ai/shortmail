@@ -125,6 +125,32 @@ def require_admin_role(required_role: str = "admin"):
     return admin_dependency
 
 
+def check_admin_access(request: Request, db: Session = Depends(get_db)):
+    """
+    Check admin access and return appropriate response for admin pages.
+
+    This function checks if the user is authenticated and has admin privileges.
+    - If not authenticated: shows auth_required page and stores intended destination
+    - If authenticated but not admin: redirects to dashboard
+    - If admin: returns the user object
+
+    :param request: FastAPI Request object containing session data
+    :param db: Database session dependency
+    :return: TemplateResponse for auth_required, RedirectResponse to dashboard, or the admin user
+    """
+    user_email = request.session.get("user_email")
+    if not user_email:
+        # Store the intended destination so we can redirect back after login
+        request.session["intended_destination"] = str(request.url)
+        return templates.TemplateResponse(request, "auth_required.html", {})
+
+    user = db.query(User).filter(User.email == user_email).first()
+    if not user or not user.admin_role:
+        return RedirectResponse(url="/dashboard", status_code=302)
+
+    return user
+
+
 def is_disposable_email(email: str) -> bool:
     """
     Check if an email is from a disposable email provider.
@@ -310,6 +336,13 @@ async def callback(request: Request, code: str = None, db: Session = Depends(get
         # Store the user email in session
         request.session["user_email"] = user.email
         request.session["access_token"] = access_token
+
+        # Redirect to intended destination if stored, otherwise go to dashboard
+        intended_destination = request.session.get("intended_destination")
+        if intended_destination:
+            # Clear the stored destination
+            request.session.pop("intended_destination", None)
+            return RedirectResponse(url=intended_destination, status_code=302)
 
         return RedirectResponse(url="/dashboard", status_code=302)
 
@@ -805,10 +838,16 @@ async def edit_faq(
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
     request: Request,
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """Render the secure admin dashboard."""
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
+    admin_user = admin_check  # It's the User object if we get here
+
     # Get basic stats
     total_users = db.query(User).count()
     paid_users = db.query(User).filter(User.is_paid).count()
@@ -833,10 +872,15 @@ async def admin_dashboard(
 @app.get("/admin/users", response_class=HTMLResponse)
 async def manage_users(
     request: Request,
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """Render the user management page for admin users."""
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
+    admin_user = admin_check  # It's the User object if we get here
     users = db.query(User).all()
     for user in users:
         ensure_correct_vanity_name(user, db)
@@ -849,7 +893,7 @@ async def manage_users(
 @app.get("/admin/users/list", response_class=HTMLResponse)
 async def get_users(
     request: Request,
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """
@@ -859,10 +903,14 @@ async def get_users(
     Each user's vanity name is validated before returning the response.
 
     :param request: The incoming request object containing session data
-    :param admin_user: The authenticated admin user
+    :param admin_check: The admin access check result
     :param db: The database session
     :return: HTML response with partial template containing user list
     """
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
     users = db.query(User).all()
     for user in users:
         ensure_correct_vanity_name(user, db)
@@ -876,7 +924,7 @@ async def get_users(
 async def toggle_user_edit(
     request: Request,
     user_id: int,
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """
@@ -892,6 +940,10 @@ async def toggle_user_edit(
     :return: HTML response with partial template containing editable user form
     :raises HTTPException: If user with given ID is not found
     """
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -907,7 +959,7 @@ async def update_user(
     user_id: int,
     is_paid: bool = Form(False),
     admin_role: str = Form(None),
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """
@@ -925,6 +977,12 @@ async def update_user(
     :return: HTML response with partial template containing updated user row
     :raises HTTPException: If user with given ID is not found or insufficient permissions
     """
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
+    admin_user = admin_check  # It's the User object if we get here
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -954,7 +1012,7 @@ async def update_user(
 async def delete_user(
     request: Request,
     user_id: int,
-    admin_user: User = Depends(require_admin_role("admin")),
+    admin_check=Depends(check_admin_access),
     db: Session = Depends(get_db),
 ):
     """
@@ -971,6 +1029,10 @@ async def delete_user(
     :return: Empty string response
     :raises HTTPException: If user with given ID is not found
     """
+    # If admin_check is a TemplateResponse or RedirectResponse, return it
+    if hasattr(admin_check, "template") or hasattr(admin_check, "url"):
+        return admin_check
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
