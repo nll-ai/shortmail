@@ -51,25 +51,3 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           uvx modal deploy deployments/app_deploy.py
-
-      - name: Comment on PR with deployment URL
-        if: github.event_name == 'pull_request' && steps.deploy.outputs.deployment-url
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const deploymentUrl = '${{ steps.deploy.outputs.deployment-url }}';
-            const comment = `## 🚀 Test Deployment Ready!
-
-            Your test deployment is now live and ready for testing:
-
-            **🔗 [View Test Deployment](${deploymentUrl})**
-
-            ---
-            *This deployment will be automatically updated when you push new commits to this PR.*`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
