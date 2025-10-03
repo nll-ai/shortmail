@@ -28,6 +28,9 @@ WORKOS_API_KEY=your_workos_api_key_here
 WORKOS_CLIENT_ID=your_workos_client_id_here
 WORKOS_REDIRECT_URI=http://localhost:7196/callback
 
+# Admin Configuration
+SUPER_ADMIN_EMAIL=your_admin_email@example.com
+
 # Existing environment variables
 SECRET_KEY=your_secret_key_here
 RESEND_API_KEY=your_resend_api_key_here
@@ -53,10 +56,11 @@ Open your browser and navigate to `http://localhost:7196`
 
 ## Features
 
-- **WorkOS AuthKit Authentication**: Secure user authentication with SSO support using WorkOS AuthKit
+- Secure user authentication with SSO support using WorkOS AuthKit
+- Role-based admin access with WorkOS integration
 - Send short messages (max 500 characters)
 - Simple and clean interface
 - Real-time character count
 - User dashboard with subject headings and FAQs
-- Admin panel for user management
+- Admin panel for user management with role-based permissions
 - Support for organization-based SSO login

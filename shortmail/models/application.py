@@ -55,7 +55,10 @@ class User(Base):
     is_paid = Column(Boolean, default=False)
     login_token = Column(String)
     token_expiry = Column(DateTime)
-    is_admin = Column(Boolean, default=False)  # New field
+    is_admin = Column(Boolean, default=False)  # Deprecated - use admin_role instead
+    admin_role = Column(
+        String, default=None
+    )  # Values: 'super_admin', 'admin', 'moderator'
     subject_headings = relationship("SubjectHeading", back_populates="user")
     faqs = relationship("FAQ", back_populates="user")
 
