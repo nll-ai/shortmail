@@ -32,7 +32,9 @@ app = modal.App(name="shortmail")
     volumes={"/usr/local/src/data": volume},
     secrets=[modal.Secret.from_name("shortmail")],
 )
-@modal.web_server(7196, startup_timeout=120)
+@modal.web_server(
+    7196, startup_timeout=120, custom_domains=["shortmail.nonlinearlabs.ai"]
+)
 def run_app():
     """
     Start the Shortmail web application server.
