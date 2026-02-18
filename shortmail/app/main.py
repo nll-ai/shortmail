@@ -557,7 +557,7 @@ async def process_shortmail(
 
     # Send email
     email_sent = send_email(
-        "shortmail@nonlinearlabs.ai",
+        "shortmail@mail.nonlinearlabs.ai",
         user.email,
         sender_email,
         email_subject,

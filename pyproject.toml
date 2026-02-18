@@ -33,6 +33,10 @@ pyprojroot = ">=0.3.0,<0.4"
 httpx = ">=0.27.2,<0.28"
 
 
+[tool.pydoclint]
+# Use default style; customize as needed.
+# See https://github.com/jsh9/pydoclint#configuration
+
 [tool.interrogate]
 ignore-init-method = true
 ignore-init-module = false

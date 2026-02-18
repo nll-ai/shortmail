@@ -5,6 +5,8 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
+    options:
+      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -1397,7 +1399,7 @@ packages:
 - pypi: ./
   name: shortmail
   version: 0.1.0
-  sha256: 0bd076cd5157c6c72971b0d36e1776fe5a651ba3375368923440674cd91e9f38
+  sha256: f567be8d11c606696c868ca625e3862e6e6d623229052dbc0b053b61cf96fd97
   requires_dist:
   - fastapi>=0.115.0,<0.116
   - uvicorn>=0.30.6,<0.31
@@ -1408,7 +1410,6 @@ packages:
   - resend>=2.13.0,<3
   - workos>=5.9.0,<6
   requires_python: '>=3.11'
-  editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/sniffio-1.3.1-pyhd8ed1ab_0.conda
   sha256: bc12100b2d8836b93c55068b463190505b8064d0fc7d025e89f20ebf22fe6c2b
   md5: 490730480d76cf9c8f8f2849719c6e2b
