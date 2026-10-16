@@ -1,6 +1,6 @@
 import { internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireUser } from "./lib/identity";
+import { findUserByIdentity } from "./lib/identity";
 import { dayKeyFromToday } from "./lib/days";
 import { parseSubjectTag } from "./lib/subjectTag";
 
@@ -107,7 +107,9 @@ export const ownerStats = query({
     v.object({ tier: v.literal("free") }),
   ),
   handler: async (ctx, args) => {
-    const user = await requireUser(ctx);
+    const user = await findUserByIdentity(ctx);
+    // Null-safe: a brand-new identity has no row and is free by definition.
+    if (!user) return { tier: "free" } satisfies FreeStats;
     if (!user.isPaid) {
       return { tier: "free" } satisfies FreeStats;
     }

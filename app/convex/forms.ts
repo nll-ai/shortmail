@@ -3,6 +3,7 @@ import { v, ConvexError } from "convex/values";
 import {
   FREE_FAQ_LIMIT,
   FREE_HEADING_LIMIT,
+  findUserByIdentity,
   normalizeVanity,
   requireUser,
 } from "./lib/identity";
@@ -14,10 +15,14 @@ import {
  * Free-tier limits: 5 headings, 3 FAQs (main.py:354-402 parity).
  */
 
+// Reads are null-safe: during the brief first-login provisioning window the
+// caller has no row yet — an empty list is the correct render, not an error
+// (codebase-design F11 follow-up: first-login race, verified on prod).
 export const myHeadings = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireUser(ctx);
+    const user = await findUserByIdentity(ctx);
+    if (!user) return [];
     return ctx.db
       .query("subjectHeadings")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
@@ -28,7 +33,8 @@ export const myHeadings = query({
 export const myFaqs = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireUser(ctx);
+    const user = await findUserByIdentity(ctx);
+    if (!user) return [];
     return ctx.db
       .query("faqs")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
