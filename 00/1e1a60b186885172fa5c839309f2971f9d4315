@@ -1,0 +1,43 @@
+app/convex/theming.ts
+  s_808b795008e8ea::t_250042d703d943 1-87
+app/src/app/send/[vanityName]/page.tsx
+  s_808b795008e8ea::t_18ccd01cdb5aef 2-3,10-19,37-42,45-55,58-64
+app/convex/lib/cssSanitize.ts
+  s_808b795008e8ea::t_7040aac359178b 87,94,99-100
+  s_808b795008e8ea::t_3f04ea79e2ddf5 1-86,88-93,95-98,101-133
+app/src/components/theming/ThemingStudio.tsx
+  s_808b795008e8ea::t_e6799e583497ac 1-165
+app/src/components/SendForm.tsx
+  s_808b795008e8ea::t_9f1e11c34ea6ce 277
+  s_808b795008e8ea::t_869588d76eaf13 34,38,148,151-155,158,167
+app/src/app/dashboard/theming/page.tsx
+  s_808b795008e8ea::t_29b1a2f0c5a4fd 1-18
+app/convex/public.ts
+  s_808b795008e8ea::t_ec8ca59e95317f 38-46
+app/src/widget/scopeCss.ts
+  s_808b795008e8ea::t_c45716d147f211 1-28
+app/convex/lib/cssSanitize.test.ts
+  s_808b795008e8ea::t_36f3b955089826 1-75
+app/src/widget/presets.ts
+  s_808b795008e8ea::t_525de9942bbfc9 1-90
+app/package.json
+  s_808b795008e8ea::t_33b85469765a53 28-29
+app/package-lock.json
+  s_808b795008e8ea::t_6d7ed8041c7c36 10,28-29,48-98,339-351,365-504,1124-1141,3706-3715,4440-4453,4468-4481,4554-4560,4670-4682,5846-5858,6221-6227,6454-6504,6951-6957,7106-7133,7382-7394,7458-7461,7478,7480,7626-7635,7805-7817,8274-8280,8370-8389,8403-8428,8627-8636,9209-9256,9406-9422
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "001e1a60b186885172fa5c839309f2971f9d4315",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
