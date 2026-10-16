@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
-import { applyTheme } from "@/widget/theme";
-import { SendForm } from "@/components/SendForm";
 import type { EmbedConfig } from "@/widget/config";
 
 // Config must reflect the live Convex deployment (new headings appear
 // immediately); never cache at build time.
 export const dynamic = "force-dynamic";
 
+/**
+ * The hosted send page is a shell: title, 404 handling, and the widget.
+ * The widget (src/widget/shortmail-widget.ts) owns form rendering,
+ * theming, submission and analytics — one implementation shared with the
+ * embeddable embed (plan §3.5).
+ */
 export default async function SendPage({
   params,
 }: {
@@ -16,7 +20,8 @@ export default async function SendPage({
   const base = process.env.NEXT_PUBLIC_CONVEX_URL;
   if (!base) notFound();
 
-  // httpActions (config + send) serve on the .site twin, not .cloud.
+  // httpActions (config + send) serve on the .site twin, not .cloud. The
+  // server-side fetch gives real 404s and the displayName for metadata.
   const res = await fetch(
     `${base.replace(".convex.cloud", ".convex.site")}/api/embed/${encodeURIComponent(vanityName)}/config`,
     { cache: "no-store" },
@@ -24,24 +29,12 @@ export default async function SendPage({
   if (!res.ok) notFound();
   const config = (await res.json()) as EmbedConfig;
 
-  const { style: themeStyle, css: scopedCustomCss, scopeClass } = applyTheme(
-    config.theme,
-  );
-
   return (
-    <main className="mx-auto max-w-lg p-8" style={themeStyle}>
-      {scopedCustomCss ? (
-        <style dangerouslySetInnerHTML={{ __html: scopedCustomCss }} />
-      ) : null}
-      <h1 className="text-2xl font-bold text-[var(--sm-text,#111111)]">
-        Send a shortmail
-      </h1>
-      <p className="mt-1 mb-6 text-[var(--sm-muted,#4b5563)]">
-        To <strong>{config.displayName}</strong> — max 500 characters.
-      </p>
-      <div className={scopeClass}>
-        <SendForm config={config} themeVars={themeStyle} />
-      </div>
+    <main className="mx-auto max-w-lg p-8">
+      <script src="/widget.js" defer />
+      <shortmail-widget vanity={vanityName} />
+      {/* displayName renders inside the widget; kept for metadata parity */}
+      <meta name="shortmail:display-name" content={config.displayName} />
     </main>
   );
 }

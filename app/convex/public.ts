@@ -59,6 +59,7 @@ export const configForVanity = internalQuery({
           : null;
       })(),
       isPaid: user.isPaid,
+      embedAllowedOrigins: user.embedAllowedOrigins ?? [],
     };
   },
 });

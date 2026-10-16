@@ -1,4 +1,5 @@
 import { internalQuery, mutation, query } from "./_generated/server";
+import { ConvexError } from "convex/values";
 import { v } from "convex/values";
 import { findUserByIdentity, getOrCreateCurrentUser } from "./lib/identity";
 
@@ -14,6 +15,7 @@ export const me = query({
       displayName: user.displayName,
       isPaid: user.isPaid,
       adminRole: user.adminRole,
+      embedAllowedOrigins: user.embedAllowedOrigins ?? [],
     };
   },
 });
@@ -32,6 +34,7 @@ export const ensureMe = mutation({
       displayName: user.displayName,
       isPaid: user.isPaid,
       adminRole: user.adminRole,
+      embedAllowedOrigins: user.embedAllowedOrigins ?? [],
     };
   },
 });
@@ -43,5 +46,21 @@ export const getUserById = internalQuery({
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
     return user ? { email: user.email, vanityName: user.vanityName } : null;
+  },
+});
+
+/** Premium-gated: which origins may embed this owner's form (plan §3.5).
+ * Empty/absent = open embedding (the default). */
+export const setEmbedAllowedOrigins = mutation({
+  args: { origins: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const user = await getOrCreateCurrentUser(ctx);
+    if (!user.isPaid) throw new ConvexError("PREMIUM_REQUIRED");
+    const cleaned = args.origins
+      .map((o) => o.trim().replace(/\/$/, ""))
+      .filter((o) => o.startsWith("https://") || o.startsWith("http://localhost"))
+      .slice(0, 20);
+    await ctx.db.patch(user._id, { embedAllowedOrigins: cleaned });
+    return cleaned;
   },
 });

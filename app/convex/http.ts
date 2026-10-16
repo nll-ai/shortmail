@@ -97,6 +97,21 @@ http.route({
       vanity: path.vanity,
     });
     if (!config) return jsonError("user_not_found", 404);
+
+    // Owner-set embed restriction (plan §3.5): when the owner allowlists
+    // origins, a non-matching Origin/Referer gets a 403 the widget renders
+    // as "embed not allowed on this site".
+    const origin = request.headers.get("origin") ?? request.headers.get("referer");
+    if (
+      config.embedAllowedOrigins &&
+      config.embedAllowedOrigins.length > 0 &&
+      origin
+    ) {
+      const originBase = origin.split("/").slice(0, 3).join("/");
+      if (!config.embedAllowedOrigins.some((o) => o === originBase)) {
+        return jsonError("embed_not_allowed", 403);
+      }
+    }
     return json(config);
   }),
 });
