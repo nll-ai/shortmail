@@ -1,0 +1,21 @@
+docs/vercel-migration.md
+  s_808b795008e8ea::t_a02fcd2a7a43d1 1-115
+README.md
+  s_808b795008e8ea::t_64e272f4b00d7f 7-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f717219ff5e03b8825fe64ff9d06752b024aed44",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
