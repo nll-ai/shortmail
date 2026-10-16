@@ -1,0 +1,23 @@
+app/convex/public.ts
+  s_808b795008e8ea::t_f89169a2ff9aad 20
+app/src/widget/config.ts
+  s_808b795008e8ea::t_f89169a2ff9aad 13
+app/package.json
+  s_808b795008e8ea::t_53d545cdc662ca 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e523d996ff0cef6b009d5d5ed83ecd61de4ce3f5",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
