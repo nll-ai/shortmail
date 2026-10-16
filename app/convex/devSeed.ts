@@ -1,4 +1,5 @@
 import { internalMutation } from "./_generated/server";
+import { v } from "convex/values";
 import { MutationCtx } from "./_generated/server";
 
 /**
@@ -83,3 +84,63 @@ async function seedUser(ctx: MutationCtx, spec: SeedSpec): Promise<void> {
     await ctx.db.insert("faqs", { ownerId: userId, ...faq });
   }
 }
+
+/** Dev/test helper: remove probe rows created during auth verification. */
+export const purgeTestRows = internalMutation({
+  args: { emails: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    let removed = 0;
+    for (const email of args.emails) {
+      const row = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .unique();
+      if (!row) continue;
+      for (const h of await ctx.db
+        .query("subjectHeadings")
+        .withIndex("by_owner", (q) => q.eq("ownerId", row._id))
+        .collect()) {
+        await ctx.db.delete(h._id);
+      }
+      for (const f of await ctx.db
+        .query("faqs")
+        .withIndex("by_owner", (q) => q.eq("ownerId", row._id))
+        .collect()) {
+        await ctx.db.delete(f._id);
+      }
+      await ctx.db.delete(row._id);
+      removed++;
+    }
+    return removed;
+  },
+});
+
+/** Dev/test helper: delete rows by vanity name. */
+export const purgeByVanity = internalMutation({
+  args: { vanityNames: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    let removed = 0;
+    for (const vanity of args.vanityNames) {
+      const row = await ctx.db
+        .query("users")
+        .withIndex("by_vanity", (q) => q.eq("vanityName", vanity))
+        .unique();
+      if (!row) continue;
+      for (const h of await ctx.db
+        .query("subjectHeadings")
+        .withIndex("by_owner", (q) => q.eq("ownerId", row._id))
+        .collect()) {
+        await ctx.db.delete(h._id);
+      }
+      for (const f of await ctx.db
+        .query("faqs")
+        .withIndex("by_owner", (q) => q.eq("ownerId", row._id))
+        .collect()) {
+        await ctx.db.delete(f._id);
+      }
+      await ctx.db.delete(row._id);
+      removed++;
+    }
+    return removed;
+  },
+});

@@ -26,10 +26,14 @@ export async function getAuthIdentity(ctx: QueryCtx | MutationCtx): Promise<Auth
   if (!identity) {
     throw new Error("Unauthenticated");
   }
+  // Convex maps standard OIDC "email" but exposes "email_verified" as a raw
+  // claim (not identity.emailVerified) for customJwt providers — read both.
   return {
     subject: identity.subject,
     email: (identity.email ?? "").toLowerCase(),
-    emailVerified: identity.emailVerified === true,
+    emailVerified:
+      identity.emailVerified === true ||
+      (identity as Record<string, unknown>).email_verified === true,
   };
 }
 
@@ -53,63 +57,76 @@ export async function getOrCreateCurrentUser(
     return existing;
   }
 
+  // Adoption BEFORE insert: Convex indexes do NOT enforce uniqueness, so a
+  // migrated row (placeholder workosUserId `migrated:<email>`) or an alias
+  // row must be found first — otherwise a duplicate row is created.
+  if (identity.email) {
+    const adoptable = await findAdoptableUser(ctx, identity.email);
+    if (adoptable) {
+      await adoptUser(ctx, adoptable, identity);
+      return (await ctx.db.get(adoptable._id))!;
+    }
+  }
+
   const vanityBase =
     identity.email.split("@")[0]?.replace(/[^a-z0-9-_]/gi, "").slice(0, 30) ||
     "user";
   const vanityName = `${vanityBase || "user"}-${identity.subject.slice(-6).toLowerCase()}`;
 
-  try {
-    const id = await ctx.db.insert("users", {
-      email: identity.email,
-      workosUserId: identity.subject,
-      vanityName,
-      isPaid: false,
-      adminRole:
-        identity.emailVerified &&
-        identity.email &&
-        process.env.SUPER_ADMIN_EMAIL &&
-        identity.email === process.env.SUPER_ADMIN_EMAIL.toLowerCase()
-          ? "super_admin"
-          : undefined,
-      createdAt: Date.now(),
-    });
-    return (await ctx.db.get(id))!;
-  } catch {
-    // Insert conflict. Two causes:
-    // 1. A concurrent first-login inserted this workosUserId first.
-    // 2. A migrated row exists for this email (or an alias email) with a
-    //    placeholder workosUserId (`migrated:<email>`): adopt it — stamp the
-    //    real WorkOS id, keep vanity/displayName/isPaid/adminRole.
-    const raced = await ctx.db
-      .query("users")
-      .withIndex("by_workos", (q) => q.eq("workosUserId", identity.subject))
-      .unique();
-    if (raced) return raced;
-
-    if (identity.email) {
-      const byEmail = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email))
-        .unique();
-      if (byEmail) {
-        await adoptUser(ctx, byEmail, identity);
-        return (await ctx.db.get(byEmail._id))!;
-      }
-      // Alias emails can't use the by_alias index for membership (convex eq
-      // on an array field is exact-array equality), and the alias set is tiny,
-      // so a bounded scan over aliased rows is the correct lookup here.
-      const aliased = await ctx.db
-        .query("users")
-        .filter((q) => q.neq(q.field("aliases"), undefined))
-        .collect();
-      const byAlias = aliased.find((u) => u.aliases?.includes(identity.email));
-      if (byAlias) {
-        await adoptUser(ctx, byAlias, identity);
-        return (await ctx.db.get(byAlias._id))!;
-      }
+  // Race backstop: a concurrent first-login may insert this workosUserId or
+  // the same email between our lookups and the insert. Convex serializes
+  // mutations on conflicting reads, but re-check to be safe.
+  const raced = await ctx.db
+    .query("users")
+    .withIndex("by_workos", (q) => q.eq("workosUserId", identity.subject))
+    .unique();
+  if (raced) return raced;
+  if (identity.email) {
+    const adoptable = await findAdoptableUser(ctx, identity.email);
+    if (adoptable) {
+      await adoptUser(ctx, adoptable, identity);
+      return (await ctx.db.get(adoptable._id))!;
     }
-    throw new Error("User creation conflict");
   }
+
+  const id = await ctx.db.insert("users", {
+    email: identity.email,
+    workosUserId: identity.subject,
+    vanityName,
+    isPaid: false,
+    adminRole:
+      identity.emailVerified &&
+      identity.email &&
+      process.env.SUPER_ADMIN_EMAIL &&
+      identity.email === process.env.SUPER_ADMIN_EMAIL.toLowerCase()
+        ? "super_admin"
+        : undefined,
+    createdAt: Date.now(),
+  });
+  return (await ctx.db.get(id))!;
+}
+
+/**
+ * Find an existing row that should be adopted by this identity: a row with
+ * the same email, or a row listing this email among its aliases. Aliases are
+ * rare, so the membership check is a bounded scan over aliased rows only
+ * (convex array-index eq is exact-array equality, not membership).
+ */
+async function findAdoptableUser(
+  ctx: MutationCtx,
+  email: string,
+): Promise<Doc<"users"> | null> {
+  const byEmail = await ctx.db
+    .query("users")
+    .withIndex("by_email", (q) => q.eq("email", email))
+    .unique();
+  if (byEmail) return byEmail;
+
+  const aliased = await ctx.db
+    .query("users")
+    .filter((q) => q.neq(q.field("aliases"), undefined))
+    .collect();
+  return aliased.find((u) => u.aliases?.includes(email)) ?? null;
 }
 
 /**
