@@ -27,10 +27,9 @@ export class QueryBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          <p className="font-medium">Convex data unavailable.</p>
+          <p className="font-medium">Setting up your data…</p>
           <p className="mt-1">
-            Sign-in pending WorkOS JWT template (#22) — the Convex deployment
-            currently rejects these tokens ({this.state.error.message}).
+            Retrying automatically ({this.state.error.message}).
           </p>
         </div>
       );
