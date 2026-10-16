@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { dispatchWidgetChange } from "../../widget/liveUpdates";
 import Script from "next/script";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
@@ -34,10 +35,6 @@ function friendlyError(e: unknown): string {
     default:
       return "Something went wrong — please try again.";
   }
-}
-
-function notifySendFormChanged(): void {
-  window.dispatchEvent(new CustomEvent("shortmail-widget:refresh"));
 }
 
 const inputClass =
@@ -156,7 +153,6 @@ function VanityControls({
         setError("");
         try {
           await updateVanityName({ vanityName: vanity });
-            notifySendFormChanged();
           setVanity("");
         } catch (err) {
           setError(friendlyError(err));
@@ -210,7 +206,7 @@ function HeadingsSection({
                   await removeSubjectHeading({
                     id: h.id,
                   });
-                  notifySendFormChanged();
+                  dispatchWidgetChange({ kind: "heading-removed", heading: h.heading });
                 } catch (err) {
                   setError(friendlyError(err));
                 }
@@ -228,7 +224,7 @@ function HeadingsSection({
           setError("");
           try {
             await addSubjectHeading({ heading });
-            notifySendFormChanged();
+            dispatchWidgetChange({ kind: "heading-added", heading });
             setHeading("");
           } catch (err) {
             setError(friendlyError(err));
@@ -308,7 +304,11 @@ function FaqsSection({
                         question: editQuestion,
                         answer: editAnswer,
                       });
-                      notifySendFormChanged();
+                      dispatchWidgetChange({
+                        kind: "faq-edited",
+                        question: editQuestion,
+                        answer: editAnswer,
+                      });
                       setEditingId(null);
                     } catch (err) {
                       setError(friendlyError(err));
@@ -349,7 +349,11 @@ function FaqsSection({
                       setError("");
                       try {
                         await removeFaq({ id: f.id });
-                        notifySendFormChanged();
+                        dispatchWidgetChange({
+                        kind: "faq-edited",
+                        question: editQuestion,
+                        answer: editAnswer,
+                      });
                       } catch (err) {
                         setError(friendlyError(err));
                       }
@@ -371,7 +375,7 @@ function FaqsSection({
           setError("");
           try {
             await addFaq({ question, answer });
-            notifySendFormChanged();
+            dispatchWidgetChange({ kind: "faq-added", question, answer });
             setQuestion("");
             setAnswer("");
           } catch (err) {
@@ -427,7 +431,7 @@ function DisplayNameSection({ current }: { current: string }) {
           setError("");
           try {
             await updateDisplayName({ displayName });
-            notifySendFormChanged();
+            dispatchWidgetChange({ kind: "display-name", value: displayName });
             setDisplayName("");
           } catch (err) {
             setError(friendlyError(err));

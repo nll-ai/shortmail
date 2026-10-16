@@ -13,6 +13,7 @@
  */
 
 import { presetById } from "./presets";
+import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 const CONVEX_SITE = process.env.WIDGET_CONVEX_SITE_URL ?? "";
 const convexSiteUrl = () => CONVEX_SITE;
 
@@ -95,13 +96,12 @@ function dnt(): boolean {
   );
 }
 
-const REFRESH_EVENT = "shortmail-widget:refresh";
-
 class ShortmailWidget extends HTMLElement {
   private shadow!: ShadowRoot;
   private vanity = "";
   private config: EmbedConfig | null = null;
-  private refreshHandler = (): void => {};
+  private changeHandler = (e: Event): void =>
+    this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
 
   static get observedAttributes(): string[] {
     return ["vanity"];
@@ -120,20 +120,114 @@ class ShortmailWidget extends HTMLElement {
     if (!this.vanity) {
       this.vanity = this.getAttribute("vanity") ?? "";
     }
-    // Live updates: the embedding page (e.g. the dashboard) dispatches this
-    // event after config changes (headings, FAQs, display name, theme).
-    this.refreshHandler = () => void this.load({ preserveInput: true });
-    window.addEventListener(REFRESH_EVENT, this.refreshHandler);
+    // Live updates: editors dispatch granular WidgetChange events; the widget
+    // patches exactly the affected DOM nodes (no re-render flash).
+    this.changeHandler = (e: Event) =>
+      this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
+    window.addEventListener(WIDGET_CHANGE_EVENT, this.changeHandler);
     void this.load();
   }
 
   disconnectedCallback(): void {
-    window.removeEventListener(REFRESH_EVENT, this.refreshHandler);
+    window.removeEventListener(WIDGET_CHANGE_EVENT, this.changeHandler);
   }
 
-  /** Re-fetch config and re-render (live updates). */
-  refresh(): void {
-    void this.load({ preserveInput: true });
+  /** Granular live-update: patch only the nodes a change touches. */
+  private applyWidgetChange(change: WidgetChange): void {
+    switch (change.kind) {
+      case "display-name": {
+        if (this.config) this.config.displayName = change.value;
+        const heading = this.shadow.querySelector(".heading");
+        if (heading) {
+          heading.textContent = `Send a shortmail to ${change.value}`;
+        }
+        break;
+      }
+      case "heading-added": {
+        if (this.config && !this.config.headings.includes(change.heading)) {
+          this.config.headings.push(change.heading);
+        }
+        const select = this.shadow.querySelector("select");
+        if (select) {
+          const opt = document.createElement("option");
+          opt.value = change.heading;
+          opt.textContent = change.heading;
+          select.appendChild(opt);
+        }
+        break;
+      }
+      case "heading-removed": {
+        if (this.config) {
+          this.config.headings = this.config.headings.filter(
+            (h) => h !== change.heading,
+          );
+        }
+        const select = this.shadow.querySelector("select");
+        const opt = [...(select?.options ?? [])].find(
+          (o) => o.value === change.heading,
+        );
+        const wasSelected = opt?.selected ?? false;
+        opt?.remove();
+        if (wasSelected && select) {
+          select.value = "";
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        break;
+      }
+      case "faq-added": {
+        if (this.config) {
+          this.config.faqs.push({
+            question: change.question,
+            answer: change.answer,
+          });
+        }
+        const form = this.shadow.querySelector(".form");
+        const headingEl = this.shadow.querySelector(".heading");
+        const faq = document.createElement("p");
+        faq.className = "faq";
+        faq.setAttribute("part", "faq");
+        faq.textContent = change.question;
+        if (form && headingEl) form.insertBefore(faq, headingEl.nextSibling);
+        break;
+      }
+      case "faq-edited": {
+        if (this.config) {
+          const faq = this.config.faqs.find(
+            (f) => f.question === change.question,
+          );
+          if (faq) faq.answer = change.answer;
+        }
+        const faqEls = [...this.shadow.querySelectorAll(".faq")];
+        const el = faqEls.find((f) => f.textContent === change.question);
+        if (el) el.textContent = change.question;
+        break;
+      }
+      case "faq-removed": {
+        if (this.config) {
+          this.config.faqs = this.config.faqs.filter(
+            (f) => f.question !== change.question,
+          );
+        }
+        const faqEls = [...this.shadow.querySelectorAll(".faq")];
+        const el = faqEls.find((f) => f.textContent === change.question);
+        el?.remove();
+        break;
+      }
+      case "theme": {
+        if (this.config) {
+          this.config.theme = {
+            preset: change.preset,
+            customCss: change.customCss,
+          };
+        }
+        this.applyTheme();
+        break;
+      }
+      case "vanity": {
+        this.setAttribute("vanity", change.vanity); // triggers full reload
+        break;
+      }
+    }
   }
 
   attributeChangedCallback(): void {
@@ -150,8 +244,7 @@ class ShortmailWidget extends HTMLElement {
     container.appendChild(this);
   }
 
-  private async load(opts: { preserveInput?: boolean } = {}): Promise<void> {
-    const previous = opts.preserveInput ? this.snapshotForm() : null;
+  private async load(): Promise<void> {
     if (!this.vanity) {
       this.renderMessage("shortmail-widget: no vanity configured", true);
       return;
@@ -170,7 +263,6 @@ class ShortmailWidget extends HTMLElement {
       this.config = (await res.json()) as EmbedConfig;
       this.applyTheme();
       this.renderForm();
-      if (previous) this.restoreForm(previous);
       this.beaconView();
     } catch {
       this.renderMessage("Could not load the form — network error.");
@@ -230,29 +322,6 @@ class ShortmailWidget extends HTMLElement {
     note.textContent = text;
     if (isError) note.className = "error";
     this.shadow.appendChild(note);
-  }
-
-  private snapshotForm(): Record<string, string> | null {
-    const form = this.shadow.querySelector("form");
-    if (!form) return null;
-    const out: Record<string, string> = {};
-    for (const el of form.querySelectorAll("input, textarea, select")) {
-      const named = el as HTMLInputElement;
-      if (named.name || named.placeholder) {
-        out[named.name || named.placeholder] = named.value;
-      }
-    }
-    return out;
-  }
-
-  private restoreForm(values: Record<string, string>): void {
-    const form = this.shadow.querySelector("form");
-    if (!form) return;
-    for (const el of form.querySelectorAll("input, textarea, select")) {
-      const named = el as HTMLInputElement;
-      const key = named.name || named.placeholder;
-      if (key && values[key] !== undefined) named.value = values[key];
-    }
   }
 
   private renderForm(): void {
