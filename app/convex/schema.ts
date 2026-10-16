@@ -9,6 +9,7 @@ export default defineSchema({
     displayName: v.optional(v.string()),
     isPaid: v.boolean(),
     embedAllowedOrigins: v.optional(v.array(v.string())),
+    aliases: v.optional(v.array(v.string())),
     adminRole: v.optional(
       v.union(
         v.literal("super_admin"),

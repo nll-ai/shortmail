@@ -8,8 +8,16 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
+import type * as devSeed from "../devSeed.js";
+import type * as emails from "../emails.js";
+import type * as forms from "../forms.js";
 import type * as http from "../http.js";
+import type * as lib_disposableDomains from "../lib/disposableDomains.js";
 import type * as lib_identity from "../lib/identity.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
+import type * as migrate from "../migrate.js";
+import type * as public_ from "../public.js";
 import type * as users from "../users.js";
 
 import type {
@@ -19,8 +27,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
+  devSeed: typeof devSeed;
+  emails: typeof emails;
+  forms: typeof forms;
   http: typeof http;
+  "lib/disposableDomains": typeof lib_disposableDomains;
   "lib/identity": typeof lib_identity;
+  "lib/rateLimit": typeof lib_rateLimit;
+  migrate: typeof migrate;
+  public: typeof public_;
   users: typeof users;
 }>;
 

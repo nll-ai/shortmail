@@ -1,5 +1,7 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { UserBadge } from "@/components/UserBadge";
+import { QueryBoundary } from "@/components/QueryBoundary";
+import { DashboardData } from "@/components/dashboard/DashboardData";
 
 export default async function Dashboard() {
   const { user } = await withAuth({ ensureSignedIn: true });
@@ -11,9 +13,9 @@ export default async function Dashboard() {
         Signed in as <strong>{user.email}</strong>
       </p>
       <UserBadge />
-      <p className="mt-6 text-sm text-gray-500">
-        Feature parity (headings, FAQs, admin) lands in P1 — issue #23.
-      </p>
+      <QueryBoundary>
+        <DashboardData />
+      </QueryBoundary>
     </main>
   );
 }
