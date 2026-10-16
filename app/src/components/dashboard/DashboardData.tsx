@@ -36,6 +36,10 @@ function friendlyError(e: unknown): string {
   }
 }
 
+function notifySendFormChanged(): void {
+  window.dispatchEvent(new CustomEvent("shortmail-widget:refresh"));
+}
+
 const inputClass =
   "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
 const buttonClass =
@@ -152,6 +156,7 @@ function VanityControls({
         setError("");
         try {
           await updateVanityName({ vanityName: vanity });
+            notifySendFormChanged();
           setVanity("");
         } catch (err) {
           setError(friendlyError(err));
@@ -205,6 +210,7 @@ function HeadingsSection({
                   await removeSubjectHeading({
                     id: h.id,
                   });
+                  notifySendFormChanged();
                 } catch (err) {
                   setError(friendlyError(err));
                 }
@@ -222,6 +228,7 @@ function HeadingsSection({
           setError("");
           try {
             await addSubjectHeading({ heading });
+            notifySendFormChanged();
             setHeading("");
           } catch (err) {
             setError(friendlyError(err));
@@ -301,6 +308,7 @@ function FaqsSection({
                         question: editQuestion,
                         answer: editAnswer,
                       });
+                      notifySendFormChanged();
                       setEditingId(null);
                     } catch (err) {
                       setError(friendlyError(err));
@@ -341,6 +349,7 @@ function FaqsSection({
                       setError("");
                       try {
                         await removeFaq({ id: f.id });
+                        notifySendFormChanged();
                       } catch (err) {
                         setError(friendlyError(err));
                       }
@@ -362,6 +371,7 @@ function FaqsSection({
           setError("");
           try {
             await addFaq({ question, answer });
+            notifySendFormChanged();
             setQuestion("");
             setAnswer("");
           } catch (err) {
@@ -417,6 +427,7 @@ function DisplayNameSection({ current }: { current: string }) {
           setError("");
           try {
             await updateDisplayName({ displayName });
+            notifySendFormChanged();
             setDisplayName("");
           } catch (err) {
             setError(friendlyError(err));
