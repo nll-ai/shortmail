@@ -7,7 +7,7 @@ import { sanitizeCss } from "../../../convex/lib/cssSanitize";
 import {
   THEME_PRESETS,
   presetVarsAsStyle,
-} from "../../../widget/presets";
+} from "../../widget/presets";
 
 const SAMPLE_MESSAGES = [
   { name: "Ada Lovelace", email: "ada@example.com", text: "Loved your talk — any chance you could keynote our meetup next month?" },
@@ -66,7 +66,7 @@ export function ThemingStudio() {
       setPreset(null);
       setCustomCss(null);
     } else {
-      setSaveState({ kind: "error", message: result.error });
+      setSaveState({ kind: "error", message: result.error ?? "Save failed" });
     }
   }
 

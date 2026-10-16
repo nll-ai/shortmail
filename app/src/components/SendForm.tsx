@@ -7,7 +7,7 @@ export type EmbedConfig = {
   displayName: string;
   headings: string[];
   faqs: { question: string; answer: string }[];
-  theme: null;
+  theme: { preset: string; customCss: string | null } | null;
   isPaid: boolean;
 };
 

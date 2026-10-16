@@ -12,9 +12,11 @@ export function scopeCss(css: string, scope: string): string {
   if (!css.trim()) return "";
   const root = postcss.parse(css, { from: "owner-css-scoped" });
   root.walkRules((rule) => {
-    const selectors = rule.selectors
-      .split(",")
-      .map((sel) => {
+    const rawSelectors: string[] = Array.isArray(rule.selectors)
+      ? rule.selectors
+      : String(rule.selectors).split(",");
+    const selectors = rawSelectors
+      .map((sel: string) => {
         const trimmed = sel.trim();
         if (!trimmed) return trimmed;
         if (/^(html|body|:root)$/i.test(trimmed)) return scope;

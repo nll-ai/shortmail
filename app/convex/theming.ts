@@ -42,10 +42,6 @@ export const saveTheme = mutation({
     preset: v.string(),
     customCss: v.optional(v.string()),
   },
-  returns: v.union(
-    v.object({ ok: v.literal(true) }),
-    v.object({ ok: v.literal(false), error: v.string() }),
-  ),
   handler: async (ctx, args) => {
     const user = await getOrCreateCurrentUser(ctx);
     try {
