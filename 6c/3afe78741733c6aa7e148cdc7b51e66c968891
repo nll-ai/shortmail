@@ -1,0 +1,83 @@
+app/convex/lib/identity.ts
+  s_808b795008e8ea::t_09f38bd76bd230 20-43,58-105,107-109,116,141-142,157,163-164,168
+app/convex/theming.ts
+  s_808b795008e8ea::t_19dc41afdde8f9 3-4,17,43,45,51
+app/convex/emails.ts
+  s_808b795008e8ea::t_d5bf0cadfc1c86 31-37,58,63
+  s_808b795008e8ea::t_c1715b4e320e34 47
+app/convex/lib/days.ts
+  s_808b795008e8ea::t_41f64d22ac89fe 1-15
+app/convex/lib/events.ts
+  s_808b795008e8ea::t_351903ee822a4b 1-30
+app/convex/public.ts
+  s_808b795008e8ea::t_bab96639d82371 4-5,98,101,130
+  s_808b795008e8ea::t_a81d5d2be55573 14-23,25,28
+  s_808b795008e8ea::t_64cddeed23328b 24
+app/src/widget/api.ts
+  s_808b795008e8ea::t_d33818ffeb4bc0 1-25
+app/convex/users.ts
+  s_808b795008e8ea::t_c025c78a5e71a3 2
+  s_808b795008e8ea::t_19dc41afdde8f9 3,9-10
+  s_808b795008e8ea::t_9971bd84833012 1,38-45
+  s_808b795008e8ea::t_e5d54710ff3996 46-47
+app/src/widget/config.ts
+  s_808b795008e8ea::t_e74cfe6e31ce07 1-14
+app/convex/admin.ts
+  s_808b795008e8ea::t_19dc41afdde8f9 2,135
+  s_808b795008e8ea::t_77b51c88a0627c 105-118
+app/src/components/UserBadge.tsx
+  s_808b795008e8ea::t_a80c8f65e217b4 4,7,9-14
+app/convex/lib/sendRequest.ts
+  s_808b795008e8ea::t_7d2157663d4e01 1-79
+app/src/components/useMe.ts
+  s_808b795008e8ea::t_b831eafd5a1bad 1-26
+app/src/components/SendForm.tsx
+  s_808b795008e8ea::t_157543fff42c86 4,31
+  s_808b795008e8ea::t_597f87ffb11440 60,104
+  s_808b795008e8ea::t_f590bc682442d5 75
+  s_808b795008e8ea::t_7a279b141b1a2f 5-6
+app/convex/lib/rateLimit.ts
+  s_808b795008e8ea::t_3969c2079d8c9d 48-75
+app/convex/collector.ts
+  s_808b795008e8ea::t_bab96639d82371 3-4,29-30,53,55-56,68
+app/src/widget/theme.ts
+  s_808b795008e8ea::t_8ae6cd6adca1f2 1-43
+app/convex/lib/subjectTag.ts
+  s_808b795008e8ea::t_a0cedb5020d5c2 1-18
+app/convex/analytics.ts
+  s_808b795008e8ea::t_a405d68fae0e56 4-5,20
+  s_808b795008e8ea::t_c1715b4e320e34 60-62
+app/convex/_generated/api.d.ts
+  s_808b795008e8ea::t_a405d68fae0e56 19,21,24-25,46,48,51-52
+app/src/components/dashboard/DashboardData.tsx
+  s_808b795008e8ea::t_157543fff42c86 7
+  s_808b795008e8ea::t_a80c8f65e217b4 13-17,19-34,44
+  s_808b795008e8ea::t_074aeb608ee787 48
+app/convex/http.ts
+  s_808b795008e8ea::t_fb91a1ed45cea9 5-6,42-45,105-107,147-149,156,200
+app/convex/forms.ts
+  s_808b795008e8ea::t_19dc41afdde8f9 2,6,44,52,67,78,86,106,109,119,128,130-131,137,148
+app/src/app/send/[vanityName]/page.tsx
+  s_808b795008e8ea::t_597f87ffb11440 2,21,25,27-29,32,42-43
+  s_808b795008e8ea::t_a80c8f65e217b4 3-4
+app/src/components/theming/ThemingStudio.tsx
+  s_808b795008e8ea::t_f590bc682442d5 6-7,59-60,65-75
+  s_808b795008e8ea::t_252337aafeb2e9 8
+  s_808b795008e8ea::t_6b5cf731c3f287 53-55,114-117,146-148,150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6c3afe78741733c6aa7e148cdc7b51e66c968891",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
