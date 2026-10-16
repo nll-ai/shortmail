@@ -1,0 +1,29 @@
+.gitignore
+  s_808b795008e8ea::t_678330fe724808 189
+app/convex/users.ts
+  s_808b795008e8ea::t_577edd909c48db 1-2
+  s_808b795008e8ea::t_8c58d157be1faa 17-34
+app/convex/lib/identity.ts
+  s_808b795008e8ea::t_e22104b3d381ca 60-70,76-88,91-129
+  s_808b795008e8ea::t_962760f4a7a2c3 29-30,34-36
+app/convex/devSeed.ts
+  s_808b795008e8ea::t_852ed5aad9aeb2 117-146
+  s_808b795008e8ea::t_cc87234d37b535 2
+  s_808b795008e8ea::t_337246370de1b9 87-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bcbacbc1e3e9ffe5238097fc51f20aeb95d42e8e",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
