@@ -144,3 +144,17 @@ export const purgeByVanity = internalMutation({
     return removed;
   },
 });
+
+/** Dev/test helper: toggle premium by email (admin UI covers real flow). */
+export const setPaidByEmail = internalMutation({
+  args: { email: v.string(), isPaid: v.boolean() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+    if (!row) return "unknown";
+    await ctx.db.patch(row._id, { isPaid: args.isPaid });
+    return `set isPaid=${args.isPaid} for ${row.email}`;
+  },
+});

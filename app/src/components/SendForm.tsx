@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type EmbedConfig = {
   vanityName: string;
@@ -45,6 +45,39 @@ export function SendForm({
   const [website, setWebsite] = useState(""); // honeypot — must stay empty
   const [status, setStatus] = useState<Status>("idle");
   const [errorText, setErrorText] = useState("");
+
+  // Analytics: one form_view beacon per mount (P4). Honors Do Not Track and
+  // never blocks rendering — fire-and-forget, collector answers 204.
+  const beaconSent = useRef(false);
+  useEffect(() => {
+    if (beaconSent.current) return;
+    beaconSent.current = true;
+    const dnt =
+      navigator.doNotTrack === "1" ||
+      (window as { doNotTrack?: string }).doNotTrack === "1";
+    if (dnt) return;
+    try {
+      const payload = JSON.stringify({
+        event: "form_view",
+        path: `/send/${config.vanityName}`,
+        ref: document.referrer || undefined,
+      });
+      const url = `${convexSiteUrl}/api/collect/${encodeURIComponent(config.vanityName)}`;
+      const delivered =
+        typeof navigator.sendBeacon === "function" &&
+        navigator.sendBeacon(url, payload);
+      if (!delivered) {
+        void fetch(url, {
+          method: "POST",
+          keepalive: true,
+          headers: { "Content-Type": "text/plain" },
+          body: payload,
+        }).catch(() => undefined);
+      }
+    } catch {
+      // analytics must never break the form
+    }
+  }, [config.vanityName, convexSiteUrl]);
 
   const messageTooLong = message.length > MAX_MESSAGE_LENGTH;
   const canSubmit =

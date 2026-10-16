@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { MAX_BODY } from "./collector";
 import { marked } from "marked";
 import { isDisposableEmail } from "./lib/disposableDomains";
 
@@ -208,8 +209,33 @@ http.route({
 http.route({
   pathPrefix: "/api/collect/",
   method: "POST",
-  handler: httpAction(async (_ctx, request) => {
-    await request.text(); // read + discard; size cap and storage land in P4
+  handler: httpAction(async (ctx, request) => {
+    // Always 204, never enumerate: read the body, validate size/content-type,
+    // and let the collector decide whether to store (plan R5, §7).
+    const contentType = request.headers.get("content-type") ?? "";
+    if (request.headers.get("content-length") && Number(request.headers.get("content-length")) > MAX_BODY) {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+    const raw = await request.text();
+    if (raw.length > MAX_BODY || (contentType && !contentType.includes("text/plain"))) {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    const vanity = vanityFrom(request.url, "collect");
+    const ip = request.headers
+      .get("x-forwarded-for")
+      ?.split(",")[0]
+      ?.trim();
+
+    try {
+      await ctx.runMutation(internal.collector.ingestBeacon, {
+        vanity: vanity ?? "",
+        ip: ip || undefined,
+        body: raw,
+      });
+    } catch {
+      // Swallow everything: the collector response contract is 204-always.
+    }
     return new Response(null, { status: 204, headers: corsHeaders });
   }),
 });

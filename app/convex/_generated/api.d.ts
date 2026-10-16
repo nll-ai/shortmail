@@ -9,6 +9,8 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as analytics from "../analytics.js";
+import type * as collector from "../collector.js";
 import type * as devSeed from "../devSeed.js";
 import type * as emails from "../emails.js";
 import type * as forms from "../forms.js";
@@ -28,6 +30,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  analytics: typeof analytics;
+  collector: typeof collector;
   devSeed: typeof devSeed;
   emails: typeof emails;
   forms: typeof forms;
