@@ -1,0 +1,36 @@
+app/convex/collector.ts
+  s_808b795008e8ea::t_32ba866efef798 1-81
+app/convex/http.ts
+  s_808b795008e8ea::t_c81b08517cb971 4,212-238
+app/src/app/analytics/page.tsx
+  s_808b795008e8ea::t_53d6fb925df8f4 1-18
+app/convex/analytics.ts
+  s_808b795008e8ea::t_c07a4540a1faf7 1-135
+app/src/components/SendForm.tsx
+  s_808b795008e8ea::t_eb078aa3d96cde 3,49-80
+  s_808b795008e8ea::t_c16e4bd918404f 81
+app/src/components/analytics/AnalyticsDashboard.tsx
+  s_808b795008e8ea::t_53d6fb925df8f4 4
+  s_808b795008e8ea::t_953c8f5aaad9ea 3,88-90,93
+  s_808b795008e8ea::t_d4aa0dbdf2d9ce 1-2,5-87,91-92,94-155
+app/convex/_generated/api.d.ts
+  s_808b795008e8ea::t_953c8f5aaad9ea 12-13,33-34
+app/convex/devSeed.ts
+  s_808b795008e8ea::t_f91356a052ad3b 147-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19b6cf7c573f19d5ffab4197fe00d566e055523d",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
