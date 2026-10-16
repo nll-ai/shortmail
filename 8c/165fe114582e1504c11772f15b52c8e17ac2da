@@ -1,0 +1,33 @@
+app/src/components/dashboard/DashboardData.tsx
+  s_808b795008e8ea::t_6ac047c9b4b8ed 5,434
+  s_808b795008e8ea::t_08e10a7eb166b0 209
+  s_808b795008e8ea::t_56e7f6f26a0ce7 227
+  s_808b795008e8ea::t_8ae68ce1c7063a 378
+  s_808b795008e8ea::t_96a4c5dd2217f3 307-311,352-356
+app/public/widget.js
+  s_808b795008e8ea::t_8ae68ce1c7063a 1,46
+app/src/widget/liveUpdates.ts
+  s_808b795008e8ea::t_e0b18104e62159 1-13,15-26
+  s_808b795008e8ea::t_96a4c5dd2217f3 14
+app/src/widget/shortmail-widget.ts
+  s_808b795008e8ea::t_5cbc4246e641b1 16
+  s_808b795008e8ea::t_96a4c5dd2217f3 181
+  s_808b795008e8ea::t_b7e4ac5f1ed062 103-104
+  s_808b795008e8ea::t_97c2d5cfc29034 123-127,132,135-180,182-230,247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8c165fe114582e1504c11772f15b52c8e17ac2da",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
