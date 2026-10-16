@@ -1,8 +1,9 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import {
   FREE_FAQ_LIMIT,
   FREE_HEADING_LIMIT,
+  normalizeVanity,
   requireUser,
 } from "./lib/identity";
 
@@ -40,7 +41,7 @@ export const addSubjectHeading = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
     const heading = args.heading.trim();
-    if (!heading) throw new Error("heading_required");
+    if (!heading) throw new ConvexError("heading_required");
 
     if (!user.isPaid) {
       const existing = await ctx.db
@@ -48,7 +49,7 @@ export const addSubjectHeading = mutation({
         .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
         .collect();
       if (existing.length >= FREE_HEADING_LIMIT) {
-        throw new Error("FREE_LIMIT_REACHED");
+        throw new ConvexError("FREE_LIMIT_REACHED");
       }
     }
     await ctx.db.insert("subjectHeadings", {
@@ -63,7 +64,7 @@ export const removeSubjectHeading = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
     const row = await ctx.db.get(args.id);
-    if (!row || row.ownerId !== user._id) throw new Error("NOT_FOUND");
+    if (!row || row.ownerId !== user._id) throw new ConvexError("NOT_FOUND");
     await ctx.db.delete(args.id);
   },
 });
@@ -74,7 +75,7 @@ export const addFaq = mutation({
     const user = await requireUser(ctx);
     const question = args.question.trim();
     const answer = args.answer.trim();
-    if (!question || !answer) throw new Error("faq_fields_required");
+    if (!question || !answer) throw new ConvexError("faq_fields_required");
 
     if (!user.isPaid) {
       const existing = await ctx.db
@@ -82,7 +83,7 @@ export const addFaq = mutation({
         .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
         .collect();
       if (existing.length >= FREE_FAQ_LIMIT) {
-        throw new Error("FREE_LIMIT_REACHED");
+        throw new ConvexError("FREE_LIMIT_REACHED");
       }
     }
     await ctx.db.insert("faqs", {
@@ -102,10 +103,10 @@ export const editFaq = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
     const row = await ctx.db.get(args.id);
-    if (!row || row.ownerId !== user._id) throw new Error("NOT_FOUND");
+    if (!row || row.ownerId !== user._id) throw new ConvexError("NOT_FOUND");
     const question = args.question.trim();
     const answer = args.answer.trim();
-    if (!question || !answer) throw new Error("faq_fields_required");
+    if (!question || !answer) throw new ConvexError("faq_fields_required");
     await ctx.db.patch(args.id, { question, answer });
   },
 });
@@ -115,7 +116,7 @@ export const removeFaq = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
     const row = await ctx.db.get(args.id);
-    if (!row || row.ownerId !== user._id) throw new Error("NOT_FOUND");
+    if (!row || row.ownerId !== user._id) throw new ConvexError("NOT_FOUND");
     await ctx.db.delete(args.id);
   },
 });
@@ -124,16 +125,16 @@ export const updateVanityName = mutation({
   args: { vanityName: v.string() },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
-    if (!user.isPaid) throw new Error("PREMIUM_REQUIRED");
+    if (!user.isPaid) throw new ConvexError("PREMIUM_REQUIRED");
 
-    const vanityName = args.vanityName.trim();
-    if (!vanityName) throw new Error("vanity_required");
+    const vanityName = normalizeVanity(args.vanityName);
+    if (!vanityName) throw new ConvexError("vanity_invalid");
 
     const taken = await ctx.db
       .query("users")
       .withIndex("by_vanity", (q) => q.eq("vanityName", vanityName))
       .unique();
-    if (taken && taken._id !== user._id) throw new Error("vanity_taken");
+    if (taken && taken._id !== user._id) throw new ConvexError("vanity_taken");
 
     await ctx.db.patch(user._id, { vanityName });
   },
@@ -144,7 +145,7 @@ export const updateDisplayName = mutation({
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
     const displayName = args.displayName.trim();
-    if (!displayName) throw new Error("display_name_required");
+    if (!displayName) throw new ConvexError("display_name_required");
     await ctx.db.patch(user._id, { displayName });
   },
 });

@@ -16,7 +16,6 @@ const FROM_ADDRESS = "shortmail@mail.nonlinearlabs.ai";
 export const sendShortmailEmail = internalAction({
   args: {
     ownerId: v.id("users"),
-    to: v.string(),
     replyTo: v.string(),
     subject: v.string(),
     html: v.string(),
@@ -29,6 +28,13 @@ export const sendShortmailEmail = internalAction({
       throw new Error("RESEND_API_KEY is not set on the Convex deployment");
     }
 
+    // Recipient = the owner's email (finding 16): structural invariant, the
+    // caller cannot pass a different address.
+    const owner = await ctx.runQuery(internal.users.getUserById, {
+      userId: args.ownerId,
+    });
+    if (!owner) throw new Error(`Owner ${args.ownerId} not found`);
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -38,7 +44,7 @@ export const sendShortmailEmail = internalAction({
       },
       body: JSON.stringify({
         from: FROM_ADDRESS,
-        to: args.to,
+        to: owner.email,
         reply_to: args.replyTo,
         subject: args.subject,
         html: args.html,
@@ -49,12 +55,12 @@ export const sendShortmailEmail = internalAction({
 
     if (!res.ok) {
       throw new Error(
-        `Resend send failed (HTTP ${res.status}) for ${args.to}: ${body}`,
+        `Resend send failed (HTTP ${res.status}) for ${owner.email}: ${body}`,
       );
     }
 
     console.log(
-      `[emails] send ok to=${args.to} subject="${args.subject}" idempotencyKey=${args.idempotencyKey} response=${body}`,
+      `[emails] send ok to=${owner.email} subject="${args.subject}" idempotencyKey=${args.idempotencyKey} response=${body}`,
     );
     await ctx.runMutation(internal.public.recordEvent, {
       ownerId: args.ownerId,

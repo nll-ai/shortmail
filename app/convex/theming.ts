@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrCreateCurrentUser, requirePremium } from "./lib/identity";
+import { ConvexError } from "convex/values";
+import { findUserByIdentity, getOrCreateCurrentUser } from "./lib/identity";
 import { sanitizeCss } from "./lib/cssSanitize";
 import { THEME_PRESETS } from "../src/widget/presets";
 
@@ -13,12 +14,7 @@ export type OwnerTheme = {
 export const myTheme = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_workos", (q) => q.eq("workosUserId", identity.subject))
-      .unique();
+    const user = await findUserByIdentity(ctx);
     if (!user) return null;
     if (!user.isPaid) return { tier: "free" as const };
     const settings = await ctx.db
@@ -44,19 +40,15 @@ export const saveTheme = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getOrCreateCurrentUser(ctx);
-    try {
-      requirePremium(user);
-    } catch {
-      return { ok: false, error: "PREMIUM_REQUIRED" };
-    }
+    if (!user.isPaid) throw new ConvexError("PREMIUM_REQUIRED");
     if (!THEME_PRESETS.some((p) => p.id === args.preset)) {
-      return { ok: false, error: "UNKNOWN_PRESET" };
+      throw new ConvexError("UNKNOWN_PRESET");
     }
 
     let sanitized: string | undefined;
     if (args.customCss && args.customCss.trim().length > 0) {
       const result = sanitizeCss(args.customCss);
-      if (!result.ok) return { ok: false, error: result.error };
+      if (!result.ok) throw new ConvexError(result.error);
       sanitized = result.css.length > 0 ? result.css : undefined;
     }
 

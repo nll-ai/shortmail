@@ -1,15 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import type { EmbedConfig } from "../widget/config";
+import { collectUrl, sendUrl } from "../widget/api";
 
-export type EmbedConfig = {
-  vanityName: string;
-  displayName: string;
-  headings: string[];
-  faqs: { question: string; answer: string }[];
-  theme: { preset: string; customCss: string | null } | null;
-  isPaid: boolean;
-};
 
 const MAX_MESSAGE_LENGTH = 500;
 
@@ -30,12 +25,10 @@ type Status = "idle" | "submitting" | "sent" | "error";
 
 export function SendForm({
   config,
-  convexSiteUrl,
   themeVars,
 }: {
   config: EmbedConfig;
-  convexSiteUrl: string;
-  themeVars?: Record<string, string>;
+  themeVars?: CSSProperties;
 }) {
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
@@ -64,7 +57,7 @@ export function SendForm({
         path: `/send/${config.vanityName}`,
         ref: document.referrer || undefined,
       });
-      const url = `${convexSiteUrl}/api/collect/${encodeURIComponent(config.vanityName)}`;
+      const url = collectUrl(config.vanityName);
       const delivered =
         typeof navigator.sendBeacon === "function" &&
         navigator.sendBeacon(url, payload);
@@ -79,7 +72,7 @@ export function SendForm({
     } catch {
       // analytics must never break the form
     }
-  }, [config.vanityName, convexSiteUrl]);
+  }, [config.vanityName]);
 
   const messageTooLong = message.length > MAX_MESSAGE_LENGTH;
   const canSubmit =
@@ -108,7 +101,7 @@ export function SendForm({
 
     try {
       const res = await fetch(
-        `${convexSiteUrl}/api/send/${encodeURIComponent(config.vanityName)}`,
+        sendUrl(config.vanityName),
         {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

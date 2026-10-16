@@ -3,11 +3,9 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
-import { sanitizeCss } from "../../../convex/lib/cssSanitize";
-import {
-  THEME_PRESETS,
-  presetVarsAsStyle,
-} from "../../widget/presets";
+import { THEME_PRESETS } from "../../widget/presets";
+import { applyTheme } from "../../widget/theme";
+import { presetVarsAsStyle } from "../../widget/presets";
 
 const SAMPLE_MESSAGES = [
   { name: "Ada Lovelace", email: "ada@example.com", text: "Loved your talk — any chance you could keynote our meetup next month?" },
@@ -52,21 +50,29 @@ export function ThemingStudio() {
     );
   }
 
-  // Client-side preview uses the exact same sanitizer as save-time (R2).
-  const previewSanitized = sanitizeCss(draftCss);
-  const previewCss =
-    previewSanitized.ok ? previewSanitized.css.replace(/(^|\n)(?!\s*\.shortmail-scope)/g, "$1.shortmail-scope ") : "";
+  // Client-side preview uses the exact same apply path as the hosted page
+  // (finding 3): sanitize + scope in ONE module, so the preview cannot drift.
+  const preview = applyTheme({ preset: draftPreset, customCss: draftCss });
 
   async function handleSave() {
     setSaveState({ kind: "saving" });
-    const result = await save({ preset: draftPreset, customCss: draftCss });
-    if (result.ok) {
+    try {
+      await save({ preset: draftPreset, customCss: draftCss });
       setSaveState({ kind: "saved" });
       // clear local drafts so the saved query values show through
       setPreset(null);
       setCustomCss(null);
-    } else {
-      setSaveState({ kind: "error", message: result.error ?? "Save failed" });
+    } catch (e) {
+      const code =
+        e instanceof Error && "data" in e
+          ? String((e as { data?: unknown }).data)
+          : e instanceof Error
+            ? e.message
+            : "Save failed";
+      setSaveState({
+        kind: "error",
+        message: code === "PREMIUM_REQUIRED" ? "Premium required." : code,
+      });
     }
   }
 
@@ -105,8 +111,10 @@ export function ThemingStudio() {
           placeholder={'button {\n  letter-spacing: 0.02em;\n}'}
           className="mt-2 w-full rounded-lg border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
         />
-        {!previewSanitized.ok && (
-          <p className="mt-1 text-xs text-red-600">⚠ {previewSanitized.error}</p>
+        {!preview.css && draftCss.trim() && (
+          <p className="mt-1 text-xs text-amber-600">
+            ⚠ Nothing to preview — the CSS was sanitized away or is invalid.
+          </p>
         )}
       </div>
 
@@ -135,18 +143,11 @@ export function ThemingStudio() {
         <p className="mt-1 text-xs text-gray-500">
           Exactly what visitors see on your send page.
         </p>
-        <div
-          className="mt-3 rounded-lg border p-6"
-          style={themeVars}
-        >
-          {previewCss ? (
-            <style
-              dangerouslySetInnerHTML={{
-                __html: previewCss.split(".shortmail-scope").join(".shortmail-scope"),
-              }}
-            />
+        <div className="mt-3 rounded-lg border p-6" style={preview.style}>
+          {preview.css ? (
+            <style dangerouslySetInnerHTML={{ __html: preview.css }} />
           ) : null}
-          <div className="shortmail-scope space-y-3 rounded-[var(--sm-radius,0.75rem)] bg-[var(--sm-bg,#ffffff)] p-4 text-[var(--sm-text,#111111)]">
+          <div className={`${preview.scopeClass} space-y-3 rounded-[var(--sm-radius,0.75rem)] bg-[var(--sm-bg,#ffffff)] p-4 text-[var(--sm-text,#111111)]`}>
             {SAMPLE_MESSAGES.map((m) => (
               <div key={m.email} className="border-b border-[var(--sm-border,#e5e7eb)] pb-2 text-sm">
                 <p className="font-medium">{m.name}</p>

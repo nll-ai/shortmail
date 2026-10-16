@@ -1,7 +1,8 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { bump, utcDay } from "./lib/rateLimit";
+import { bumpIpWindow, bumpVanityDailyCap } from "./lib/rateLimit";
+import { insertEventRow } from "./lib/events";
 import { DAILY_SEND_CAP_DEFAULT } from "./lib/identity";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -10,8 +11,21 @@ const HOUR_MS = 60 * 60 * 1000;
  * Public config for the hosted /send page and the embed widget.
  * Returns null for an unknown vanity (the httpAction maps that to 404).
  */
+export const embedConfigValidator = {
+  vanityName: v.string(),
+  displayName: v.string(),
+  headings: v.array(v.string()),
+  faqs: v.array(v.object({ question: v.string(), answer: v.string() })),
+  isPaid: v.boolean(),
+  theme: v.union(
+    v.object({ preset: v.string(), customCss: v.union(v.string(), v.null()) }),
+    v.null(),
+  ),
+};
+
 export const configForVanity = internalQuery({
   args: { vanity: v.string() },
+  returns: v.union(v.null(), v.object(embedConfigValidator)),
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
@@ -81,20 +95,14 @@ export const submitSend = internalMutation({
 
     // Advisory per-IP window (5/hour): recorded, never blocks.
     if (args.ip) {
-      await bump(ctx, `send:${args.ip}`, HOUR_MS, 5);
+      await bumpIpWindow(ctx, "send", args.ip, HOUR_MS, 5);
     }
 
-    const cap = await bump(
-      ctx,
-      `cap:${args.vanity}:${utcDay()}`,
-      null,
-      DAILY_SEND_CAP_DEFAULT,
-    );
+    const cap = await bumpVanityDailyCap(ctx, "send", args.vanity, DAILY_SEND_CAP_DEFAULT);
     if (!cap.ok) return { ok: false, reason: "daily_cap_exceeded" };
 
     await ctx.scheduler.runAfter(0, internal.emails.sendShortmailEmail, {
       ownerId: user._id,
-      to: user.email,
       replyTo: args.senderEmail,
       subject: args.subject,
       html: args.html,
@@ -119,11 +127,9 @@ export const recordEvent = internalMutation({
     ref: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("events", {
+    await insertEventRow(ctx, {
       ownerId: args.ownerId,
       type: args.type,
-      day: utcDay(),
-      ts: Date.now(),
       subject: args.subject,
       path: args.path,
       ref: args.ref,

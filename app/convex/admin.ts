@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { requireAdminRole, requireUser } from "./lib/identity";
 
 /**
@@ -102,6 +102,20 @@ export const deleteUser = mutation({
       .collect();
     for (const row of faqs) await ctx.db.delete(row._id);
 
+    // Full cascade (finding 14): theme settings + analytics events are also
+    // owned by the deleted user.
+    const themes = await ctx.db
+      .query("themeSettings")
+      .withIndex("by_owner", (q) => q.eq("ownerId", args.userId))
+      .collect();
+    for (const row of themes) await ctx.db.delete(row._id);
+
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_owner_day", (q) => q.eq("ownerId", args.userId))
+      .collect();
+    for (const row of events) await ctx.db.delete(row._id);
+
     await ctx.db.delete(args.userId);
   },
 });
@@ -118,7 +132,7 @@ export const claimSuperAdmin = mutation({
     const user = await requireUser(ctx);
     const expected = process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
     if (!expected || user.email !== expected || !user.email) {
-      throw new Error("FORBIDDEN");
+      throw new ConvexError("FORBIDDEN");
     }
     await ctx.db.patch(user._id, { adminRole: "super_admin" });
   },

@@ -1,18 +1,13 @@
-import { mutation, query } from "./_generated/server";
-import { getOrCreateCurrentUser } from "./lib/identity";
+import { internalQuery, mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+import { findUserByIdentity, getOrCreateCurrentUser } from "./lib/identity";
 
 export const me = query({
   args: {},
   handler: async (ctx) => {
     // Read-only: null when the caller has no row yet (ensureMe provisions it).
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const maybe = await ctx.db
-      .query("users")
-      .withIndex("by_workos", (q) => q.eq("workosUserId", identity.subject))
-      .unique();
-    if (!maybe) return null;
-    const user = maybe;
+    const user = await findUserByIdentity(ctx);
+    if (!user) return null;
     return {
       email: user.email,
       vanityName: user.vanityName,
@@ -38,5 +33,15 @@ export const ensureMe = mutation({
       isPaid: user.isPaid,
       adminRole: user.adminRole,
     };
+  },
+});
+
+/** Internal read of a user row by id (used by the email action to derive
+ * the recipient from the owner structurally). */
+export const getUserById = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    return user ? { email: user.email, vanityName: user.vanityName } : null;
   },
 });

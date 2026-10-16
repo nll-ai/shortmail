@@ -2,8 +2,9 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { MAX_BODY } from "./collector";
+import { parseSendFields } from "./lib/sendRequest";
+import { tagSubject } from "./lib/subjectTag";
 import { marked } from "marked";
-import { isDisposableEmail } from "./lib/disposableDomains";
 
 /**
  * Public HTTP endpoints (called cross-origin by the embedded widget and the
@@ -38,6 +39,10 @@ const json = (body: unknown, status = 200) =>
 const jsonError = (error: string, status: number) => json({ error }, status);
 
 /** Vanity from a `/api/{section}/{vanity}` path, or null. */
+function clientIpFrom(request: Request): string | undefined {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+}
+
 function vanityFrom(url: string, section: "send" | "collect"): string | null {
   const parts = new URL(url).pathname.split("/").filter(Boolean);
   if (parts.length !== 3 || parts[0] !== "api" || parts[1] !== section) {
@@ -97,10 +102,10 @@ http.route({
 });
 
 // ---------------------------------------------------------------------------
-// POST /api/send/{vanity} — the one send path (hosted page + widget)
+// POST /api/send/{vanity} — the one send path (hosted page + widget).
+// Validation rules live in lib/sendRequest.ts (pure, unit-tested); this
+// handler is the HTTP seam: read fields → validate → dispatch submitSend.
 // ---------------------------------------------------------------------------
-const MAX_MESSAGE_LENGTH = 500;
-const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function parseFormField(field: unknown): string {
   return typeof field === "string" ? field : field == null ? "" : String(field);
@@ -139,46 +144,16 @@ http.route({
     const fields = await readFormFields(request);
     if (!fields) return jsonError("invalid_body", 400);
 
-    // Honeypot: bots filling the invisible `website` field get a quiet 400.
-    if (fields.website !== undefined && fields.website !== "") {
-      return jsonError("spam_detected", 400);
-    }
-
-    const senderName = (fields.sender_name ?? "").trim();
-    if (!senderName) return jsonError("sender_name_required", 400);
-
-    const senderEmail = (fields.sender_email ?? "").trim().toLowerCase();
-    if (!EMAIL_SHAPE.test(senderEmail)) {
-      return jsonError("invalid_email", 400);
-    }
-    if (isDisposableEmail(senderEmail)) {
-      return jsonError("disposable_email", 400);
-    }
-
-    const message = fields.message ?? "";
-    if (!message.trim()) return jsonError("message_required", 400);
-    if (message.length > MAX_MESSAGE_LENGTH) {
-      return jsonError("message_too_long", 400);
-    }
-
-    // Subject: selected heading, or the custom text when "OTHER" is picked.
-    let subject = (fields.subject ?? "").trim();
-    if (subject === "OTHER") subject = (fields.custom_subject ?? "").trim();
-    if (!subject) return jsonError("subject_required", 400);
-
-    // Legacy parity: only the literal "yes" counts as reply-needed.
-    const replyNeeded = fields.reply_needed === "yes";
-    const taggedSubject = `${replyNeeded ? "[RN]" : "[NRN]"} ${subject}`;
+    const parsed = parseSendFields(fields);
+    if (!parsed.ok) return jsonError(parsed.errorCode, 400);
+    const { senderName, senderEmail, taggedSubject, message } = parsed.values;
 
     const text = `From: ${senderName} <${senderEmail}>\n\n${message}`;
     const html = `<p>${escapeHtml(`From: ${senderName} <${senderEmail}>`)}</p>\n${markdownToSafeHtml(message)}`;
 
     // x-forwarded-for is attacker-controlled on *.convex.site (plan §7), so
     // the per-IP window is advisory; absence of the header is fine.
-    const ip = request.headers
-      .get("x-forwarded-for")
-      ?.split(",")[0]
-      ?.trim() ?? undefined;
+    const ip = clientIpFrom(request);
 
     const result = await ctx.runMutation(internal.public.submitSend, {
       vanity,
@@ -222,10 +197,7 @@ http.route({
     }
 
     const vanity = vanityFrom(request.url, "collect");
-    const ip = request.headers
-      .get("x-forwarded-for")
-      ?.split(",")[0]
-      ?.trim();
+    const ip = clientIpFrom(request);
 
     try {
       await ctx.runMutation(internal.collector.ingestBeacon, {

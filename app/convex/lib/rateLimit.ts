@@ -45,3 +45,31 @@ export async function bump(
 export function utcDay(ts = Date.now()): string {
   return new Date(ts).toISOString().slice(0, 10);
 }
+
+// ---------------------------------------------------------------------------
+// Purpose-named limiters (codebase-design review finding 1): the key grammar
+// lives here so two limiters can never collide on a shared bucket again.
+// ---------------------------------------------------------------------------
+
+/** Advisory per-IP window (attacker-controlled header on *.convex.site). */
+export async function bumpIpWindow(
+  ctx: MutationCtx,
+  scope: "send" | "collect",
+  ip: string | undefined,
+  windowMs: number,
+  max: number,
+): Promise<RateLimitResult | null> {
+  if (!ip) return { ok: true, count: 0 };
+  return bump(ctx, `win:${scope}:${ip}`, windowMs, max);
+}
+
+/** Enforced per-vanity daily cap; the key encodes BOTH the scope and the
+ * day, so send-budget and event-budget buckets are structurally separate. */
+export async function bumpVanityDailyCap(
+  ctx: MutationCtx,
+  scope: "send" | "events",
+  vanity: string,
+  max: number,
+): Promise<RateLimitResult> {
+  return bump(ctx, `cap:${scope}:${vanity}:${utcDay()}`, null, max);
+}

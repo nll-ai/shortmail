@@ -1,26 +1,17 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
-import { useEffect, useRef } from "react";
 import { api } from "../../convex/_generated/api";
+import { useMe } from "./useMe";
 
 export function UserBadge() {
-  const me = useQuery(api.users.me);
-  const ensure = useMutation(api.users.ensureMe);
-  // Self-provision on first login: `me` returns null until the row exists.
-  const ensureStarted = useRef(false);
-  useEffect(() => {
-    if (me === null && !ensureStarted.current) {
-      ensureStarted.current = true;
-      void ensure();
-    }
-  }, [me, ensure]);
+  const { me } = useMe();
 
-  if (me === undefined) {
-    return <p className="text-sm text-gray-400">Loading Convex identity…</p>;
-  }
-  if (me === null) {
-    return <p className="text-sm text-gray-400">Setting up your account…</p>;
+  if (me === undefined || me === null) {
+    return (
+      <p className="text-sm text-gray-400">
+        {me === null ? "Setting up your account…" : "Loading Convex identity…"}
+      </p>
+    );
   }
 
   return (

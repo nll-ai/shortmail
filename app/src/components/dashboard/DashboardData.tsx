@@ -4,23 +4,35 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
+import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
 
 const FREE_HEADING_LIMIT = 5;
 const FREE_FAQ_LIMIT = 3;
 
-function friendlyError(e: unknown): string {
+function errorCode(e: unknown): string | null {
+  // Convex mutations throw ConvexError; the code arrives as `error.data`.
+  if (e instanceof Error && "data" in e) {
+    const data = (e as { data?: unknown }).data;
+    if (typeof data === "string") return data;
+  }
   const msg = e instanceof Error ? e.message : String(e);
-  if (msg.includes("FREE_LIMIT_REACHED")) {
-    return "Free accounts have reached their limit — upgrade to add more.";
+  return msg || null;
+}
+
+function friendlyError(e: unknown): string {
+  switch (errorCode(e)) {
+    case "FREE_LIMIT_REACHED":
+      return "Free accounts have reached their limit — upgrade to add more.";
+    case "vanity_taken":
+      return "That vanity name is already taken. Please choose another.";
+    case "vanity_invalid":
+      return "Vanity names can use lowercase letters, numbers, dashes and underscores only.";
+    case "PREMIUM_REQUIRED":
+      return "This setting requires a paid account.";
+    default:
+      return "Something went wrong — please try again.";
   }
-  if (msg.includes("vanity_taken")) {
-    return "That vanity name is already taken. Please choose another.";
-  }
-  if (msg.includes("PREMIUM_REQUIRED")) {
-    return "This setting requires a paid account.";
-  }
-  return "Something went wrong — please try again.";
 }
 
 const inputClass =
@@ -29,11 +41,11 @@ const buttonClass =
   "rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function DashboardData() {
-  const me = useQuery(api.users.me);
+  const { me, provisioning } = useMe();
   const headings = useQuery(api.forms.myHeadings);
   const faqs = useQuery(api.forms.myFaqs);
 
-  if (me === undefined || headings === undefined || faqs === undefined) {
+  if (me === undefined || me === null || headings === undefined || faqs === undefined) {
     return <p className="mt-4 text-sm text-gray-400">Loading your data…</p>;
   }
   if (me === null) {

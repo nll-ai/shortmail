@@ -1,6 +1,7 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { bump, utcDay } from "./lib/rateLimit";
+import { bumpIpWindow, bumpVanityDailyCap } from "./lib/rateLimit";
+import { insertEventRow } from "./lib/events";
 
 /** Daily cap on stored events per vanity — bounds table growth and
  * poisoning (plan §7). Events past the cap are dropped silently; the
@@ -25,10 +26,8 @@ export const ingestBeacon = internalMutation({
     // Per-IP advisory window (~30/min): matched against a forwarded-for
     // derived ip; direct *.convex.site callers control that header, so this
     // is noise control, not a security boundary (plan §7).
-    if (args.ip) {
-      const rl = await bump(ctx, `collect:${args.ip}`, 60_000, 30);
-      if (!rl.ok) return null;
-    }
+    const rl = await bumpIpWindow(ctx, "collect", args.ip, 60_000, 30);
+    if (rl && !rl.ok) return null;
 
     let parsed: {
       event?: unknown;
@@ -51,10 +50,10 @@ export const ingestBeacon = internalMutation({
     if (!user) return null; // unknown vanity → dropped (204 upstream)
 
     // Per-vanity daily enforced cap.
-    const cap = await bump(
+    const cap = await bumpVanityDailyCap(
       ctx,
-      `cap:${args.vanity}:${utcDay()}`,
-      null,
+      "events",
+      args.vanity,
       DAILY_EVENT_CAP_DEFAULT,
     );
     if (!cap.ok) return null;
@@ -66,11 +65,9 @@ export const ingestBeacon = internalMutation({
       return noQuery.length > 0 ? noQuery : undefined;
     };
 
-    await ctx.db.insert("events", {
+    await insertEventRow(ctx, {
       ownerId: user._id,
       type: "form_view",
-      day: utcDay(),
-      ts: Date.now(),
       path: clean(parsed.path, 200),
       ref: clean(parsed.ref, 200),
     });

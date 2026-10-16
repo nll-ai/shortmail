@@ -1,6 +1,8 @@
 import { internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUser } from "./lib/identity";
+import { dayKeyFromToday } from "./lib/days";
+import { parseSubjectTag } from "./lib/subjectTag";
 
 export type DayPoint = { day: string; views: number; sends: number };
 
@@ -15,16 +17,7 @@ export type OwnerStats = {
 
 export type FreeStats = { tier: "free" };
 
-const stripTag = (subject: string): { name: string; rn: boolean } => {
-  const match = subject.match(/^\[(RN|NRN)\]\s*(.*)$/);
-  if (match) return { name: match[2], rn: match[1] === "RN" };
-  return { name: subject, rn: false };
-};
-
-const dayKey = (offsetFromToday: number): string => {
-  const d = new Date(Date.now() - offsetFromToday * 86_400_000);
-  return d.toISOString().slice(0, 10);
-};
+const dayKey = dayKeyFromToday;
 
 /**
  * Aggregate a user's events over the last `days` days, on the fly via the
@@ -64,7 +57,9 @@ async function collectStats(
       } else {
         sends++;
         if (bucket) bucket.sends++;
-        const { name, rn } = stripTag(row.subject ?? "");
+        const parsed = parseSubjectTag(row.subject);
+        const name = parsed.name;
+        const rn = parsed.replyNeeded;
         if (rn) rnCount++;
         if (name) {
           subjectCounts.set(name, (subjectCounts.get(name) ?? 0) + 1);
