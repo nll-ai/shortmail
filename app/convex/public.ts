@@ -17,6 +17,7 @@ export const embedConfigValidator = {
   headings: v.array(v.string()),
   faqs: v.array(v.object({ question: v.string(), answer: v.string() })),
   isPaid: v.boolean(),
+  embedAllowedOrigins: v.array(v.string()),
   theme: v.union(
     v.object({ preset: v.string(), customCss: v.union(v.string(), v.null()) }),
     v.null(),

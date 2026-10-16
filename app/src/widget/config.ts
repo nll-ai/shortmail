@@ -10,5 +10,6 @@ export type EmbedConfig = {
   headings: string[];
   faqs: { question: string; answer: string }[];
   isPaid: boolean;
+  embedAllowedOrigins: string[];
   theme: { preset: string; customCss: string | null } | null;
 };
