@@ -12,11 +12,13 @@ cd "$(dirname "$0")/.."
 
 if [[ "${CONVEX_DEPLOY_KEY:-}" == preview:* ]]; then
   echo "==> Convex PREVIEW deploy (per-branch backend)"
-  npx convex env set WORKOS_CLIENT_ID "$WORKOS_CLIENT_ID"
+  # Best-effort: project Default Environment Variables already seed fresh
+  # preview deployments; deploy-key permissions may not allow env writes.
+  npx convex env set WORKOS_CLIENT_ID "$WORKOS_CLIENT_ID" || echo "(skipping env set: relying on project defaults)"
   npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --preview-run 'devSeed:seedDemo'
 elif [[ -n "${CONVEX_DEPLOY_KEY:-}" ]]; then
   echo "==> Convex PRODUCTION deploy"
-  npx convex env set WORKOS_CLIENT_ID "$WORKOS_CLIENT_ID"
+  npx convex env set WORKOS_CLIENT_ID "$WORKOS_CLIENT_ID" || true
   npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
 else
   echo "==> CONVEX_DEPLOY_KEY not set: building with existing NEXT_PUBLIC_CONVEX_URL"
