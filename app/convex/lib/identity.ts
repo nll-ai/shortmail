@@ -83,24 +83,16 @@ async function adoptUser(
   });
 }
 
-/** The alias-aware adoption lookup (finding 13c): email match first, then a
- * bounded scan over aliased rows (convex array-index eq is exact-array
- * equality, not membership — the alias set is tiny, scan is fine). */
+/** Migrated-row adoption is by exact email only (one account = one email;
+ * no alias merging). */
 async function findAdoptableUser(
   ctx: MutationCtx,
   email: string,
 ): Promise<Doc<"users"> | null> {
-  const byEmail = await ctx.db
+  return await ctx.db
     .query("users")
     .withIndex("by_email", (q) => q.eq("email", email))
     .unique();
-  if (byEmail) return byEmail;
-
-  const aliased = await ctx.db
-    .query("users")
-    .filter((q) => q.neq(q.field("aliases"), undefined))
-    .collect();
-  return aliased.find((u) => u.aliases?.includes(email)) ?? null;
 }
 
 /**
@@ -115,9 +107,10 @@ export async function getOrCreateCurrentUser(
 
   const existing = await findUserByIdentity(ctx);
   if (existing) {
-    if (existing.email !== identity.email && identity.email) {
-      await ctx.db.patch(existing._id, { email: identity.email });
-    }
+    // Do NOT rewrite the row's email to the JWT email: a merged account is
+    // reachable by several addresses (primary + aliases), and the row's
+    // email is the primary. Alias membership covers the rest (finding: the
+    // email patch flipped a merged account's primary email).
     return existing;
   }
 
