@@ -42,7 +42,9 @@ export default defineSchema({
     subject: v.optional(v.string()),
     path: v.optional(v.string()),
     ref: v.optional(v.string()),
-  }).index("by_owner_day", ["ownerId", "day"]),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_owner_day", ["ownerId", "day"]),
 
   rateLimits: defineTable({
     // "send:{ip}" | "collect:{ip}" | "cap:{vanity}:{YYYY-MM-DD}"

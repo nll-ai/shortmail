@@ -1,5 +1,4 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
-import { UserBadge } from "@/components/UserBadge";
 import { QueryBoundary } from "@/components/QueryBoundary";
 import { DashboardData } from "@/components/dashboard/DashboardData";
 
@@ -12,7 +11,6 @@ export default async function Dashboard() {
       <p className="mb-2">
         Signed in as <strong>{user.email}</strong>
       </p>
-      <UserBadge />
       <QueryBoundary>
         <DashboardData />
       </QueryBoundary>

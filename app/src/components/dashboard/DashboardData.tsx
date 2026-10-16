@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import Script from "next/script";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
@@ -70,6 +71,15 @@ export function DashboardData() {
           </Link>
         </p>
         <VanityControls isPaid={me.isPaid} current={me.vanityName} />
+        <div className="mt-4 border-t pt-4">
+          <p className="mb-2 text-xs uppercase tracking-wide text-gray-500">
+            Live preview — what your visitors see
+          </p>
+          <div className="rounded-lg bg-gray-50 p-4">
+            <Script src="/widget.js" strategy="afterInteractive" />
+            <shortmail-widget vanity={me.vanityName} />
+          </div>
+        </div>
       </section>
 
       <HeadingsSection
