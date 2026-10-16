@@ -1,0 +1,89 @@
+app/src/components/dashboard/DashboardData.tsx
+  s_12bea736eb8a2e::t_128af614ca7410 6-7
+  s_12bea736eb8a2e::t_43bff5ca9e7588 135,161,213,220,255,298
+  s_12bea736eb8a2e::t_6fcdcc30ef3c71 1-5,8-134,136-160,162-212,214-219,221-254,256-297,299-394
+app/convex/lib/rateLimit.ts
+  s_12bea736eb8a2e::t_1de00f85329631 1-47
+app/convex/forms.ts
+  s_12bea736eb8a2e::t_6322618a2b6a58 1-150
+app/convex/_generated/api.d.ts
+  s_12bea736eb8a2e::t_d2d405bbf8781b 11-14,16,18-20,30-33,35,37-39
+app/src/app/dashboard/page.tsx
+  s_12bea736eb8a2e::t_e236461af050f4 3-4,16-18
+app/.env.example
+  s_808b795008e8ea::t_11364cbaf33cb3 1,7,9-20
+  s_12bea736eb8a2e::t_46f2761afab6d6 2-6,8
+app/package.json
+  s_12bea736eb8a2e::t_1d60542f2dd185 15
+app/.gitignore
+  s_12bea736eb8a2e::t_0a4f7c4ff30563 35
+app/convex/public.ts
+  s_12bea736eb8a2e::t_ddebcdeea86ae7 2
+  s_12bea736eb8a2e::t_9a9701ad6de281 1,3-124
+app/convex/emails.ts
+  s_12bea736eb8a2e::t_58a12f441223c2 1-65
+app/src/app/admin/users/page.tsx
+  s_12bea736eb8a2e::t_128af614ca7410 6
+  s_12bea736eb8a2e::t_3842aa083a64dc 1-5,7-161
+app/src/components/QueryBoundary.tsx
+  s_12bea736eb8a2e::t_8a704b92c6f5f3 1-40
+app/src/app/admin/page.tsx
+  s_12bea736eb8a2e::t_d2165a13654f5c 1-4,6-97
+  s_12bea736eb8a2e::t_128af614ca7410 5
+app/convex/schema.ts
+  s_808b795008e8ea::t_be3153ec14f0ec 12
+app/convex/admin.ts
+  s_12bea736eb8a2e::t_12e4adb90eaf27 1-125
+.gitignore
+  s_12bea736eb8a2e::t_676939886f4199 23-25
+app/convex/lib/disposableDomains.ts
+  s_12bea736eb8a2e::t_af30817eb9305c 1-43
+app/convex/devSeed.ts
+  s_12bea736eb8a2e::t_dda18a347acc26 1,3-52,64-65,67-69,78-85
+  s_12bea736eb8a2e::t_d576b017846968 2,53-63,66,70-77
+app/convex/http.ts
+  s_12bea736eb8a2e::t_6abc2b9568ae6f 4,173,211,240-241
+  s_12bea736eb8a2e::t_9f0a3bc7f7e210 39,49,57-59,63-172,174-210,212-216,218,226-233,235-239,243
+  s_12bea736eb8a2e::t_6df441d9cef039 3,5,8-9,13-16,18,34-37,40-48,50-56,217,219,234,242
+  s_12bea736eb8a2e::t_83d8c2f7cd8cf1 38
+app/convex/migrate.ts
+  s_808b795008e8ea::t_cc22ac53da3c8f 1-2,4-10,13,18-29,31-45,55-57,61-68,70-86,88-92,99-117
+  s_12bea736eb8a2e::t_491d2de88d2c79 3
+  s_12bea736eb8a2e::t_589aaee636e3c4 46
+  s_808b795008e8ea::t_6d1b93ce2427d9 11-12,14-17,30,47-54,58-60,69,87,93-98
+app/convex/lib/identity.ts
+  s_808b795008e8ea::t_7c91aea51297c1 1,3-77,83-86,112,136-164
+  s_12bea736eb8a2e::t_07cc792d60bfac 2
+  s_808b795008e8ea::t_17fd73dc7d0d34 78-82,87-97,102,106-111,113-135
+  s_12bea736eb8a2e::t_ad132602ee049f 98-101,103-105
+app/src/components/SendForm.tsx
+  s_12bea736eb8a2e::t_0e6e541f6ca5b4 1-244
+app/src/app/send/[vanityName]/page.tsx
+  s_12bea736eb8a2e::t_efe81597a78e24 1-36
+app/package-lock.json
+  s_12bea736eb8a2e::t_2628b787bd7e13 14,6575-6586
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51e145a19e3490f67aa27c730e87e4da4b872e96",
+  "prompts": {},
+  "sessions": {
+    "s_12bea736eb8a2e": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14428-7221-748b-81fb-c8e18797b68b",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    },
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
