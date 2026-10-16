@@ -1,0 +1,24 @@
+app/src/components/SendForm.tsx
+  s_808b795008e8ea::t_c9e618abd0221d 10
+app/src/components/theming/ThemingStudio.tsx
+  s_808b795008e8ea::t_6f924c6252f4ad 10
+  s_808b795008e8ea::t_6cd7f181efaee8 69
+app/src/widget/scopeCss.ts
+  s_808b795008e8ea::t_2e57b35a24af5d 15-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e821208f62229995f4d50b7f302348af28e30f62",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
