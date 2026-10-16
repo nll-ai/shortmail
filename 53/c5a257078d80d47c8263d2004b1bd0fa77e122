@@ -1,0 +1,26 @@
+app/src/components/dashboard/DashboardData.tsx
+  s_808b795008e8ea::t_e611d8a55b9716 159,231,374,430
+  s_808b795008e8ea::t_69c0407023dcca 39-42
+  s_808b795008e8ea::t_be97cb035d4c07 213,311,352
+app/src/widget/shortmail-widget.ts
+  s_808b795008e8ea::t_54467e37646317 98-99,104,123-126,130-138,153-154,173,235-256
+  s_808b795008e8ea::t_2f634625631c10 257
+app/public/widget.js
+  s_808b795008e8ea::t_be97cb035d4c07 1,46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "53c5a257078d80d47c8263d2004b1bd0fa77e122",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
