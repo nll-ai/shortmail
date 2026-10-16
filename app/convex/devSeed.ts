@@ -158,3 +158,18 @@ export const setPaidByEmail = internalMutation({
     return `set isPaid=${args.isPaid} for ${row.email}`;
   },
 });
+
+/** Dev/test helper: set embed origins by email (bypasses auth; the real
+ * path is users.setEmbedAllowedOrigins via the dashboard). */
+export const setOriginsByEmail = internalMutation({
+  args: { email: v.string(), origins: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+    if (!row) return "unknown";
+    await ctx.db.patch(row._id, { embedAllowedOrigins: args.origins });
+    return `set ${args.origins.length} origins for ${row.email}`;
+  },
+});
