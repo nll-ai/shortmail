@@ -1,10 +1,18 @@
 import { mutation, query } from "./_generated/server";
-import { getOrCreateCurrentUser, requireUser } from "./lib/identity";
+import { getOrCreateCurrentUser } from "./lib/identity";
 
 export const me = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireUser(ctx);
+    // Read-only: null when the caller has no row yet (ensureMe provisions it).
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const maybe = await ctx.db
+      .query("users")
+      .withIndex("by_workos", (q) => q.eq("workosUserId", identity.subject))
+      .unique();
+    if (!maybe) return null;
+    const user = maybe;
     return {
       email: user.email,
       vanityName: user.vanityName,
