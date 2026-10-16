@@ -1,0 +1,23 @@
+LICENSE
+  s_808b795008e8ea::t_248c1f7ea583d7 1-142
+app/package.json
+  s_808b795008e8ea::t_248c1f7ea583d7 31-32
+pyproject.toml
+  s_808b795008e8ea::t_248c1f7ea583d7 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "882ee7d41d291b845a5ea93d09709f86e5cff40a",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
