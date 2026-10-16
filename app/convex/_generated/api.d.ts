@@ -15,11 +15,13 @@ import type * as devSeed from "../devSeed.js";
 import type * as emails from "../emails.js";
 import type * as forms from "../forms.js";
 import type * as http from "../http.js";
+import type * as lib_cssSanitize from "../lib/cssSanitize.js";
 import type * as lib_disposableDomains from "../lib/disposableDomains.js";
 import type * as lib_identity from "../lib/identity.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as migrate from "../migrate.js";
 import type * as public_ from "../public.js";
+import type * as theming from "../theming.js";
 import type * as users from "../users.js";
 
 import type {
@@ -36,11 +38,13 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   forms: typeof forms;
   http: typeof http;
+  "lib/cssSanitize": typeof lib_cssSanitize;
   "lib/disposableDomains": typeof lib_disposableDomains;
   "lib/identity": typeof lib_identity;
   "lib/rateLimit": typeof lib_rateLimit;
   migrate: typeof migrate;
   public: typeof public_;
+  theming: typeof theming;
   users: typeof users;
 }>;
 

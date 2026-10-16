@@ -31,9 +31,11 @@ type Status = "idle" | "submitting" | "sent" | "error";
 export function SendForm({
   config,
   convexSiteUrl,
+  themeVars,
 }: {
   config: EmbedConfig;
   convexSiteUrl: string;
+  themeVars?: Record<string, string>;
 }) {
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
@@ -143,13 +145,17 @@ export function SendForm({
   }
 
   const inputClass =
-    "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
+    "w-full rounded-[var(--sm-radius,0.5rem)] border border-[var(--sm-border,#d1d5db)] bg-[var(--sm-surface,#ffffff)] text-[var(--sm-text,#111111)] px-3 py-2 text-sm focus:border-[var(--sm-accent,#111111)] focus:outline-none";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-[var(--sm-radius,0.75rem)] bg-[var(--sm-bg,#ffffff)] p-1 text-[var(--sm-text,#111111)]"
+      style={themeVars}
+    >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">Your name</span>
+          <span className="mb-1 block font-medium text-[var(--sm-text,#111111)]">Your name</span>
           <input
             className={inputClass}
             value={senderName}
@@ -158,7 +164,7 @@ export function SendForm({
           />
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">Your email</span>
+          <span className="mb-1 block font-medium text-[var(--sm-text,#111111)]">Your email</span>
           <input
             className={inputClass}
             type="email"
@@ -268,7 +274,7 @@ export function SendForm({
       <button
         type="submit"
         disabled={!canSubmit || status === "submitting"}
-        className="w-full rounded-full bg-black px-6 py-2 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-full bg-[var(--sm-accent,#111111)] px-6 py-2 text-sm font-medium text-[var(--sm-accent-text,#ffffff)] hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {status === "submitting" ? "Sending…" : "Send shortmail"}
       </button>

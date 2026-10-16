@@ -35,7 +35,15 @@ export const configForVanity = internalQuery({
       displayName: user.displayName ?? user.email,
       headings: headings.map((h) => h.heading),
       faqs: faqs.map((f) => ({ question: f.question, answer: f.answer })),
-      theme: null, // P5 fills themeSettings
+      theme: await (async () => {
+        const settings = await ctx.db
+          .query("themeSettings")
+          .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+          .unique();
+        return settings
+          ? { preset: settings.preset, customCss: settings.customCss ?? null }
+          : null;
+      })(),
       isPaid: user.isPaid,
     };
   },
