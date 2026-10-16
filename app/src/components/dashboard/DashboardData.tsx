@@ -58,45 +58,68 @@ export function DashboardData() {
   }
 
   return (
-    <div className="mt-6 space-y-8">
-      <section className="rounded-lg border p-4 text-sm">
-        <h2 className="mb-2 text-base font-semibold">Your send page</h2>
-        <p>
-          Visitors write to you at{" "}
-          <Link
-            href={`/send/${me.vanityName}`}
-            className="font-mono underline"
-          >
-            /send/{me.vanityName}
-          </Link>
-        </p>
-        <VanityControls isPaid={me.isPaid} current={me.vanityName} />
-        <div className="mt-4 border-t pt-4">
-          <p className="mb-2 text-xs uppercase tracking-wide text-gray-500">
-            Live preview — what your visitors see
+    // Two columns (Eric's design feedback): configuration left, live
+    // preview right (sticky). Stacks on small screens.
+    <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+      <div className="space-y-8 min-w-0">
+        <section className="rounded-lg border p-4 text-sm">
+          <h2 className="mb-2 text-base font-semibold">Your send page</h2>
+          <p>
+            Visitors write to you at{" "}
+            <Link
+              href={`/send/${me.vanityName}`}
+              className="font-mono underline"
+            >
+              /send/{me.vanityName}
+            </Link>
           </p>
-          <div className="rounded-lg bg-gray-50 p-4">
-            <Script src="/widget.js" strategy="afterInteractive" />
-            <shortmail-widget vanity={me.vanityName} />
-          </div>
+          <VanityControls isPaid={me.isPaid} current={me.vanityName} />
+        </section>
+
+        <HeadingsSection
+          isPaid={me.isPaid}
+          headings={headings.map((h) => ({ id: h._id, heading: h.heading }))}
+        />
+
+        <FaqsSection
+          isPaid={me.isPaid}
+          faqs={faqs.map((f) => ({
+            id: f._id,
+            question: f.question,
+            answer: f.answer,
+          }))}
+        />
+
+        <DisplayNameSection current={me.displayName ?? ""} />
+      </div>
+
+      <div className="self-start space-y-4 lg:sticky lg:top-6">
+        <p className="text-xs uppercase tracking-wide text-gray-500">
+          Live preview — what your visitors see
+        </p>
+        <div className="rounded-lg bg-gray-50 p-4">
+          <Script src="/widget.js" strategy="afterInteractive" />
+          <shortmail-widget vanity={me.vanityName} />
         </div>
-      </section>
-
-      <HeadingsSection
-        isPaid={me.isPaid}
-        headings={headings.map((h) => ({ id: h._id, heading: h.heading }))}
-      />
-
-      <FaqsSection
-        isPaid={me.isPaid}
-        faqs={faqs.map((f) => ({
-          id: f._id,
-          question: f.question,
-          answer: f.answer,
-        }))}
-      />
-
-      <DisplayNameSection current={me.displayName ?? ""} />
+        <div className="rounded-lg border p-4 text-sm space-y-2">
+          <p className="font-medium text-sm">Premium tools</p>
+          <Link href="/analytics" className="block text-blue-600 hover:underline text-sm">
+            Analytics →
+          </Link>
+          <Link
+            href="/dashboard/theming"
+            className="block text-blue-600 hover:underline text-sm"
+          >
+            Theming →
+          </Link>
+          <Link
+            href="/dashboard/embed"
+            className="block text-blue-600 hover:underline text-sm"
+          >
+            Embed →
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
