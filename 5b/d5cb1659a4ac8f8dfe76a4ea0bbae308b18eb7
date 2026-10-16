@@ -1,0 +1,19 @@
+app/src/app/send/[vanityName]/page.tsx
+  s_808b795008e8ea::t_cf36d32658228e 17-19,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5bd5cb1659a4ac8f8dfe76a4ea0bbae308b18eb7",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
