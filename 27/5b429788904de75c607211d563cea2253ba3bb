@@ -1,0 +1,23 @@
+app/src/components/dashboard/DashboardData.tsx
+  s_808b795008e8ea::t_21de7da85c4825 5,74-82
+app/convex/migrate.ts
+  s_808b795008e8ea::t_7b4c2aed866c1a 118-179
+app/convex/schema.ts
+  s_808b795008e8ea::t_c738341eccb29d 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "275b429788904de75c607211d563cea2253ba3bb",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
