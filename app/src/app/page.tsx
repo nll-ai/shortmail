@@ -4,52 +4,56 @@ const OWNER_VANITY = "cce87ae9c1d7"; // Eric's send page — the landing's worki
 
 export default function Home() {
   return (
-    <div className="airmail-page">
-      <div className="airmail-frame" aria-hidden="true" />
-
-      <header className="airmail-header">
-        <span className="airmail-par-avion" aria-hidden="true">
-          PAR AVION · AIR MAIL
+    <div className="letter-page">
+      <header className="letter-masthead">
+        <span className="letter-masthead-title">ShortMail</span>
+        <span className="letter-masthead-meta">
+          Receive fewer, shorter, better emails
         </span>
-        <div className="airmail-stamp" aria-hidden="true">
-          <span className="stamp-perforation">
-            <span className="stamp-value">500</span>
-            <span className="stamp-label">CHARACTERS</span>
-            <span className="stamp-brand">SHORTMAIL</span>
-          </span>
-        </div>
       </header>
 
-      <main className="airmail-main">
-        <h1 className="airmail-title">
-          Write Eric a short letter.
+      <main className="letter-main">
+        <p className="letter-kicker">Write Eric a short letter</p>
+        <h1 className="letter-title">
+          Five hundred characters. He reads every one.
         </h1>
-        <p className="airmail-sub">
-          500 characters. He reads every one — long ones get skimmed, short
-          ones get answered.
+        <p className="letter-standfirst">
+          Long emails get skimmed; short letters get answered. Write yours
+          below — no account, no storage, no expectation of a novel. When
+          you&rsquo;re done, it departs for Eric&rsquo;s desk as plain email.
         </p>
 
-        <AirmailLetter vanity={OWNER_VANITY} />
+        <div className="letter-grid">
+          <div className="min-w-0">
+            <AirmailLetter vanity={OWNER_VANITY} />
+          </div>
 
-        <section className="airmail-how">
-          <h2 className="airmail-h2">Why short?</h2>
-          <p>
-            A long email is a request for your time. A short letter is a gift
-            of your judgment — you decide what matters in five hundred
-            characters or fewer.
-          </p>
-          <p>
-            Messages are not stored. Your letter is emailed to Eric and then
-            it exists only where email exists: your sent folder, his inbox.
-          </p>
-        </section>
+          <aside className="letter-margin">
+            <p className="letter-margin-h">Why short?</p>
+            <p className="letter-margin-note">
+              A long email is a request for your time. A short letter is a
+              gift of your judgment — you decide what matters in five hundred
+              characters or fewer.
+            </p>
+            <p className="letter-margin-h">Where it goes</p>
+            <p className="letter-margin-note">
+              Your letter is emailed to Eric and then it exists only where
+              email exists: your sent folder, his inbox. Nothing is stored,
+              tracked, or shared.
+            </p>
+            <p className="letter-margin-h">What he wants to hear about</p>
+            <p className="letter-margin-note">
+              Consulting, teaching, talks — or anything else worth five
+              hundred characters. Pick a subject from his list, or write your
+              own.
+            </p>
+          </aside>
+        </div>
       </main>
 
-      <footer className="airmail-footer">
-        <span>
-          ShortMail — receive fewer, shorter, better emails. © Nonlinear Labs.
-          BUSL-1.1.
-        </span>
+      <footer className="letter-footer">
+        <span>© Nonlinear Labs · BUSL-1.1 · one account, one email</span>
+        <span>Est. 2026</span>
       </footer>
     </div>
   );

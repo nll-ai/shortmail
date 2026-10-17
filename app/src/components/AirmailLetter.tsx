@@ -98,15 +98,15 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
 
   if (status === "sent") {
     return (
-      <div className="airmail-sent" role="status">
-        <div className="airmail-postmark sent-mark" aria-hidden="true">
+      <div className="letter-sent" role="status">
+        <div className="letter-postmark sent-mark" aria-hidden="true">
           <span>SHORTMAIL POST</span>
           <span className="postmark-date">{postmarkDate}</span>
         </div>
-        <p className="airmail-sent-line">
+        <p className="letter-sent-line">
           Your letter left for {headings?.displayName ?? "Eric"}&rsquo;s desk.
         </p>
-        <p className="airmail-sent-sub">
+        <p className="letter-sent-sub">
           500 characters or fewer. It will be read — that&rsquo;s the point.
         </p>
       </div>
@@ -117,7 +117,7 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
     subject === "" && !headings ? [] : headings?.headings ?? [];
 
   return (
-    <form className="airmail-letter" onSubmit={handleSend}>
+    <form className="letter-sheet" onSubmit={handleSend}>
       {/* honeypot */}
       <input
         type="text"
@@ -127,24 +127,24 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
-        className="airmail-honeypot"
+        className="letter-honeypot"
       />
 
-      <p className="airmail-letterhead">
+      <p className="letter-sheethead">
         Eric Ma &middot; eric.ma@nonlinearlabs.ai &middot; 500 characters. I
         read every one.
       </p>
 
-      <p className="airmail-dear">Dear Eric,</p>
+      <p className="letter-dear">Dear Eric,</p>
 
-      <div className="airmail-fields">
-        <div className="airmail-line airmail-line-name">
+      <div className="letter-fields">
+        <div className="letter-line letter-line-name">
           <label className="sr-only" htmlFor="al-name">
             Your name
           </label>
           <input
             id="al-name"
-            className="airmail-input"
+            className="letter-input"
             placeholder="Your name"
             value={senderName}
             onChange={(e) => setSenderName(e.target.value)}
@@ -153,13 +153,13 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
           />
         </div>
 
-        <div className="airmail-line airmail-line-return">
+        <div className="letter-line letter-line-return">
           <label className="sr-only" htmlFor="al-email">
             Your email (return address)
           </label>
           <input
             id="al-email"
-            className="airmail-input"
+            className="letter-input"
             type="email"
             placeholder="Your email — the return address"
             value={senderEmail}
@@ -169,14 +169,14 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
           />
         </div>
 
-        <div className="airmail-line airmail-line-subject">
+        <div className="letter-line letter-line-subject">
           <label className="sr-only" htmlFor="al-subject">
             Subject — pick one of Eric&apos;s headings, or write your own
           </label>
           {headings === null ? (
             <input
               id="al-subject"
-              className="airmail-input"
+              className="letter-input"
               placeholder="Subject…"
               value={subject === "OTHER" ? customSubject : subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -184,7 +184,7 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
           ) : (
             <select
               id="al-subject"
-              className="airmail-input airmail-select"
+              className="letter-input letter-select"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
@@ -202,7 +202,7 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
           )}
           {subject === "OTHER" && (
             <input
-              className="airmail-input airmail-other"
+              className="letter-input letter-other"
               placeholder="Your own subject"
               value={customSubject}
               onChange={(e) => setCustomSubject(e.target.value)}
@@ -211,13 +211,13 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
           )}
         </div>
 
-        <div className="airmail-line airmail-line-body">
+        <div className="letter-line letter-line-body">
           <label className="sr-only" htmlFor="al-message">
             Your message (500 characters max)
           </label>
           <textarea
             id="al-message"
-            className="airmail-input airmail-message"
+            className="letter-input letter-message"
             placeholder="Write your short letter…"
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE_LENGTH + 1))}
@@ -225,13 +225,13 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
             required
           />
           <span
-            className={`airmail-counter${message.length > MAX_MESSAGE_LENGTH ? " over" : ""}`}
+            className={`letter-counter${message.length > MAX_MESSAGE_LENGTH ? " over" : ""}`}
           >
             {message.length}/{MAX_MESSAGE_LENGTH}
           </span>
         </div>
 
-        <label className="airmail-reply">
+        <label className="letter-reply">
           <input
             type="checkbox"
             checked={replyNeeded}
@@ -242,24 +242,24 @@ export function AirmailLetter({ vanity }: { vanity: string }) {
       </div>
 
       {errorText && (
-        <p className="airmail-error" role="alert">
+        <p className="letter-error" role="alert">
           {errorText}
         </p>
       )}
 
-      <div className="airmail-foot">
+      <div className="letter-actions">
         <button
           type="submit"
-          className="airmail-send"
+          className="letter-send"
           disabled={status === "stamping" || !canSubmit}
         >
           {status === "stamping" ? "Stamping…" : "Send this letter"}
         </button>
-        <span className="airmail-note">No account. No storage. Just mail.</span>
+        <span className="letter-note">No account. No storage. Just mail.</span>
       </div>
 
       {status === "stamping" && (
-        <div className="airmail-postmark" aria-hidden="true">
+        <div className="letter-postmark" aria-hidden="true">
           <span>SHORTMAIL POST</span>
           <span className="postmark-date">{postmarkDate}</span>
         </div>
