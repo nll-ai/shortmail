@@ -14,6 +14,7 @@
 
 import { presetById } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
+import { getFormSheet } from "./formSkin";
 const CONVEX_SITE = process.env.WIDGET_CONVEX_SITE_URL ?? "";
 const convexSiteUrl = () => CONVEX_SITE;
 
@@ -31,7 +32,6 @@ const MAX_MESSAGE_LENGTH = 500;
 
 const BASE_STYLES = `
   :host {
-    /* preset tokens land as inline vars on the host; these are fallbacks */
     --sm-accent: #111111;
     --sm-accent-text: #ffffff;
     --sm-bg: #ffffff;
@@ -48,32 +48,6 @@ const BASE_STYLES = `
     color: var(--sm-text);
   }
   :host([hidden]) { display: none; }
-  * { box-sizing: border-box; font-family: inherit; }
-  .form { display: flex; flex-direction: column; gap: 0.9rem;
-          background: var(--sm-bg); padding: 1rem;
-          border-radius: var(--sm-radius); }
-  .heading { font-weight: 600; margin: 0 0 0.25rem; }
-  .faq { margin: 0; font-size: 0.85rem; color: var(--sm-muted); }
-  label { display: block; font-size: 0.85rem; }
-  .label-text { display: block; margin-bottom: 0.25rem; font-weight: 500; }
-  input, select, textarea {
-    width: 100%; padding: 0.5rem 0.65rem; font-size: 0.9rem;
-    border: 1px solid var(--sm-border); border-radius: var(--sm-radius);
-    background: var(--sm-surface); color: var(--sm-text);
-  }
-  textarea { resize: vertical; min-height: 5rem; }
-  .counter { text-align: right; font-size: 0.7rem; color: var(--sm-muted); }
-  .row { display: flex; gap: 1rem; }
-  .error { color: #b91c1c; font-size: 0.85rem; }
-  .success { border: 1px solid #86efac; background: #f0fdf4; color: #166534;
-             padding: 1rem; border-radius: var(--sm-radius); text-align: center; }
-  .note { font-size: 0.75rem; color: var(--sm-muted); }
-  button.send {
-    background: var(--sm-accent); color: var(--sm-accent-text);
-    border: none; border-radius: 999px; padding: 0.6rem 1.4rem;
-    font-size: 0.9rem; font-weight: 600; cursor: pointer;
-  }
-  button.send:disabled { opacity: 0.4; cursor: not-allowed; }
 `;
 
 function upgradeProperty<T extends HTMLElement>(el: T, prop: string): void {
@@ -110,9 +84,7 @@ class ShortmailWidget extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: "open" });
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(BASE_STYLES);
-    this.shadow.adoptedStyleSheets = [sheet];
+    this.shadow.adoptedStyleSheets = [getFormSheet()];
   }
 
   connectedCallback(): void {
@@ -331,17 +303,18 @@ class ShortmailWidget extends HTMLElement {
 
     const form = document.createElement("form");
     form.setAttribute("part", "form");
-    form.className = "form";
+    form.className = "sm-form";
 
     const heading = document.createElement("h3");
-    heading.className = "heading";
+    heading.className = "sm-heading";
+    heading.setAttribute("part", "heading");
     heading.setAttribute("part", "heading");
     heading.textContent = `Send a shortmail to ${cfg.displayName}`;
     form.appendChild(heading);
 
     for (const faq of cfg.faqs) {
       const p = document.createElement("p");
-      p.className = "faq";
+      p.className = "sm-faq";
       p.setAttribute("part", "faq");
       p.textContent = faq.question;
       form.appendChild(p);
@@ -356,7 +329,7 @@ class ShortmailWidget extends HTMLElement {
     form.appendChild(emailField.label);
 
     const replyLabel = document.createElement("label");
-    replyLabel.className = "label-text";
+    replyLabel.className = "sm-label-text";
     replyLabel.textContent = "Do you need a reply?";
     const row = document.createElement("div");
     row.className = "row";
@@ -374,7 +347,8 @@ class ShortmailWidget extends HTMLElement {
       radio.addEventListener("change", () => {
         if (radio.checked) replyNeededValue = value;
       });
-      l.appendChild(radio);
+      l.className = "sm-radio-label";
+    l.appendChild(radio);
       l.append(text);
       row.appendChild(l);
     }
@@ -382,7 +356,7 @@ class ShortmailWidget extends HTMLElement {
     form.appendChild(replyLabel);
 
     const subjectLabel = document.createElement("label");
-    subjectLabel.className = "label-text";
+    subjectLabel.className = "sm-label-text";
     subjectLabel.textContent = "Subject";
     const select = document.createElement("select");
     select.setAttribute("part", "input");
@@ -415,14 +389,15 @@ class ShortmailWidget extends HTMLElement {
     form.appendChild(subjectLabel);
 
     const messageLabel = document.createElement("label");
-    messageLabel.className = "label-text";
+    messageLabel.className = "sm-label-text";
     messageLabel.textContent = "Message";
     const message = document.createElement("textarea");
+    message.className = "sm-textarea";
     message.setAttribute("part", "input");
     message.required = true;
     message.maxLength = MAX_MESSAGE_LENGTH + 1;
     const counter = document.createElement("div");
-    counter.className = "counter";
+    counter.className = "sm-counter";
     counter.textContent = `0/${MAX_MESSAGE_LENGTH}`;
     message.addEventListener("input", () => {
       counter.textContent = `${message.value.length}/${MAX_MESSAGE_LENGTH}`;
@@ -438,17 +413,18 @@ class ShortmailWidget extends HTMLElement {
     honeypot.name = "website";
     honeypot.tabIndex = -1;
     honeypot.autocomplete = "off";
-    honeypot.style.cssText = "position:absolute;left:-9999px;height:0;width:0;opacity:0;";
+    honeypot.className = "sm-honeypot";
     form.appendChild(honeypot);
 
     const errorLine = document.createElement("p");
-    errorLine.className = "error";
+    errorLine.className = "sm-error";
     errorLine.style.display = "none";
     form.appendChild(errorLine);
 
     const sendButton = document.createElement("button");
     sendButton.type = "submit";
-    sendButton.className = "send";
+    sendButton.className = "sm-button";
+    sendButton.setAttribute("part", "button");
     sendButton.setAttribute("part", "button");
     sendButton.textContent = "Send shortmail";
     sendButton.disabled = true;
@@ -522,7 +498,7 @@ class ShortmailWidget extends HTMLElement {
     input: HTMLInputElement;
   } {
     const label = document.createElement("label");
-    label.className = "label-text";
+    label.className = "sm-label-text";
     const span = document.createElement("span");
     span.textContent = labelText;
     const input = document.createElement("input");

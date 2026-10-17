@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { configUrl, sendUrl } from "../widget/api";
+import { adoptFormSkinDocument } from "../widget/formSkin";
 
 const MAX_MESSAGE_LENGTH = 500;
 const OWNER_VANITY = "cce87ae9c1d7";
@@ -34,6 +35,7 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
   const [errorText, setErrorText] = useState("");
 
   useEffect(() => {
+    adoptFormSkinDocument();
     fetch(configUrl(OWNER_VANITY))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((cfg: { headings: string[] }) => setHeadings(cfg.headings))
@@ -109,14 +111,13 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
     );
   }
 
-  const inputClass =
-    "w-full border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
+  const inputClass = "sm-input";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+    <form onSubmit={handleSubmit} className="sm-form">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="mb-1 block font-medium">Your name</span>
+        <label className="sm-label">
+          <span className="sm-label-text">Your name</span>
           <input
             className={inputClass}
             value={senderName}
@@ -125,8 +126,8 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
             autoComplete="name"
           />
         </label>
-        <label className="block text-sm">
-          <span className="mb-1 block font-medium">Your email</span>
+        <label className="sm-label">
+          <span className="sm-label-text">Your email</span>
           <input
             className={inputClass}
             type="email"
@@ -138,12 +139,12 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
         </label>
       </div>
 
-      <fieldset className="text-sm">
-        <legend className="mb-1 block font-medium">
+      <fieldset className="sm-fieldset">
+        <legend className="sm-label-text">
           Do you need a reply?
         </legend>
-        <div className="flex gap-6">
-          <label className="flex items-center gap-1.5">
+        <div className="sm-radio-row">
+          <label className="sm-radio-label">
             <input
               type="radio"
               name="reply_needed"
@@ -152,7 +153,7 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
             />
             No
           </label>
-          <label className="flex items-center gap-1.5">
+          <label className="sm-radio-label">
             <input
               type="radio"
               name="reply_needed"
@@ -164,8 +165,8 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
         </div>
       </fieldset>
 
-      <label className="block text-sm">
-        <span className="mb-1 block font-medium">Subject</span>
+      <label className="sm-label">
+        <span className="sm-label-text">Subject</span>
         {headings === null ? (
           <input
             className={inputClass}
@@ -193,7 +194,7 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
         )}
         {subject === "OTHER" && (
           <input
-            className={`${inputClass} mt-2`}
+            className="sm-input sm-other"
             placeholder="Your own subject"
             value={customSubject}
             onChange={(e) => setCustomSubject(e.target.value)}
@@ -202,8 +203,8 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
         )}
       </label>
 
-      <label className="block text-sm">
-        <span className="mb-1 block font-medium">Your letter</span>
+      <label className="sm-label">
+        <span className="sm-label-text">Your letter</span>
         <textarea
           className={inputClass}
           rows={5}
@@ -213,9 +214,7 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
           required
         />
         <span
-          className={`mt-1 block text-right text-xs ${
-            message.length > MAX_MESSAGE_LENGTH ? "font-bold text-red-600" : "text-gray-500"
-          }`}
+          className={`sm-counter${message.length > MAX_MESSAGE_LENGTH ? " sm-counter-over" : ""}`}
         >
           {message.length}/{MAX_MESSAGE_LENGTH}
         </span>
@@ -229,11 +228,11 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
-        className="hidden"
+        className="sm-honeypot"
       />
 
       {errorText && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="sm-error" role="alert">
           {errorText}
         </p>
       )}
@@ -241,7 +240,7 @@ export function LandingLetter({ demo = false }: { demo?: boolean }) {
       <button
         type="submit"
         disabled={status === "sending" || !canSubmit}
-        className="w-full bg-black px-6 py-2.5 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+        className="sm-button"
       >
         {status === "sending" ? "Sending…" : "Send the letter"}
       </button>
