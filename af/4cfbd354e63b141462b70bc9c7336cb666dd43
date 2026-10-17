@@ -1,0 +1,25 @@
+app/public/widget.js
+  s_808b795008e8ea::t_0396e02b7b349d 2,40
+app/src/widget/formSkin.ts
+  s_808b795008e8ea::t_62acec35c220d6 2,12-14,18
+app/src/components/dashboard/DashboardData.tsx
+  s_808b795008e8ea::t_c2da1fe51eacd6 40
+app/src/app/send/[vanityName]/page.tsx
+  s_808b795008e8ea::t_0396e02b7b349d 33-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af4cfbd354e63b141462b70bc9c7336cb666dd43",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
