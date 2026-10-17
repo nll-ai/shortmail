@@ -78,7 +78,7 @@ export function AnalyticsDashboard() {
 
   if (stats.tier === "free") {
     return (
-      <div className="mt-6 rounded-lg border border-indigo-200 bg-indigo-50 p-6">
+      <div className="mt-6  border border-indigo-200 bg-indigo-50 p-6">
         <h2 className="text-lg font-semibold">Analytics is a premium feature</h2>
         <p className="mt-2 text-sm text-gray-600">
           See who is contacting you, when, and what they care about: 30-day
@@ -87,7 +87,7 @@ export function AnalyticsDashboard() {
         </p>
         <a
           href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className="mt-4 inline-block rounded-full bg-black px-5 py-2 text-sm text-white hover:opacity-80"
+          className="mt-4 inline-block  bg-black px-5 py-2 text-sm text-white hover:opacity-80"
         >
           Upgrade to premium
         </a>
@@ -104,15 +104,15 @@ export function AnalyticsDashboard() {
   return (
     <div className="mt-6 space-y-6">
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-lg border p-4">
+        <div className=" border p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">Views (30d)</p>
           <p className="text-2xl font-bold">{totals.views}</p>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className=" border p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">Messages sent (30d)</p>
           <p className="text-2xl font-bold">{totals.sends}</p>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className=" border p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">Wanted a reply</p>
           <p className="text-2xl font-bold">
             {replyNeededRatio === null
@@ -122,20 +122,20 @@ export function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div className="rounded-lg border p-4">
+      <div className=" border p-4">
         <div className="flex items-center gap-4 text-xs text-gray-600">
           <span className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-indigo-500" /> views
+            <span className="inline-block h-2 w-2  bg-indigo-500" /> views
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> sends
+            <span className="inline-block h-2 w-2  bg-emerald-500" /> sends
           </span>
           <span>last {stats.days} days</span>
         </div>
         <Bars perDay={perDay} />
       </div>
 
-      <div className="rounded-lg border p-4">
+      <div className=" border p-4">
         <h3 className="text-sm font-semibold">Most popular subject headings</h3>
         {topSubjects.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">No messages yet.</p>

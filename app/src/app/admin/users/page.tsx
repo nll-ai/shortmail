@@ -32,7 +32,7 @@ function AdminUsers() {
   }
   if (me === null || !me.adminRole) {
     return (
-      <p className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      <p className=" border border-red-300 bg-red-50 p-4 text-sm text-red-800">
         Admin access required.
       </p>
     );
@@ -56,7 +56,7 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   return (
     <div className="space-y-3">
       {error && (
-        <p className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className=" border border-red-300 bg-red-50 p-3 text-sm text-red-800">
           {error}
         </p>
       )}
@@ -78,7 +78,7 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               <td className="py-2">
                 <button
                   type="button"
-                  className={`rounded-full border px-3 py-0.5 text-xs ${
+                  className={` border px-3 py-0.5 text-xs ${
                     u.isPaid
                       ? "border-green-600 text-green-700"
                       : "border-gray-400 text-gray-600"
@@ -100,7 +100,7 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               {isSuperAdmin && (
                 <td className="py-2">
                   <select
-                    className="rounded-md border border-gray-300 px-1 py-0.5 text-xs"
+                    className=" border border-gray-300 px-1 py-0.5 text-xs"
                     value={u.adminRole ?? ""}
                     onChange={async (e) => {
                       setError("");

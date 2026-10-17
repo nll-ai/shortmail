@@ -34,7 +34,7 @@ export function ThemingStudio() {
   }
   if (theme.tier === "free") {
     return (
-      <div className="mt-6 rounded-lg border border-indigo-200 bg-indigo-50 p-6">
+      <div className="mt-6  border border-indigo-200 bg-indigo-50 p-6">
         <h2 className="text-lg font-semibold">Theming is a premium feature</h2>
         <p className="mt-2 text-sm text-gray-600">
           Pick a color preset and add your own CSS so your send form matches
@@ -42,7 +42,7 @@ export function ThemingStudio() {
         </p>
         <a
           href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className="mt-4 inline-block rounded-full bg-black px-5 py-2 text-sm text-white hover:opacity-80"
+          className="mt-4 inline-block  bg-black px-5 py-2 text-sm text-white hover:opacity-80"
         >
           Upgrade to premium
         </a>
@@ -85,7 +85,7 @@ export function ThemingStudio() {
             <button
               key={p.id}
               onClick={() => setPreset(p.id)}
-              className={`rounded-full border px-4 py-1.5 text-sm ${
+              className={` border px-4 py-1.5 text-sm ${
                 draftPreset === p.id
                   ? "border-black bg-black text-white"
                   : "border-gray-300 hover:bg-gray-50"
@@ -109,7 +109,7 @@ export function ThemingStudio() {
           rows={6}
           spellCheck={false}
           placeholder={'button {\n  letter-spacing: 0.02em;\n}'}
-          className="mt-2 w-full rounded-lg border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
+          className="mt-2 w-full  border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
         />
         {!preview.css && draftCss.trim() && (
           <p className="mt-1 text-xs text-amber-600">
@@ -122,7 +122,7 @@ export function ThemingStudio() {
         <button
           onClick={() => void handleSave()}
           disabled={saveState.kind === "saving"}
-          className="rounded-full bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
+          className=" bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
         >
           {saveState.kind === "saving" ? "Saving…" : "Save theme"}
         </button>
@@ -143,7 +143,7 @@ export function ThemingStudio() {
         <p className="mt-1 text-xs text-gray-500">
           Exactly what visitors see on your send page.
         </p>
-        <div className="mt-3 rounded-lg border p-6" style={preview.style}>
+        <div className="mt-3  border p-6" style={preview.style}>
           {preview.css ? (
             <style dangerouslySetInnerHTML={{ __html: preview.css }} />
           ) : null}
@@ -153,7 +153,7 @@ export function ThemingStudio() {
                 <p className="font-medium">{m.name}</p>
                 <p className="text-[var(--sm-muted,#6b7280)]">{m.email}</p>
                 <p className="mt-1">{m.text}</p>
-                <button className="mt-2 rounded-full bg-[var(--sm-accent,#111111)] px-4 py-1 text-[var(--sm-accent-text,#ffffff)]">
+                <button className="mt-2  bg-[var(--sm-accent,#111111)] px-4 py-1 text-[var(--sm-accent-text,#ffffff)]">
                   Reply
                 </button>
               </div>

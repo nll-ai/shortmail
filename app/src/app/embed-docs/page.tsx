@@ -17,7 +17,7 @@ export default function EmbedDocsPage() {
 
       <section>
         <h2 className="text-lg font-semibold">1. Add the script tag</h2>
-        <pre className="mt-2 rounded-lg bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
           {CODE_SNIPPET}
         </pre>
         <p className="mt-2 text-xs text-gray-500">
@@ -33,7 +33,7 @@ export default function EmbedDocsPage() {
           pick up your theme automatically. For deeper styling from the host
           page, use <code>::part()</code>:
         </p>
-        <pre className="mt-2 rounded-lg bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
           {`shortmail-widget::part(button) { border-radius: 8px; }`}
         </pre>
         <p className="mt-2 text-xs text-gray-500">
@@ -53,7 +53,7 @@ export default function EmbedDocsPage() {
         </p>
       </section>
 
-      <section className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+      <section className=" border border-amber-300 bg-amber-50 p-4">
         <h2 className="text-sm font-semibold text-amber-900">
           Trust model — please read
         </h2>

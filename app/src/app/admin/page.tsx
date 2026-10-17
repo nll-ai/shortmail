@@ -24,7 +24,7 @@ function AdminHome() {
   }
   if (me === null || !me.adminRole) {
     return (
-      <p className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      <p className=" border border-red-300 bg-red-50 p-4 text-sm text-red-800">
         Admin access required.
       </p>
     );
@@ -60,8 +60,8 @@ function StatsPanel() {
         <StatCard label="Admins" value={stats.adminUsers} />
       </div>
 
-      <section className="rounded-lg border p-4">
-        <h2 className="mb-2 text-base font-semibold">10 most recent users</h2>
+      <section className=" border p-4">
+        <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">10 most recent users</h2>
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="text-xs uppercase text-gray-500">
@@ -89,7 +89,7 @@ function StatsPanel() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border p-4">
+    <div className=" border p-4">
       <p className="text-xs uppercase text-gray-500">{label}</p>
       <p className="text-2xl font-bold">{value}</p>
     </div>

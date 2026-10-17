@@ -68,7 +68,7 @@ export function EmbedManager() {
     <div className="mt-6 space-y-6">
       <div>
         <h3 className="text-sm font-semibold">1. Your embed snippet</h3>
-        <pre className="mt-2 rounded-lg bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
           {snippet}
         </pre>
         <p className="mt-1 text-xs text-gray-500">
@@ -93,14 +93,14 @@ export function EmbedManager() {
           onChange={(e) => setDraft(e.target.value)}
           rows={4}
           spellCheck={false}
-          className="mt-2 w-full rounded-lg border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
+          className="mt-2 w-full  border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
           placeholder={"https://yoursite.com"}
         />
         <div className="mt-2 flex items-center gap-3">
           <button
             onClick={() => void handleSave()}
             disabled={saveState.kind === "saving" || draft === null}
-            className="rounded-full bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
+            className=" bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
           >
             {saveState.kind === "saving" ? "Saving…" : "Save origins"}
           </button>

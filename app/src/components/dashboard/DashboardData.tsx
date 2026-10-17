@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { dispatchWidgetChange } from "../../widget/liveUpdates";
-import Script from "next/script";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
@@ -38,9 +37,9 @@ function friendlyError(e: unknown): string {
 }
 
 const inputClass =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
+  "w-full  border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
 const buttonClass =
-  "rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40";
+  " bg-black px-4 py-1.5 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function DashboardData() {
   const { me, provisioning } = useMe();
@@ -63,8 +62,8 @@ export function DashboardData() {
     // preview right (sticky). Stacks on small screens.
     <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
       <div className="space-y-8 min-w-0">
-        <section className="rounded-lg border p-4 text-sm">
-          <h2 className="mb-2 text-base font-semibold">Your send page</h2>
+        <section className=" border p-4 text-sm">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Your send page</h2>
           <p>
             Visitors write to you at{" "}
             <Link
@@ -99,10 +98,9 @@ export function DashboardData() {
           Live preview — what your visitors see
         </p>
         <div className="border border-neutral-300 bg-white p-6">
-          <Script src="/widget.js" strategy="afterInteractive" />
           <shortmail-widget vanity={me.vanityName} />
         </div>
-        <div className="rounded-lg border p-4 text-sm space-y-2">
+        <div className=" border p-4 text-sm space-y-2">
           <p className="font-medium text-sm">Premium tools</p>
           <Link href="/analytics" className="block text-blue-600 hover:underline text-sm">
             Analytics →
@@ -188,8 +186,8 @@ function HeadingsSection({
   const atLimit = !isPaid && headings.length >= FREE_HEADING_LIMIT;
 
   return (
-    <section className="rounded-lg border p-4 text-sm">
-      <h2 className="mb-2 text-base font-semibold">Subject headings</h2>
+    <section className=" border p-4 text-sm">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Subject headings</h2>
       <ul className="mb-3 space-y-1">
         {headings.length === 0 && (
           <li className="text-gray-500">No subject headings yet.</li>
@@ -273,15 +271,15 @@ function FaqsSection({
   const atLimit = !isPaid && faqs.length >= FREE_FAQ_LIMIT;
 
   return (
-    <section className="rounded-lg border p-4 text-sm">
-      <h2 className="mb-2 text-base font-semibold">FAQs</h2>
+    <section className=" border p-4 text-sm">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
       <ul className="mb-3 space-y-3">
         {faqs.length === 0 && (
           <li className="text-gray-500">No FAQs yet.</li>
         )}
         {faqs.map((f) =>
           editingId === f.id ? (
-            <li key={f.id} className="space-y-2 rounded-md border p-3">
+            <li key={f.id} className="space-y-2  border p-3">
               <input
                 className={inputClass}
                 value={editQuestion}
@@ -418,8 +416,8 @@ function DisplayNameSection({ current }: { current: string }) {
   const [error, setError] = useState("");
 
   return (
-    <section className="rounded-lg border p-4 text-sm">
-      <h2 className="mb-2 text-base font-semibold">Display name</h2>
+    <section className=" border p-4 text-sm">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Display name</h2>
       <p className="mb-2 text-xs text-gray-500">
         Shown on your send page. Currently:{" "}
         <code>{current || "(your email)"}</code>
