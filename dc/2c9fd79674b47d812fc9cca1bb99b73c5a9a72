@@ -1,0 +1,21 @@
+app/public/widget.js
+  s_808b795008e8ea::t_a7b44b0905adea 1,40
+app/src/widget/shortmail-widget.ts
+  s_808b795008e8ea::t_90571088e4be75 365,387,510
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc2c9fd79674b47d812fc9cca1bb99b73c5a9a72",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
