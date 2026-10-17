@@ -1,0 +1,21 @@
+app/src/app/page.tsx
+  s_808b795008e8ea::t_a0dda9107d67c0 33-34,36
+app/src/components/LandingLetter.tsx
+  s_808b795008e8ea::t_410e86cb89b39f 24,92-94,96-98,100-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "805c1b769cccd731e89db84a1b12bb9a642b196b",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
