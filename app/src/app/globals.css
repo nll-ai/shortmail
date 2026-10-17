@@ -130,7 +130,7 @@ body {
   color: #1a1613;
   caret-color: #b3402a;
 }
-.airmail-input::placeholder { color: rgba(26, 22, 19, 0.38); }
+.airmail-input::placeholder { color: rgba(26, 22, 19, 0.62); }
 .airmail-input:focus { outline: none; border-bottom-color: #b3402a; }
 
 .airmail-select { appearance: none; cursor: pointer; }
