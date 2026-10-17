@@ -1,0 +1,25 @@
+app/src/components/LandingLetter.tsx
+  s_808b795008e8ea::t_449937173379ca 5,38,114,117,119-120,129-130,142-143,146-147,156,168-169,197,206-207,217,231,235,243
+app/public/widget.js
+  s_808b795008e8ea::t_449937173379ca 1-15,17-19,21-30,32-39
+app/src/widget/formSkin.ts
+  s_808b795008e8ea::t_ff2bfc840b722b 1-75
+app/src/widget/shortmail-widget.ts
+  s_808b795008e8ea::t_f70fbd75b1495c 17,87,306,309-310,317,332,350-351,359,392,395,400,416,420,426-427,501
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fc5706c7a66268658728993b4a1889ccd02515b",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
