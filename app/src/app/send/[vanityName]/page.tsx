@@ -30,9 +30,11 @@ export default async function SendPage({
   const config = (await res.json()) as EmbedConfig;
 
   return (
-    <main className="mx-auto max-w-lg p-8">
-      <script src="/widget.js" defer />
-      <shortmail-widget vanity={vanityName} />
+    <main className="mx-auto max-w-lg px-4 py-10">
+      <div className="border border-neutral-300 bg-white p-6 sm:p-8">
+        <script src="/widget.js" defer />
+        <shortmail-widget vanity={vanityName} />
+      </div>
       {/* displayName renders inside the widget; kept for metadata parity */}
       <meta name="shortmail:display-name" content={config.displayName} />
     </main>

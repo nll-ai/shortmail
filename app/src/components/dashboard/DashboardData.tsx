@@ -37,7 +37,7 @@ function friendlyError(e: unknown): string {
 }
 
 const inputClass =
-  "w-full  border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
+  "w-full border-0 border-b border-neutral-400 bg-transparent px-1 py-1 text-sm focus:border-black focus:outline-none rounded-none";
 const buttonClass =
   " border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40";
 

@@ -1,5 +1,5 @@
 /**
- * The one owner of form styling (codebase-design finding: unify form
+ * The one owner of form styling (codebase-design review: unify form
  * styling across surfaces). Every form in the product — the landing demo,
  * the dashboard live preview, the hosted send page, and embedded widgets —
  * renders with these class names and this sheet, so a change here shows up
@@ -9,16 +9,15 @@
  * (via `adoptFormSkinDocument()`); shadow-DOM widgets put it first in
  * `adoptedStyleSheets` so owner theme CSS can override it after.
  *
- * Theme variables (--sm-accent, --sm-bg, --sm-text, --sm-border,
- * --sm-radius, --sm-accent-text) flow from the owner's theme through
- * inheritance; the fallbacks here are the neutral default theme.
+ * Style: the approved landing form — hairline gray borders, white
+ * inputs, square corners, flat black button. Theme variables (--sm-*)
+ * flow from the owner's theme through inheritance; fallbacks are neutral.
  */
 
 export const FORM_CSS = `
-  .sm-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; color: var(--sm-text, #171717); background: var(--sm-bg, transparent); }
+  .sm-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; color: var(--sm-text, #171717); }
   .sm-label { display: block; font-size: 0.875rem; }
   .sm-label-text { display: block; margin-bottom: 0.25rem; font-weight: 500; }
-  .sm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .sm-fieldset { border: 0; padding: 0; margin: 0; font-size: 0.875rem; }
   .sm-radio-row { display: flex; gap: 1.5rem; }
   .sm-radio-label { display: flex; align-items: center; gap: 0.375rem; }
@@ -32,8 +31,6 @@ export const FORM_CSS = `
     font-family: inherit;
     border-radius: var(--sm-radius, 0px);
   }
-  .sm-input::placeholder, .sm-textarea::placeholder { color: #9a9a9a; }
-  .sm-textarea { min-height: 5rem; resize: vertical; }
   .sm-input:focus, .sm-select:focus, .sm-textarea:focus {
     outline: none;
     border-color: var(--sm-accent, #171717);
