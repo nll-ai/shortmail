@@ -98,7 +98,7 @@ export function DashboardData() {
         <p className="text-xs uppercase tracking-wide text-gray-500">
           Live preview — what your visitors see
         </p>
-        <div className="rounded-lg bg-gray-50 p-4">
+        <div className="border border-neutral-300 bg-white p-6">
           <Script src="/widget.js" strategy="afterInteractive" />
           <shortmail-widget vanity={me.vanityName} />
         </div>

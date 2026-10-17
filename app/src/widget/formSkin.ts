@@ -18,6 +18,7 @@ export const FORM_CSS = `
   .sm-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; color: var(--sm-text, #171717); background: var(--sm-bg, transparent); }
   .sm-label { display: block; font-size: 0.875rem; }
   .sm-label-text { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+  .sm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .sm-fieldset { border: 0; padding: 0; margin: 0; font-size: 0.875rem; }
   .sm-radio-row { display: flex; gap: 1.5rem; }
   .sm-radio-label { display: flex; align-items: center; gap: 0.375rem; }
@@ -29,7 +30,10 @@ export const FORM_CSS = `
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     font-family: inherit;
+    border-radius: var(--sm-radius, 0px);
   }
+  .sm-input::placeholder, .sm-textarea::placeholder { color: #9a9a9a; }
+  .sm-textarea { min-height: 5rem; resize: vertical; }
   .sm-input:focus, .sm-select:focus, .sm-textarea:focus {
     outline: none;
     border-color: var(--sm-accent, #171717);

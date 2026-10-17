@@ -35,12 +35,12 @@ const BASE_STYLES = `
     --sm-accent: #111111;
     --sm-accent-text: #ffffff;
     --sm-bg: #ffffff;
-    --sm-surface: #f9fafb;
+    --sm-surface: #ffffff;
     --sm-text: #111111;
-    --sm-muted: #6b7280;
-    --sm-border: #d1d5db;
-    --sm-radius: 0.5rem;
-    --sm-font: system-ui, sans-serif;
+    --sm-muted: #737373;
+    --sm-border: #d4d4d4;
+    --sm-radius: 0px;
+    --sm-font: Arial, Helvetica, sans-serif;
 
     all: initial;
     display: block;
@@ -325,8 +325,11 @@ class ShortmailWidget extends HTMLElement {
     emailField.input.type = "email";
     emailField.input.required = true;
     nameField.input.required = true;
-    form.appendChild(nameField.label);
-    form.appendChild(emailField.label);
+    const nameEmailRow = document.createElement("div");
+    nameEmailRow.className = "sm-grid-2";
+    nameEmailRow.appendChild(nameField.label);
+    nameEmailRow.appendChild(emailField.label);
+    form.appendChild(nameEmailRow);
 
     const replyLabel = document.createElement("label");
     replyLabel.className = "sm-label-text";
