@@ -1,0 +1,36 @@
+app/src/app/page.tsx
+  s_808b795008e8ea::t_f5f3f70a099d7f 1-3,7-54
+app/src/app/layout.tsx
+  s_808b795008e8ea::t_936ca8eea79384 2,16-21,35
+app/src/app/globals.css
+  s_808b795008e8ea::t_d8399e0bc91c9d 27-282
+.impeccable/surfaces/landing.md
+  s_808b795008e8ea::t_aa7d532a9cad2c 1-32
+app/src/components/AirmailLetter.tsx
+  s_808b795008e8ea::t_f5f3f70a099d7f 4
+  s_808b795008e8ea::t_e8dfa6e4f8159f 1-3,5-269
+.impeccable/questions/1d38082e.hand.json
+  s_808b795008e8ea::t_968b935d51ae08 1
+PRODUCT.md
+  s_808b795008e8ea::t_6cdb05414cbcaa 1-51
+.impeccable/questions/1d38082e.state.json
+  s_808b795008e8ea::t_50dee52fab72f0 1
+.impeccable/questions/1d38082e.answer.json
+  s_808b795008e8ea::t_288ed8ef722c6b 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0b6ad0013de46c2654ba0f7104bda4b235eda434",
+  "prompts": {},
+  "sessions": {
+    "s_808b795008e8ea": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a14219-1232-7493-8a23-7ceddf35d652",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "Eric Ma <ericmajinglong@gmail.com>"
+    }
+  }
+}
