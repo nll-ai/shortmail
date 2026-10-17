@@ -19,8 +19,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
           {
+            // /widget.js must track deploys: a stale edge copy shows an
+            // outdated form on every page that mounts the widget.
             key: "Cache-Control",
-            value: "public, max-age=300, s-maxage=86400, stale-while-revalidate=600",
+            value: "public, max-age=0, s-maxage=0, must-revalidate",
           },
         ],
       },
