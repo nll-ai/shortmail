@@ -30,10 +30,10 @@ export default function Home() {
 
         <div className="mt-10 border border-neutral-300 p-6 sm:p-8">
           <p className="mb-4 text-sm font-medium">
-            Try it — this form is real. Your letter lands in Eric&rsquo;s
-            inbox.
+            The form below is the product — this demo does everything except
+            send.
           </p>
-          <LandingLetter />
+          <LandingLetter demo />
         </div>
 
         <section className="mt-14">

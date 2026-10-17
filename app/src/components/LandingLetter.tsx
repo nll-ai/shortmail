@@ -21,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 type Status = "writing" | "sending" | "sent" | "error";
 
-export function LandingLetter() {
+export function LandingLetter({ demo = false }: { demo?: boolean }) {
   const [headings, setHeadings] = useState<string[] | null>(null);
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
@@ -89,11 +89,22 @@ export function LandingLetter() {
   if (status === "sent") {
     return (
       <div className="border border-black p-8 text-center" role="status">
-        <p className="text-lg font-bold">Letter sent.</p>
-        <p className="mt-2 text-sm text-gray-600">
-          It lands in Eric&rsquo;s inbox as plain email — nothing is stored
-          here.
+        <p className="text-lg font-bold">
+          {demo ? "This is how it works." : "Letter sent."}
         </p>
+        <p className="mt-2 text-sm text-gray-600">
+          {demo
+            ? "On a real ShortMail page, the letter departs as plain email — nothing is stored here."
+            : "It lands in Eric's inbox as plain email — nothing is stored here."}
+        </p>
+        {demo && (
+          <button
+            onClick={() => setStatus("writing")}
+            className="mt-3 text-xs text-gray-500 underline"
+          >
+            Reset the demo
+          </button>
+        )}
       </div>
     );
   }
