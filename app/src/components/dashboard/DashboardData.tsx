@@ -39,7 +39,7 @@ function friendlyError(e: unknown): string {
 const inputClass =
   "w-full  border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none";
 const buttonClass =
-  " bg-black px-4 py-1.5 text-sm font-medium text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40";
+  " border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40";
 
 export function DashboardData() {
   const { me, provisioning } = useMe();
