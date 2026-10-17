@@ -362,6 +362,7 @@ class ShortmailWidget extends HTMLElement {
     subjectLabel.className = "sm-label-text";
     subjectLabel.textContent = "Subject";
     const select = document.createElement("select");
+    select.className = "sm-input";
     select.setAttribute("part", "input");
     select.required = true;
     const placeholder = document.createElement("option");
@@ -383,6 +384,7 @@ class ShortmailWidget extends HTMLElement {
     const customWrap = document.createElement("div");
     customWrap.style.display = "none";
     const customInput = document.createElement("input");
+    customInput.className = "sm-input";
     customInput.placeholder = "Your own subject";
     customWrap.appendChild(customInput);
     select.addEventListener("change", () => {
@@ -505,6 +507,7 @@ class ShortmailWidget extends HTMLElement {
     const span = document.createElement("span");
     span.textContent = labelText;
     const input = document.createElement("input");
+    input.className = "sm-input";
     input.setAttribute("part", `input ${part}`);
     label.appendChild(span);
     label.appendChild(input);
