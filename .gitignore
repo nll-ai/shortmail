@@ -20,6 +20,9 @@ eggs/
 .eggs/
 lib/
 lib64/
+# app/convex/lib is TypeScript source, not Python build output
+!app/convex/lib/
+!app/convex/lib/**
 parts/
 sdist/
 var/
@@ -183,3 +186,4 @@ pyrightconfig.json
 
 # SQLite database
 message_log.db
+.vercel
