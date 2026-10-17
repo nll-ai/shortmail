@@ -156,7 +156,7 @@ class ShortmailWidget extends HTMLElement {
         const form = this.shadow.querySelector(".form");
         const headingEl = this.shadow.querySelector(".heading");
         const faq = document.createElement("p");
-        faq.className = "faq";
+        faq.className = "sm-hint";
         faq.setAttribute("part", "faq");
         faq.textContent = change.question;
         if (form && headingEl) form.insertBefore(faq, headingEl.nextSibling);
@@ -292,7 +292,7 @@ class ShortmailWidget extends HTMLElement {
     this.shadow.innerHTML = "";
     const note = document.createElement("p");
     note.textContent = text;
-    if (isError) note.className = "error";
+    if (isError) note.className = "sm-error";
     this.shadow.appendChild(note);
   }
 
@@ -335,7 +335,7 @@ class ShortmailWidget extends HTMLElement {
     replyLabel.className = "sm-label-text";
     replyLabel.textContent = "Do you need a reply?";
     const row = document.createElement("div");
-    row.className = "row";
+    row.className = "sm-radio-row";
     let replyNeededValue = "no";
     for (const [value, text] of [
       ["no", "No"],
