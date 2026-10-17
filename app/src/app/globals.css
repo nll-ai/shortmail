@@ -24,3 +24,259 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Airmail world (landing) ─────────────────────────────────────────── */
+
+.airmail-page {
+  min-height: 100svh;
+  background-color: #f7f2e7;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 27px,
+    rgba(26, 22, 19, 0.055) 27px,
+    rgba(26, 22, 19, 0.055) 28px
+  );
+  color: #1a1613;
+  font-family: var(--font-typewriter), "Courier Prime", ui-monospace, monospace;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The airmail envelope edge: hatched red/blue border frame. */
+.airmail-frame {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  border: 14px solid transparent;
+  border-image: repeating-linear-gradient(
+      45deg,
+      #b3402a 0 14px,
+      #f7f2e7 14px 22px,
+      #2a4b8d 22px 36px,
+      #f7f2e7 36px 44px
+    )
+    14;
+}
+
+.airmail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.75rem 2.5rem 0;
+}
+
+.airmail-par-avion {
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  color: #2a4b8d;
+  border-bottom: 1px solid #2a4b8d;
+  padding-bottom: 2px;
+}
+
+/* Perforated postage stamp: 500-char denomination. */
+.airmail-stamp {
+  transform: rotate(2.5deg);
+  background:
+    radial-gradient(circle at 6px 6px, transparent 3px, #f7f2e7 3.2px) 0 0 / 12px 12px,
+    #b3402a;
+  padding: 7px;
+  box-shadow: 0 1px 3px rgba(26, 22, 19, 0.35);
+}
+.stamp-perforation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 2px solid #f7f2e7;
+  padding: 0.55rem 0.9rem;
+  color: #f7f2e7;
+}
+.stamp-value { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.06em; }
+.stamp-label { font-size: 0.55rem; letter-spacing: 0.28em; }
+.stamp-brand { font-size: 0.55rem; letter-spacing: 0.2em; margin-top: 4px; opacity: 0.85; }
+
+.airmail-main { flex: 1; padding: 2rem 2.5rem 3rem; max-width: 44rem; }
+
+.airmail-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+.airmail-sub { color: #6b6257; font-size: 0.95rem; margin-bottom: 1.75rem; }
+
+.airmail-letterhead {
+  font-size: 0.78rem;
+  color: #6b6257;
+  border-bottom: 2px solid #1a1613;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.airmail-dear { font-size: 1.05rem; margin-bottom: 1rem; }
+
+.airmail-fields { display: flex; flex-direction: column; gap: 1.1rem; }
+
+/* Ruled-line inputs: text sits on the paper's rules. */
+.airmail-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(26, 22, 19, 0.35);
+  padding: 0.3rem 0.15rem;
+  font: inherit;
+  color: #1a1613;
+  caret-color: #b3402a;
+}
+.airmail-input::placeholder { color: rgba(26, 22, 19, 0.62); }
+.airmail-input:focus { outline: none; border-bottom-color: #b3402a; }
+
+.airmail-select { appearance: none; cursor: pointer; }
+.airmail-other { margin-top: 0.5rem; }
+
+.airmail-message {
+  line-height: 28px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 27px,
+    rgba(26, 22, 19, 0.18) 27px,
+    rgba(26, 22, 19, 0.18) 28px
+  );
+  min-height: 140px;
+  resize: vertical;
+}
+
+.airmail-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.7rem;
+  color: #6b6257;
+}
+.airmail-counter.over { color: #b3402a; font-weight: 700; }
+
+.airmail-reply {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.airmail-reply input { accent-color: #b3402a; width: 0.9rem; height: 0.9rem; }
+
+.airmail-error { color: #b3402a; font-size: 0.85rem; }
+
+.airmail-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.airmail-send {
+  font: inherit;
+  font-weight: 700;
+  background: #1a1613;
+  color: #f7f2e7;
+  border: none;
+  border-radius: 3px;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.airmail-send:hover:not(:disabled) { background: #b3402a; }
+.airmail-send:disabled { opacity: 0.45; cursor: not-allowed; }
+.airmail-note { font-size: 0.72rem; color: #6b6257; }
+
+/* The postmark press: the one authored moment. */
+.airmail-postmark {
+  position: fixed;
+  top: 22%;
+  right: 12%;
+  width: 150px;
+  height: 150px;
+  border: 3px double #4a5a7a;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #4a5a7a;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-align: center;
+  transform: rotate(-12deg);
+  mix-blend-mode: multiply;
+  animation: postmark-press 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  pointer-events: none;
+  z-index: 20;
+}
+.airmail-postmark .postmark-date { font-size: 0.78rem; letter-spacing: 0.06em; }
+@keyframes postmark-press {
+  0% { transform: rotate(-24deg) scale(1.5); opacity: 0; }
+  60% { transform: rotate(-10deg) scale(0.96); opacity: 0.95; }
+  100% { transform: rotate(-12deg) scale(1); opacity: 0.9; }
+}
+.airmail-postmark.sent-mark {
+  position: static;
+  margin: 0 auto 1rem;
+  animation: none;
+  opacity: 0.9;
+}
+.airmail-sent { text-align: center; padding: 3rem 1rem; }
+.airmail-sent-line { font-size: 1.2rem; font-weight: 700; }
+.airmail-sent-sub { color: #6b6257; font-size: 0.9rem; margin-top: 0.4rem; }
+
+.airmail-h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.airmail-how { font-size: 0.9rem; line-height: 1.7; max-width: 38rem; }
+.airmail-how p + p { margin-top: 0.75rem; }
+
+.airmail-footer {
+  padding: 1.25rem 2.5rem;
+  font-size: 0.7rem;
+  color: #6b6257;
+  border-top: 1px solid rgba(26, 22, 19, 0.2);
+}
+
+/* Browser surfaces, themed from the palette (craft floor). */
+.airmail-page ::selection { background: #b3402a; color: #f7f2e7; }
+.airmail-page input:focus-visible,
+.airmail-page select:focus-visible,
+.airmail-page button:focus-visible,
+.airmail-page textarea:focus-visible,
+.airmail-page a:focus-visible {
+  outline: 2px dashed #2a4b8d;
+  outline-offset: 3px;
+}
+
+.airmail-honeypot {
+  position: absolute;
+  left: -9999px;
+  height: 0;
+  width: 0;
+  opacity: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .airmail-header { padding: 1.25rem 1.25rem 0; }
+  .airmail-main { padding: 1.5rem 1.25rem 2rem; }
+  .airmail-footer { padding: 1rem 1.25rem; }
+  .airmail-frame { border-width: 9px; }
+  .airmail-postmark { width: 110px; height: 110px; right: 6%; }
+}
