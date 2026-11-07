@@ -18,7 +18,7 @@ import { getFormSheet } from "./formSkin";
 import {
   VERIFY_COPY,
   adoptedSheets,
-  applyIssuedProof,
+  commitStartAttempt,
   createProof,
   describeSendStep,
   loadProof,
@@ -585,14 +585,18 @@ class ShortmailWidget extends HTMLElement {
       } catch {
         result = null;
       }
-      const kept = applyIssuedProof(previous, created.record, result);
-      if (previous) saveProof(storage.store, previous);
-      if (!kept || kept.challengeId !== created.record.challengeId) {
+      const committed = commitStartAttempt(
+        storage.store,
+        previous,
+        created.record,
+        result,
+      );
+      if (!committed.committed || !committed.stored) {
         showStatus(result === null ? "Network error — please try again." : VERIFY_COPY.unavailable);
         refreshReady();
         return;
       }
-      saveProof(storage.store, kept);
+      const kept = committed.stored;
       codeBlock.style.display = "block";
       codeButton.style.display = "block";
       codeButton.textContent = "Send another code";

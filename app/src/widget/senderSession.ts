@@ -50,6 +50,38 @@ export function applyIssuedProof(
   return stored;
 }
 
+function sameChallenge(left: ProofRecord | null, right: ProofRecord | null): boolean {
+  if (left === null || right === null) return left === right;
+  return left.challengeId === right.challengeId;
+}
+
+/**
+ * Install a mailed challenge only if storage is still the snapshot this
+ * attempt started from. A refusal never writes, so another tab's newer
+ * proof stays put.
+ *
+ * :param store: Shared origin storage.
+ * :param snapshot: Proof loaded before this request.
+ * :param attempt: Challenge created for this request. Not yet stored.
+ * :param result: Server result, or null when the request failed.
+ * :returns: Whether this attempt is now the stored proof, and what is stored.
+ */
+export function commitStartAttempt(
+  store: KeyValueStore,
+  snapshot: ProofRecord | null,
+  attempt: ProofRecord,
+  result: StartResult,
+): { stored: ProofRecord | null; committed: boolean } {
+  const current = loadProof(store);
+  const issued =
+    result?.status === "issued" && result.challengeId === attempt.challengeId;
+  if (!issued || !sameChallenge(current, snapshot)) {
+    return { stored: current, committed: false };
+  }
+  saveProof(store, attempt);
+  return { stored: attempt, committed: true };
+}
+
 /**
  * Sheets the shadow root must keep. Owner CSS is added after the form
  * sheet and the verification sheet, never instead of the verification sheet.

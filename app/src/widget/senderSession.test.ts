@@ -3,6 +3,7 @@ import {
   VERIFY_COPY,
   adoptedSheets,
   applyIssuedProof,
+  commitStartAttempt,
   createProof,
   describeSendStep,
   loadProof,
@@ -116,6 +117,44 @@ describe("sender session storage", () => {
         now: NOW,
       }).kind,
     ).toBe("start");
+  });
+
+  it("does not let a refused tab overwrite a challenge another tab just saved", async () => {
+    const shared = memoryStore();
+    const older = (await createProof("ada@example.com")).record;
+    const tabA = (await createProof("ada@example.com")).record;
+    const tabB = (await createProof("ada@example.com")).record;
+    saveProof(shared, older);
+
+    const issuedFirst = commitStartAttempt(shared, older, tabA, {
+      status: "issued",
+      challengeId: tabA.challengeId,
+    });
+    const refusedSecond = commitStartAttempt(shared, older, tabB, {
+      status: "unavailable",
+    });
+    expect(issuedFirst.committed).toBe(true);
+    expect(refusedSecond.committed).toBe(false);
+    expect(loadProof(shared)?.challengeId).toBe(tabA.challengeId);
+
+    const reordered = memoryStore();
+    saveProof(reordered, older);
+    expect(
+      commitStartAttempt(reordered, older, tabB, null).stored?.challengeId,
+    ).toBe(older.challengeId);
+    expect(
+      commitStartAttempt(reordered, older, tabA, {
+        status: "issued",
+        challengeId: tabA.challengeId,
+      }).committed,
+    ).toBe(true);
+    expect(
+      commitStartAttempt(reordered, older, tabB, {
+        status: "issued",
+        challengeId: tabB.challengeId,
+      }).committed,
+    ).toBe(false);
+    expect(loadProof(reordered)?.challengeId).toBe(tabA.challengeId);
   });
 
   it("keeps the verification sheet when owner CSS is applied", () => {
