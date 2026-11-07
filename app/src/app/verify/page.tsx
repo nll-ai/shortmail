@@ -16,7 +16,7 @@ export default function VerifyPage() {
       className="min-h-svh bg-white px-4 py-10 text-[#171717]"
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
     >
-      <div className="mx-auto max-w-lg border border-neutral-300 bg-white p-6 sm:p-8">
+      <div className="mx-auto max-w-lg border border-[#d4d4d4] bg-white p-6 sm:p-8">
         <p className="text-sm font-bold tracking-[0.04em]">ShortMail</p>
         <h1 className="mt-6 text-lg font-semibold">Copy your code</h1>
         <p className="mt-2 text-sm leading-relaxed text-[#525252]">

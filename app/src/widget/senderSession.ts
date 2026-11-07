@@ -83,11 +83,17 @@ export function commitStartAttempt(
 }
 
 /**
- * Sheets the shadow root must keep. Owner CSS is added after the form
- * sheet and the verification sheet, never instead of the verification sheet.
+ * Sheets the shadow root must keep, in cascade order.
+ *
+ * Owner CSS is appended after every product sheet.
+ * It never replaces the form sheet or the verification sheet.
+ *
+ * :param layers: Product sheets, earliest first.
+ * :param owner: Sanitized owner CSS, or null when the theme has none.
+ * :returns: The adopted sheet list.
  */
-export function adoptedSheets<T>(form: T, verify: T, owner: T | null): T[] {
-  return owner ? [form, verify, owner] : [form, verify];
+export function adoptedSheets<T>(layers: readonly T[], owner: T | null): T[] {
+  return owner ? [...layers, owner] : [...layers];
 }
 
 export type ProofRecord = {

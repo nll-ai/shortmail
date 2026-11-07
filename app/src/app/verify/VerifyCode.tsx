@@ -28,7 +28,7 @@ export function VerifyCode() {
   }
 
   return (
-    <p className="mt-4 break-all border border-[#d4d4d4] px-3 py-2 text-sm leading-normal">
+    <p className="mt-4 box-border w-full break-all border border-[#d4d4d4] px-3 py-2 text-sm font-normal leading-normal">
       {code}
     </p>
   );

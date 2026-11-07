@@ -42,24 +42,146 @@ type EmbedConfig = {
 
 const MAX_MESSAGE_LENGTH = 500;
 
-const BASE_STYLES = `
+/**
+ * Shadow host. `all: initial` stops a host page's font from painting the
+ * form, then the brand face is set again. `--font-geist-sans` is the face
+ * the Next.js layout already loads; embeds that do not define it get
+ * system-ui. Custom properties cross the shadow boundary, so an invalid
+ * `var()` without a fallback would drop the whole font stack back to the
+ * browser's serif default.
+ *
+ * Tailwind's border-box reset does not enter the shadow tree. Chrome then
+ * sizes select and button as border-box and text fields as content-box, so
+ * a width of 100% plus padding makes the text fields wider than the select.
+ */
+const HOST_CSS = `
   :host {
-    --sm-accent: #111111;
-    --sm-accent-text: #ffffff;
-    --sm-bg: #ffffff;
-    --sm-surface: #ffffff;
-    --sm-text: #111111;
-    --sm-muted: #737373;
-    --sm-border: #d4d4d4;
-    --sm-radius: 0px;
-    --sm-font: Arial, Helvetica, sans-serif;
-
     all: initial;
     display: block;
-    font-family: var(--sm-font);
-    color: var(--sm-text);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    color-scheme: light;
+    font-family: var(--sm-font, var(--font-geist-sans, system-ui, sans-serif));
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--sm-text, #171717);
+    -webkit-font-smoothing: antialiased;
   }
   :host([hidden]) { display: none; }
+  :host *, :host *::before, :host *::after { box-sizing: border-box; }
+  button, input, select, textarea { font-family: inherit; letter-spacing: inherit; }
+  h1, h2, h3, h4, p { margin: 0; font: inherit; }
+`;
+
+/** Type, controls, and field geometry for the hosted form and the embed. */
+const POLISH_CSS = `
+  .sm-form { width: 100%; min-width: 0; }
+  .sm-heading {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+    color: var(--sm-text, #171717);
+  }
+  .sm-faqs { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .sm-faq {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--sm-muted, #525252);
+  }
+  .sm-grid-2, .sm-label, .sm-fieldset {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .sm-grid-2 { display: flex; flex-direction: column; gap: 1rem; }
+  legend.sm-label-text { padding: 0; }
+  .sm-input, .sm-textarea, select.sm-input {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    line-height: 1.4;
+  }
+  input.sm-input, select.sm-input { min-height: 2.5rem; }
+  .sm-textarea { min-height: 6.5rem; resize: none; }
+  .sm-input::placeholder, .sm-textarea::placeholder {
+    color: var(--sm-muted, #525252);
+    opacity: 1;
+  }
+  select.sm-input {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.25rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6 L8 10.5 L12.5 6' fill='none' stroke='%23525252' stroke-width='1.25' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.9rem;
+  }
+  .sm-radio-label { font-weight: 400; cursor: pointer; }
+  .sm-radio-label input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    border: 1px solid var(--sm-border, #d4d4d4);
+    border-radius: 50%;
+    background: var(--sm-surface, #ffffff);
+    display: grid;
+    place-content: center;
+    flex: none;
+  }
+  .sm-radio-label input:checked { border-color: var(--sm-text, #171717); }
+  .sm-radio-label input:checked::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--sm-text, #171717);
+  }
+  .sm-radio-label input:focus-visible {
+    outline: 2px solid var(--sm-accent, #171717);
+    outline-offset: 2px;
+  }
+  .sm-button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 2.75rem;
+    margin: 0;
+    line-height: 1.25;
+    border-radius: var(--sm-radius, 0);
+  }
+  .sm-hint { margin: 0; line-height: 1.5; }
+  .sm-counter { font-variant-numeric: tabular-nums; }
+  .sm-custom { margin-top: 0.5rem; }
+`;
+
+const VERIFY_CSS = `
+  .sm-text-button {
+    align-self: flex-start;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sm-text, #171717);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    cursor: pointer;
+  }
+  .sm-text-button:focus-visible {
+    outline: 2px solid var(--sm-accent, #171717);
+    outline-offset: 2px;
+  }
 `;
 
 function upgradeProperty<T extends HTMLElement>(el: T, prop: string): void {
@@ -97,6 +219,9 @@ class ShortmailWidget extends HTMLElement {
   private changeHandler = (e: Event): void =>
     this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
   private verifyPoll = 0;
+  private hostSheet = new CSSStyleSheet();
+  private polishSheet = new CSSStyleSheet();
+  private verifySheet = new CSSStyleSheet();
 
   static get observedAttributes(): string[] {
     return ["vanity"];
@@ -105,28 +230,18 @@ class ShortmailWidget extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: "open" });
-    const verifySheet = new CSSStyleSheet();
-    verifySheet.replaceSync(`
-      .sm-text-button {
-        align-self: flex-start;
-        margin: 0;
-        padding: 0;
-        border: 0;
-        background: none;
-        color: var(--sm-text, #171717);
-        font: inherit;
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-decoration: underline;
-        text-underline-offset: 0.15em;
-        cursor: pointer;
-      }
-      .sm-text-button:focus-visible {
-        outline: 2px solid var(--sm-accent, #171717);
-        outline-offset: 2px;
-      }
-    `);
-    this.shadow.adoptedStyleSheets = [getFormSheet(), verifySheet];
+    this.hostSheet.replaceSync(HOST_CSS);
+    this.polishSheet.replaceSync(POLISH_CSS);
+    this.verifySheet.replaceSync(VERIFY_CSS);
+    this.applySheets(null);
+  }
+
+  /** Keep host, form, polish, and verification sheets under any owner CSS. */
+  private applySheets(owner: CSSStyleSheet | null): void {
+    this.shadow.adoptedStyleSheets = adoptedSheets(
+      [this.hostSheet, getFormSheet(), this.polishSheet, this.verifySheet],
+      owner,
+    );
   }
 
   connectedCallback(): void {
@@ -290,22 +405,18 @@ class ShortmailWidget extends HTMLElement {
     for (const [key, value] of Object.entries(preset.vars)) {
       this.style.setProperty(key, value);
     }
+    let owner: CSSStyleSheet | null = null;
     if (this.config.theme?.customCss) {
       // The stored CSS was sanitized at save time (convex/lib/cssSanitize);
       // it renders inside this shadow root only.
       try {
-        const ownerSheet = new CSSStyleSheet();
-        ownerSheet.replaceSync(this.config.theme.customCss);
-        const [formSheet, verifySheet] = this.shadow.adoptedStyleSheets ?? [];
-        this.shadow.adoptedStyleSheets = adoptedSheets(
-          formSheet ?? getFormSheet(),
-          verifySheet ?? getFormSheet(),
-          ownerSheet,
-        );
+        owner = new CSSStyleSheet();
+        owner.replaceSync(this.config.theme.customCss);
       } catch {
-        // a malformed sheet must never break the form
+        owner = null;
       }
     }
+    this.applySheets(owner);
   }
 
   private beaconView(): void {
@@ -353,16 +464,20 @@ class ShortmailWidget extends HTMLElement {
     const heading = document.createElement("h3");
     heading.className = "sm-heading";
     heading.setAttribute("part", "heading");
-    heading.setAttribute("part", "heading");
     heading.textContent = `Send a shortmail to ${cfg.displayName}`;
     form.appendChild(heading);
 
-    for (const faq of cfg.faqs) {
-      const p = document.createElement("p");
-      p.className = "sm-faq";
-      p.setAttribute("part", "faq");
-      p.textContent = faq.question;
-      form.appendChild(p);
+    if (cfg.faqs.length > 0) {
+      const faqs = document.createElement("div");
+      faqs.className = "sm-faqs";
+      for (const faq of cfg.faqs) {
+        const p = document.createElement("p");
+        p.className = "sm-faq";
+        p.setAttribute("part", "faq");
+        p.textContent = faq.question;
+        faqs.appendChild(p);
+      }
+      form.appendChild(faqs);
     }
 
     const nameField = this.textField("Your name", "name");
@@ -376,9 +491,11 @@ class ShortmailWidget extends HTMLElement {
     nameEmailRow.appendChild(emailField.label);
     form.appendChild(nameEmailRow);
 
-    const replyLabel = document.createElement("label");
-    replyLabel.className = "sm-label-text";
-    replyLabel.textContent = "Do you need a reply?";
+    const replyField = document.createElement("fieldset");
+    replyField.className = "sm-fieldset";
+    const replyLegend = document.createElement("legend");
+    replyLegend.className = "sm-label-text";
+    replyLegend.textContent = "Do you need a reply?";
     const row = document.createElement("div");
     row.className = "sm-radio-row";
     let replyNeededValue = "no";
@@ -396,16 +513,19 @@ class ShortmailWidget extends HTMLElement {
         if (radio.checked) replyNeededValue = value;
       });
       l.className = "sm-radio-label";
-    l.appendChild(radio);
+      l.appendChild(radio);
       l.append(text);
       row.appendChild(l);
     }
-    replyLabel.appendChild(row);
-    form.appendChild(replyLabel);
+    replyField.append(replyLegend, row);
+    form.appendChild(replyField);
 
     const subjectLabel = document.createElement("label");
-    subjectLabel.className = "sm-label-text";
-    subjectLabel.textContent = "Subject";
+    subjectLabel.className = "sm-label";
+    const subjectCaption = document.createElement("span");
+    subjectCaption.className = "sm-label-text";
+    subjectCaption.textContent = "Subject";
+    subjectLabel.appendChild(subjectCaption);
     const select = document.createElement("select");
     select.className = "sm-input";
     select.setAttribute("part", "input");
@@ -427,6 +547,7 @@ class ShortmailWidget extends HTMLElement {
     subjectLabel.appendChild(select);
 
     const customWrap = document.createElement("div");
+    customWrap.className = "sm-custom";
     customWrap.style.display = "none";
     const customInput = document.createElement("input");
     customInput.className = "sm-input";
@@ -439,8 +560,11 @@ class ShortmailWidget extends HTMLElement {
     form.appendChild(subjectLabel);
 
     const messageLabel = document.createElement("label");
-    messageLabel.className = "sm-label-text";
-    messageLabel.textContent = "Message";
+    messageLabel.className = "sm-label";
+    const messageCaption = document.createElement("span");
+    messageCaption.className = "sm-label-text";
+    messageCaption.textContent = "Message";
+    messageLabel.appendChild(messageCaption);
     const message = document.createElement("textarea");
     message.className = "sm-textarea";
     message.setAttribute("part", "input");
@@ -468,6 +592,7 @@ class ShortmailWidget extends HTMLElement {
 
     const verifyStatus = document.createElement("p");
     verifyStatus.className = "sm-hint";
+    verifyStatus.style.display = "none";
     const codeBlock = document.createElement("label");
     codeBlock.className = "sm-label";
     codeBlock.style.display = "none";
@@ -530,6 +655,7 @@ class ShortmailWidget extends HTMLElement {
     }
     const showStatus = (text: string): void => {
       verifyStatus.textContent = text;
+      verifyStatus.style.display = text ? "block" : "none";
     };
 
     const refreshReady = (): void => {
@@ -558,7 +684,7 @@ class ShortmailWidget extends HTMLElement {
         }
         codeButton.style.display = "block";
         if (verifyStatus.textContent === VERIFY_COPY.ready) {
-          verifyStatus.textContent = storage.persistent ? "" : VERIFY_COPY.storage;
+          showStatus(storage.persistent ? "" : VERIFY_COPY.storage);
         }
       }
     };
@@ -757,8 +883,9 @@ class ShortmailWidget extends HTMLElement {
     input: HTMLInputElement;
   } {
     const label = document.createElement("label");
-    label.className = "sm-label-text";
+    label.className = "sm-label";
     const span = document.createElement("span");
+    span.className = "sm-label-text";
     span.textContent = labelText;
     const input = document.createElement("input");
     input.className = "sm-input";

@@ -15,15 +15,15 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: "default",
     label: "Default",
     vars: {
-      "--sm-accent": "#111111",
+      "--sm-accent": "#171717",
       "--sm-accent-text": "#ffffff",
       "--sm-bg": "#ffffff",
       "--sm-surface": "#ffffff",
-      "--sm-text": "#111111",
-      "--sm-muted": "#737373",
+      "--sm-text": "#171717",
+      "--sm-muted": "#525252",
       "--sm-border": "#d4d4d4",
       "--sm-radius": "0px",
-      "--sm-font": "Arial, Helvetica, sans-serif",
+      "--sm-font": "var(--font-geist-sans, system-ui, sans-serif)",
     },
   },
   {
@@ -38,7 +38,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       "--sm-muted": "#94a3b8",
       "--sm-border": "#27324d",
       "--sm-radius": "0.75rem",
-      "--sm-font": "var(--font-geist-sans), system-ui, sans-serif",
+      "--sm-font": "var(--font-geist-sans, system-ui, sans-serif)",
     },
   },
   {
@@ -68,7 +68,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       "--sm-muted": "#cccccc",
       "--sm-border": "#ffffff",
       "--sm-radius": "0rem",
-      "--sm-font": "var(--font-geist-mono), ui-monospace, monospace",
+      "--sm-font": "var(--font-geist-mono, ui-monospace, monospace)",
     },
   },
 ];

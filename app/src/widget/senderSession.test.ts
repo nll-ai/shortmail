@@ -158,10 +158,18 @@ describe("sender session storage", () => {
   });
 
   it("keeps the verification sheet when owner CSS is applied", () => {
-    expect(adoptedSheets("form", "verify", "owner")).toEqual([
+    expect(adoptedSheets(["host", "form", "polish", "verify"], "owner")).toEqual([
+      "host",
       "form",
+      "polish",
       "verify",
       "owner",
+    ]);
+    expect(adoptedSheets(["host", "form", "polish", "verify"], null)).toEqual([
+      "host",
+      "form",
+      "polish",
+      "verify",
     ]);
   });
 });

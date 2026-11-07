@@ -161,7 +161,7 @@ describe("widget verification in the browser", () => {
       },
     });
 
-    const page = `<!doctype html><body style="margin:0;background:#fff"><main style="max-width:32rem;margin:2.5rem auto;padding:0 1rem"><div style="border:1px solid #d4d4d4;background:#fff;padding:1.5rem"><script src="/widget.js"></script><shortmail-widget vanity="demo"></shortmail-widget></div></main></body>`;
+    const page = `<!doctype html><body style="margin:0;background:#fff;font-family:'Times New Roman',Times,serif"><main style="max-width:32rem;margin:2.5rem auto;padding:0 1rem"><div style="border:1px solid #d4d4d4;background:#fff;padding:1.5rem"><script src="/widget.js"></script><shortmail-widget vanity="demo"></shortmail-widget></div></main></body>`;
     const verifyPage = `<!doctype html><body style="margin:0;background:#fff;color:#171717;font-family:Arial,sans-serif"><main style="max-width:32rem;margin:2.5rem auto;padding:0 1rem"><div style="border:1px solid #d4d4d4;padding:1.5rem"><p style="font-size:14px;font-weight:700;letter-spacing:.04em">ShortMail</p><h1 style="font-size:18px;font-weight:600;margin:1.5rem 0 0">Copy your code</h1><p style="color:#525252;font-size:14px;line-height:1.5">Return to the form where you wrote the letter and paste this code. This page does not send the letter.</p><p id="code" style="margin-top:1rem;border:1px solid #d4d4d4;padding:.5rem .75rem;font-size:14px;word-break:break-all"></p></div></main><script>const hash=location.hash;document.getElementById("code").textContent=hash.startsWith("#t=")?decodeURIComponent(hash.slice(3)):"Open the confirmation link from your email.";</script></body>`;
     const serve = (widgetPath: string) => createServer((req, res) => {
       if (req.url?.startsWith("/widget.js")) {
@@ -195,24 +195,23 @@ describe("widget verification in the browser", () => {
     const portA = (originA.address() as { port: number }).port;
     const portB = (originB.address() as { port: number }).port;
     await pageA.goto(`http://127.0.0.1:${portA}/`, { waitUntil: "networkidle0" });
-    const shot = async (page: BrowserPage, stem: string): Promise<void> => {
-      await page.setViewport({ width: 1440, height: 900 });
-      await page.screenshot({ path: `/opt/cursor/artifacts/${stem}_desktop.png` });
-      await page.setViewport({ width: 390, height: 844 });
-      await page.screenshot({ path: `/opt/cursor/artifacts/${stem}_mobile.png` });
-      await page.setViewport({ width: 1440, height: 900 });
-    };
     await fill(pageA, "Ada Lovelace", "ada@example.com", "Please send the figure data.");
-    await shot(pageA, "brand_ref");
+    await pageA.setViewport({ width: 390, height: 844 });
+    await expectAligned(pageA, ["input.sm-input", "select", "textarea", "button.sm-button"]);
     await clickShadow(pageA, "Email me a confirmation code");
     for (let attempt = 0; attempt < 50 && !lastToken; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     expect(lastToken.length).toBeGreaterThan(20);
-    await shot(pageA, "verify_check");
+    await expectAligned(pageA, [
+      "input.sm-input",
+      "select",
+      "textarea",
+      'input[placeholder="Paste the code from your email"]',
+      "button.sm-button",
+    ]);
     const codePage = await browser.newPage();
     await codePage.goto(`http://127.0.0.1:${portA}/verify#t=${encodeURIComponent(lastToken)}`);
-    await shot(codePage, "verify_code");
     await codePage.close();
     await pageA.evaluate(() => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
@@ -235,7 +234,6 @@ describe("widget verification in the browser", () => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
       return root?.textContent?.includes("Nothing is sent until you do") ?? false;
     });
-    await shot(pageA, "verify_ready");
     expect(sends).toHaveLength(0);
     await clickShadow(pageA, "Send shortmail");
     await pageA.waitForFunction(() => {
@@ -275,6 +273,36 @@ function readBody(req: import("node:http").IncomingMessage): Promise<string> {
     req.on("data", (chunk) => chunks.push(chunk as Buffer));
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
   });
+}
+
+async function expectAligned(page: BrowserPage, selectors: string[]): Promise<void> {
+  const measured = await page.evaluate((packed) => {
+    const selectors = packed.split("\n");
+    const root = document.querySelector("shortmail-widget")?.shadowRoot;
+    if (!root) throw new Error("no shadow");
+    return selectors.map((selector) => {
+      const el = [...root.querySelectorAll(selector)].find(
+        (node) => getComputedStyle(node).display !== "none",
+      );
+      if (!el) throw new Error(`missing ${selector}`);
+      const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return {
+        selector,
+        left: box.left,
+        right: box.right,
+        boxSizing: style.boxSizing,
+        font: style.fontFamily,
+      };
+    });
+  }, selectors.join("\n")) as { selector: string; left: number; right: number; boxSizing: string; font: string }[];
+  const [first] = measured;
+  for (const edge of measured) {
+    expect(edge.boxSizing, edge.selector).toBe("border-box");
+    expect(edge.font.toLowerCase(), edge.selector).not.toContain("times");
+    expect(Math.abs(edge.left - first.left), edge.selector).toBeLessThan(1);
+    expect(Math.abs(edge.right - first.right), edge.selector).toBeLessThan(1);
+  }
 }
 
 async function fill(page: BrowserPage, name: string, email: string, message: string): Promise<void> {
