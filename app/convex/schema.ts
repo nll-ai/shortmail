@@ -45,6 +45,23 @@ export default defineSchema({
     .index("by_owner", ["ownerId"])
     .index("by_owner_day", ["ownerId", "day"]),
 
+  senderProofs: defineTable({
+    challengeId: v.string(),
+    emailHash: v.string(),
+    challengeSecretHash: v.string(),
+    sessionSecretHash: v.string(),
+    verifyTokenHash: v.string(),
+    createdAt: v.number(),
+    linkExpiresAt: v.number(),
+    confirmedAt: v.union(v.number(), v.null()),
+    sessionExpiresAt: v.union(v.number(), v.null()),
+  })
+    .index("by_challenge", ["challengeId"])
+    .index("by_verify_token", ["verifyTokenHash"])
+    .index("by_session", ["sessionSecretHash"])
+    .index("by_email", ["emailHash"])
+    .index("by_link_expiry", ["linkExpiresAt"]),
+
   rateLimits: defineTable({
     // "send:{ip}" | "collect:{ip}" | "cap:{vanity}:{YYYY-MM-DD}"
     key: v.string(),

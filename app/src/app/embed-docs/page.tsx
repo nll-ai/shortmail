@@ -58,10 +58,17 @@ export default function EmbedDocsPage() {
           Trust model — please read
         </h2>
         <p className="mt-1 text-sm text-amber-900">
-          The host page can read what visitors type into an embedded widget
-          (that is true of every non-iframe embed). Embed only on sites you
-          control or trust. Messages always go to <em>your</em> inbox — a
-          hostile host cannot redirect them.
+          The host page can read what visitors type into an embedded widget,
+          including the browser proof that lets them send again without a new
+          code (that is true of every non-iframe embed). Embed only on sites
+          you control or trust. A confirmation on one site does not carry to
+          another site, and ShortMail does not use a third-party cookie for it.
+          Messages always go to <em>your</em> inbox — a hostile host cannot
+          redirect them. A cached copy of widget.js that does not send a
+          session proof fails closed: the letter is not delivered. This
+          proof is part of the current Convex widget only. The older FastAPI
+          app, while it is still what shortmail.nonlinearlabs.ai serves, does
+          not ask for it.
         </p>
       </section>
 

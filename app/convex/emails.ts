@@ -1,6 +1,7 @@
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { verificationMessage } from "./lib/senderProof";
 
 const FROM_ADDRESS = "shortmail@mail.nonlinearlabs.ai";
 
@@ -60,7 +61,7 @@ export const sendShortmailEmail = internalAction({
     }
 
     console.log(
-      `[emails] send ok to=${owner.email} subject="${args.subject}" idempotencyKey=${args.idempotencyKey} response=${body}`,
+      `[emails] send ok idempotencyKey=${args.idempotencyKey} status=${res.status}`,
     );
     await ctx.runMutation(internal.public.recordEvent, {
       ownerId: args.ownerId,
@@ -69,3 +70,42 @@ export const sendShortmailEmail = internalAction({
     });
   },
 });
+
+/**
+ * Send a confirmation code to the visitor. The letter is not included.
+ * Called directly from the HTTP action so the raw token is not stored as a
+ * scheduled-function argument. The token is not logged.
+ *
+ * :param to: Normalized visitor address.
+ * :param token: One-time code. Not written to the database.
+ * :param origin: Public site origin used to build the fragment link.
+ */
+export async function deliverVerificationEmail(
+  to: string,
+  token: string,
+  origin: string,
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not set on the Convex deployment");
+  }
+  const message = verificationMessage(origin, token);
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: FROM_ADDRESS,
+      to,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Resend verification failed (HTTP ${res.status})`);
+  }
+  console.log(`[emails] verification sent status=${res.status}`);
+}
