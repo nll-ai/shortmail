@@ -12,26 +12,19 @@ export const metadata: Metadata = {
  */
 export default function VerifyPage() {
   return (
-    <div
-      className="min-h-svh bg-white text-[#171717]"
+    <main
+      className="min-h-svh bg-white px-4 py-10 text-[#171717]"
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
     >
-      <header className="border-b border-[#e5e5e5]">
-        <div className="mx-auto flex max-w-[42rem] items-center px-6 py-4">
-          <span className="text-sm font-bold tracking-[0.04em]">ShortMail</span>
-        </div>
-      </header>
-      <main className="mx-auto max-w-[42rem] px-6 pb-12 pt-14">
-        <h1 className="text-4xl font-bold leading-[1.2] tracking-tight">
-          Copy your code
-        </h1>
-        <p className="mt-4 text-lg leading-[1.55] text-[#525252]">
-          Return to the ShortMail form where you wrote the letter, paste this
-          code, and press Confirm email. This page does not send the letter.
-          Opening the link on another device does not move the letter here.
+      <div className="mx-auto max-w-lg border border-neutral-300 bg-white p-6 sm:p-8">
+        <p className="text-sm font-bold tracking-[0.04em]">ShortMail</p>
+        <h1 className="mt-6 text-lg font-semibold">Copy your code</h1>
+        <p className="mt-2 text-sm leading-relaxed text-[#525252]">
+          Return to the form where you wrote the letter and paste this code.
+          This page does not send the letter.
         </p>
         <VerifyCode />
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

@@ -26,6 +26,7 @@ const puppeteer = require("puppeteer-core") as {
 type BrowserPage = {
   goto: (url: string, options?: { waitUntil: "networkidle0" }) => Promise<unknown>;
   screenshot: (options: { path: string }) => Promise<unknown>;
+  setViewport: (viewport: { width: number; height: number }) => Promise<unknown>;
   close: () => Promise<void>;
   waitForSelector: (selector: string) => Promise<unknown>;
   waitForFunction: (fn: () => boolean) => Promise<unknown>;
@@ -160,8 +161,8 @@ describe("widget verification in the browser", () => {
       },
     });
 
-    const page = `<!doctype html><script src="/widget.js"></script><shortmail-widget vanity="demo"></shortmail-widget>`;
-    const verifyPage = `<!doctype html><body style="margin:0;background:#fff;color:#171717;font-family:Geist,Arial,sans-serif"><header style="border-bottom:1px solid #e5e5e5"><div style="max-width:42rem;margin:0 auto;padding:1rem 1.5rem;font-size:14px;font-weight:700">ShortMail</div></header><main style="max-width:42rem;margin:0 auto;padding:3.5rem 1.5rem"><h1 style="font-size:36px;line-height:1.2;margin:0">Copy your code</h1><p style="color:#525252;font-size:18px;line-height:1.55">Return to the ShortMail form where you wrote the letter, paste this code, and press Confirm email. This page does not send the letter.</p><p id="code" style="border:1px solid #d4d4d4;padding:0.5rem 0.75rem;font-size:14px;word-break:break-all"></p></main><script>const hash=location.hash;document.getElementById("code").textContent=hash.startsWith("#t=")?decodeURIComponent(hash.slice(3)):"Open the confirmation link from your email.";</script></body>`;
+    const page = `<!doctype html><body style="margin:0;background:#fff"><main style="max-width:32rem;margin:2.5rem auto;padding:0 1rem"><div style="border:1px solid #d4d4d4;background:#fff;padding:1.5rem"><script src="/widget.js"></script><shortmail-widget vanity="demo"></shortmail-widget></div></main></body>`;
+    const verifyPage = `<!doctype html><body style="margin:0;background:#fff;color:#171717;font-family:Arial,sans-serif"><main style="max-width:32rem;margin:2.5rem auto;padding:0 1rem"><div style="border:1px solid #d4d4d4;padding:1.5rem"><p style="font-size:14px;font-weight:700;letter-spacing:.04em">ShortMail</p><h1 style="font-size:18px;font-weight:600;margin:1.5rem 0 0">Copy your code</h1><p style="color:#525252;font-size:14px;line-height:1.5">Return to the form where you wrote the letter and paste this code. This page does not send the letter.</p><p id="code" style="margin-top:1rem;border:1px solid #d4d4d4;padding:.5rem .75rem;font-size:14px;word-break:break-all"></p></div></main><script>const hash=location.hash;document.getElementById("code").textContent=hash.startsWith("#t=")?decodeURIComponent(hash.slice(3)):"Open the confirmation link from your email.";</script></body>`;
     const serve = (widgetPath: string) => createServer((req, res) => {
       if (req.url?.startsWith("/widget.js")) {
         res.writeHead(200, { "Content-Type": "text/javascript" });
@@ -194,16 +195,24 @@ describe("widget verification in the browser", () => {
     const portA = (originA.address() as { port: number }).port;
     const portB = (originB.address() as { port: number }).port;
     await pageA.goto(`http://127.0.0.1:${portA}/`, { waitUntil: "networkidle0" });
+    const shot = async (page: BrowserPage, stem: string): Promise<void> => {
+      await page.setViewport({ width: 1440, height: 900 });
+      await page.screenshot({ path: `/opt/cursor/artifacts/${stem}_desktop.png` });
+      await page.setViewport({ width: 390, height: 844 });
+      await page.screenshot({ path: `/opt/cursor/artifacts/${stem}_mobile.png` });
+      await page.setViewport({ width: 1440, height: 900 });
+    };
     await fill(pageA, "Ada Lovelace", "ada@example.com", "Please send the figure data.");
+    await shot(pageA, "brand_ref");
     await clickShadow(pageA, "Email me a confirmation code");
     for (let attempt = 0; attempt < 50 && !lastToken; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     expect(lastToken.length).toBeGreaterThan(20);
-    await pageA.screenshot({ path: "/opt/cursor/artifacts/verify_ux_check_email.png" });
+    await shot(pageA, "verify_check");
     const codePage = await browser.newPage();
     await codePage.goto(`http://127.0.0.1:${portA}/verify#t=${encodeURIComponent(lastToken)}`);
-    await codePage.screenshot({ path: "/opt/cursor/artifacts/verify_ux_code_page.png" });
+    await shot(codePage, "verify_code");
     await codePage.close();
     await pageA.evaluate(() => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
@@ -226,7 +235,7 @@ describe("widget verification in the browser", () => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
       return root?.textContent?.includes("Nothing is sent until you do") ?? false;
     });
-    await pageA.screenshot({ path: "/opt/cursor/artifacts/verify_ux_ready_to_send.png" });
+    await shot(pageA, "verify_ready");
     expect(sends).toHaveLength(0);
     await clickShadow(pageA, "Send shortmail");
     await pageA.waitForFunction(() => {

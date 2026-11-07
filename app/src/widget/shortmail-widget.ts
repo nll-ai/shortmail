@@ -478,19 +478,20 @@ class ShortmailWidget extends HTMLElement {
     codeInput.className = "sm-input";
     codeInput.autocomplete = "one-time-code";
     codeInput.placeholder = "Paste the code from your email";
-    const confirmButton = document.createElement("button");
-    confirmButton.type = "button";
-    confirmButton.className = "sm-text-button";
-    confirmButton.textContent = "Confirm email";
-    confirmButton.style.marginTop = "0.5rem";
-    codeBlock.append(codeLabel, codeInput, confirmButton);
+    codeBlock.append(codeLabel, codeInput);
     const codeButton = document.createElement("button");
     codeButton.type = "button";
     codeButton.className = "sm-text-button";
     codeButton.textContent = "Email me a confirmation code";
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "sm-button";
+    confirmButton.textContent = "Confirm email";
+    confirmButton.style.display = "none";
     form.appendChild(verifyStatus);
     form.appendChild(codeBlock);
     form.appendChild(codeButton);
+    form.appendChild(confirmButton);
 
     const errorLine = document.createElement("p");
     errorLine.className = "sm-error";
@@ -546,10 +547,16 @@ class ShortmailWidget extends HTMLElement {
       if (ready) {
         codeBlock.style.display = "none";
         codeButton.style.display = "none";
+        confirmButton.style.display = "none";
+        sendButton.style.display = "block";
         showStatus(VERIFY_COPY.ready);
       } else {
+        if (!samePending) {
+          codeBlock.style.display = "none";
+          confirmButton.style.display = "none";
+          sendButton.style.display = "block";
+        }
         codeButton.style.display = "block";
-        if (!samePending) codeBlock.style.display = "none";
         if (verifyStatus.textContent === VERIFY_COPY.ready) {
           verifyStatus.textContent = storage.persistent ? "" : VERIFY_COPY.storage;
         }
@@ -600,6 +607,8 @@ class ShortmailWidget extends HTMLElement {
       codeBlock.style.display = "block";
       codeButton.style.display = "block";
       codeButton.textContent = "Send another code";
+      confirmButton.style.display = "block";
+      sendButton.style.display = "none";
       showStatus(VERIFY_COPY.check);
       window.clearInterval(this.verifyPoll);
       this.verifyPoll = window.setInterval(() => {

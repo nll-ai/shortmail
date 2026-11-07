@@ -21,12 +21,14 @@ export function VerifyCode() {
 
   if (!code) {
     return (
-      <p className="mt-8 text-sm">Open the confirmation link from your email.</p>
+      <p className="mt-4 text-sm text-[#525252]">
+        Open the confirmation link from your email.
+      </p>
     );
   }
 
   return (
-    <p className="mt-8 break-all border border-[#d4d4d4] px-3 py-2 text-sm leading-normal">
+    <p className="mt-4 break-all border border-[#d4d4d4] px-3 py-2 text-sm leading-normal">
       {code}
     </p>
   );

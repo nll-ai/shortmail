@@ -14,7 +14,7 @@ export const STORAGE_KEY = "shortmail.sender.v1";
 
 export const VERIFY_COPY = {
   check:
-    "Check your email for a confirmation code, then enter it here. Come back to this tab and press Confirm email. Your letter stays on this page. If a code does not arrive, wait a few minutes before requesting another.",
+    "Check your email, enter the code, and press Confirm email. Your letter stays on this page.",
   ready:
     "Email confirmed for this browser. Press Send shortmail when the letter is ready. Nothing is sent until you do.",
   expired: "That code expired. Request another.",
