@@ -13,7 +13,7 @@
 - White ground, ink `#171717`, quiet text `#525252` or darker, Geist Sans via the existing `--font-geist-sans` variable.
 - No airmail envelope. No review banner on the real page.
 - Exactly one `Create your page` link and one `Sign in` link. Both `href="/dashboard"`. Create is filled. Sign in is not.
-- Specimen caption is `Fictional example`. Letter body is the 189-character Adeyemi sentence. Counter is `189/500`. Reply requested is `Yes`. Selected subject is `Data request`.
+- Specimen caption is `Example`. Letter body is the 189-character Adeyemi sentence. Counter is `189/500`. Reply requested is `Yes`. Selected subject is `Data request`.
 - No `form`, `input`, `textarea`, `select`, `button`, or `contenteditable` in the specimen. No `fetch`, `sendUrl`, `configUrl`, or `<shortmail-widget>` on `/`.
 - Do not edit `formSkin.ts`, `layout.tsx`, `shortmail-widget.ts`, Convex, auth, or `/send/[vanity]`.
 - Do not deploy, merge, or change DNS or production config.

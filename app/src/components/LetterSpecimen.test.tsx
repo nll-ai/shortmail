@@ -17,7 +17,8 @@ describe("LetterSpecimen", () => {
     fetchSpy.mockRestore();
 
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(html).toContain("Fictional example");
+    expect(html).toContain(">Example<");
+    expect(html).not.toContain("Fictional");
     expect(html).toContain("Dr. Nkechi Adeyemi");
     expect(html).toContain("Professor of environmental health");
     expect(html).toContain("Question about a paper");
