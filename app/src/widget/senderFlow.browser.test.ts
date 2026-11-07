@@ -40,8 +40,8 @@ describe("widget verification in the browser", () => {
   let originA: Server;
   let originB: Server;
   let apiOrigin = "";
-  let rows: Row[] = [];
-  let sends: string[] = [];
+  const rows: Row[] = [];
+  const sends: string[] = [];
   let lastToken = "";
 
   beforeAll(async () => {
@@ -297,8 +297,4 @@ async function setShadowValue(page: BrowserPage, placeholder: string, value: str
     input.value = value;
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }, placeholder, value);
-}
-
-async function shadowText(page: BrowserPage): Promise<string> {
-  return page.evaluate(() => document.querySelector("shortmail-widget")?.shadowRoot?.textContent ?? "") as Promise<string>;
 }
