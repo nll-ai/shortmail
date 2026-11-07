@@ -18,6 +18,9 @@ describe("dashboard sign-out", () => {
     expect(buttonSource).toContain('type="submit"');
     expect(buttonSource).toMatch(/>\s*Sign out\s*</);
     expect(buttonSource).toContain("min-h-11");
+    expect(buttonSource).toContain("text-foreground");
+    expect(buttonSource).not.toContain("text-[#171717]");
+    expect(buttonSource).not.toContain("outline-[#171717]");
     expect(buttonSource).not.toContain("localStorage");
     expect(buttonSource).not.toContain("sessionStorage");
     expect(buttonSource).not.toContain('method="GET"');
