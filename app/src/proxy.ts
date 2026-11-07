@@ -1,11 +1,18 @@
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { authkitProxy } from "@workos-inc/authkit-nextjs";
+import { callbackUrlFor } from "./auth/callback-url";
 
-export default authkitProxy({
-  middlewareAuth: {
-    enabled: true,
-    unauthenticatedPaths: ["/", "/send/:path*", "/verify", "/api/:path*"],
-  },
-});
+const fallbackRedirect = process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI ?? "";
+
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
+  return authkitProxy({
+    redirectUri: callbackUrlFor(request.nextUrl.origin, fallbackRedirect),
+    middlewareAuth: {
+      enabled: true,
+      unauthenticatedPaths: ["/", "/send/:path*", "/verify", "/api/:path*"],
+    },
+  })(request, event);
+}
 
 export const config = {
   matcher: [
