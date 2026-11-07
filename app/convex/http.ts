@@ -3,7 +3,8 @@ import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { MAX_BODY } from "./collector";
 import { parseSendFields } from "./lib/sendRequest";
-import { tagSubject } from "./lib/subjectTag";
+import { normalizeSenderEmail, randomUrlToken, sha256Hex } from "./lib/senderProof";
+import { deliverVerificationEmail } from "./emails";
 import { marked } from "marked";
 
 /**
@@ -78,6 +79,11 @@ http.route({
 });
 http.route({
   pathPrefix: "/api/collect/",
+  method: "OPTIONS",
+  handler: handlePreflight,
+});
+http.route({
+  pathPrefix: "/api/verify/",
   method: "OPTIONS",
   handler: handlePreflight,
 });
@@ -179,16 +185,88 @@ http.route({
       text,
       ip,
       idempotencyKey: crypto.randomUUID(),
+      sessionSecret: fields.session_secret ?? "",
     });
 
     if (!result.ok) {
       if (result.reason === "user_not_found") {
         return jsonError("user_not_found", 404);
       }
+      if (result.reason === "email_unverified") {
+        return jsonError("email_unverified", 403);
+      }
+      if (result.reason === "sender_rate_limited") {
+        return jsonError("sender_rate_limited", 429);
+      }
       return jsonError("daily_cap_exceeded", 429);
     }
 
     return json({ ok: true });
+  }),
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/verify/start|poll|confirm — inbox possession, no letter body.
+// ---------------------------------------------------------------------------
+
+function verifyCommand(url: string): "start" | "poll" | "confirm" | null {
+  const parts = new URL(url).pathname.split("/").filter(Boolean);
+  if (parts.length !== 3 || parts[0] !== "api" || parts[1] !== "verify") return null;
+  if (parts[2] === "start" || parts[2] === "poll" || parts[2] === "confirm") return parts[2];
+  return null;
+}
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+http.route({
+  pathPrefix: "/api/verify/",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const command = verifyCommand(request.url);
+    if (!command) return jsonError("not_found", 404);
+    let payload: Record<string, unknown>;
+    try {
+      const parsed = await request.json();
+      if (!parsed || typeof parsed !== "object") return jsonError("invalid_body", 400);
+      payload = parsed as Record<string, unknown>;
+    } catch {
+      return jsonError("invalid_body", 400);
+    }
+
+    if (command === "start") {
+      const email = normalizeSenderEmail(asString(payload.email));
+      const token = randomUrlToken();
+      const origin = process.env.SHORTMAIL_PUBLIC_ORIGIN ?? "";
+      const started = await ctx.runMutation(internal.senderProof.beginVerification, {
+        email,
+        challengeId: asString(payload.challengeId),
+        challengeSecretHash: asString(payload.challengeSecretHash),
+        sessionSecretHash: asString(payload.sessionSecretHash),
+        verifyTokenHash: await sha256Hex(token),
+        originConfigured: origin.length > 0,
+      });
+      if (started.deliver) {
+        await deliverVerificationEmail(email, token, origin);
+      }
+      return json({ status: "accepted" });
+    }
+
+    if (command === "poll") {
+      const polled = await ctx.runMutation(internal.senderProof.pollVerification, {
+        challengeId: asString(payload.challengeId),
+        challengeSecret: asString(payload.challengeSecret),
+      });
+      return json(polled);
+    }
+
+    const confirmed = await ctx.runMutation(internal.senderProof.confirmVerification, {
+      token: asString(payload.token),
+      challengeId: asString(payload.challengeId),
+      challengeSecret: asString(payload.challengeSecret),
+    });
+    return json(confirmed);
   }),
 });
 

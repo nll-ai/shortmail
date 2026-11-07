@@ -77,6 +77,9 @@ export default function Home() {
           not anonymous. ShortMail does not put a copy in the visitor&apos;s
           sent folder. It does store the subject, including whether a reply was
           requested, and aggregate events for page views and successful sends.
+          Before a letter can be delivered, the visitor proves they can open
+          that inbox. ShortMail stores a hash of the address and a hash of
+          that browser&apos;s proof for up to 30 days, not a copy of the letter.
         </p>
       </main>
 

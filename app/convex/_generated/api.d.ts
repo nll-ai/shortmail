@@ -25,6 +25,7 @@ import type * as lib_sendRequest from "../lib/sendRequest.js";
 import type * as lib_subjectTag from "../lib/subjectTag.js";
 import type * as migrate from "../migrate.js";
 import type * as public_ from "../public.js";
+import type * as senderProof from "../senderProof.js";
 import type * as theming from "../theming.js";
 import type * as users from "../users.js";
 
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   "lib/subjectTag": typeof lib_subjectTag;
   migrate: typeof migrate;
   public: typeof public_;
+  senderProof: typeof senderProof;
   theming: typeof theming;
   users: typeof users;
 }>;

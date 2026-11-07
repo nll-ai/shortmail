@@ -15,6 +15,15 @@
 import { presetById } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
+import {
+  VERIFY_COPY,
+  createProof,
+  describeSendStep,
+  loadProof,
+  openSenderStore,
+  saveProof,
+  type ProofRecord,
+} from "./senderSession";
 const CONVEX_SITE = process.env.WIDGET_CONVEX_SITE_URL ?? "";
 const convexSiteUrl = () => CONVEX_SITE;
 
@@ -63,6 +72,14 @@ function stripQuery(value: string, max: number): string | undefined {
   return noQuery.length > 0 ? noQuery : undefined;
 }
 
+function safeLocalStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 function dnt(): boolean {
   return (
     navigator.doNotTrack === "1" ||
@@ -76,6 +93,7 @@ class ShortmailWidget extends HTMLElement {
   private config: EmbedConfig | null = null;
   private changeHandler = (e: Event): void =>
     this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
+  private verifyPoll = 0;
 
   static get observedAttributes(): string[] {
     return ["vanity"];
@@ -101,6 +119,7 @@ class ShortmailWidget extends HTMLElement {
   }
 
   disconnectedCallback(): void {
+    window.clearInterval(this.verifyPoll);
     window.removeEventListener(WIDGET_CHANGE_EVENT, this.changeHandler);
   }
 
@@ -421,6 +440,31 @@ class ShortmailWidget extends HTMLElement {
     honeypot.className = "sm-honeypot";
     form.appendChild(honeypot);
 
+    const verifyStatus = document.createElement("p");
+    verifyStatus.className = "sm-hint";
+    const codeInput = document.createElement("input");
+    codeInput.className = "sm-input";
+    codeInput.autocomplete = "one-time-code";
+    codeInput.placeholder = "Paste the code from your email";
+    codeInput.style.display = "none";
+    const codeButton = document.createElement("button");
+    codeButton.type = "button";
+    codeButton.className = "sm-button";
+    codeButton.textContent = "Email me a confirmation code";
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "sm-button";
+    confirmButton.textContent = "Confirm email";
+    confirmButton.style.display = "none";
+    codeButton.style.marginTop = "0.5rem";
+    codeButton.style.background = "transparent";
+    codeButton.style.color = "#171717";
+    codeButton.style.border = "1px solid #171717";
+    form.appendChild(verifyStatus);
+    form.appendChild(codeInput);
+    form.appendChild(confirmButton);
+    form.appendChild(codeButton);
+
     const errorLine = document.createElement("p");
     errorLine.className = "sm-error";
     errorLine.style.display = "none";
@@ -452,11 +496,143 @@ class ShortmailWidget extends HTMLElement {
     select.addEventListener("change", syncCanSubmit);
     syncCanSubmit();
 
+    const storage = openSenderStore(safeLocalStorage());
+    if (!storage.persistent) {
+      verifyStatus.textContent = VERIFY_COPY.storage;
+    }
+    const showStatus = (text: string): void => {
+      verifyStatus.textContent = text;
+    };
+
+    const refreshReady = (): void => {
+      const step = describeSendStep({
+        email: emailField.input.value,
+        code: "",
+        stored: loadProof(storage.store),
+        now: Date.now(),
+      });
+      const ready = step.kind === "send";
+      codeInput.style.display = ready ? "none" : codeInput.style.display;
+      confirmButton.style.display = ready ? "none" : confirmButton.style.display;
+      codeButton.style.display = ready ? "none" : "block";
+      if (ready) showStatus(VERIFY_COPY.ready);
+    };
+    emailField.input.addEventListener("input", refreshReady);
+    refreshReady();
+
+    const startVerification = async (): Promise<void> => {
+      const created = await createProof(emailField.input.value);
+      saveProof(storage.store, created.record);
+      codeInput.style.display = "block";
+      confirmButton.style.display = "block";
+      codeButton.style.display = "block";
+      codeButton.textContent = "Send another code";
+      showStatus(VERIFY_COPY.check);
+      try {
+        await fetch(`${convexSiteUrl()}/api/verify/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: created.record.email,
+            challengeId: created.record.challengeId,
+            challengeSecretHash: created.challengeSecretHash,
+            sessionSecretHash: created.sessionSecretHash,
+          }),
+        });
+      } catch {
+        showStatus("Network error — please try again.");
+        return;
+      }
+      window.clearInterval(this.verifyPoll);
+      this.verifyPoll = window.setInterval(() => {
+        void pollOnce(created.record);
+      }, 5000);
+    };
+
+    const pollOnce = async (record: ProofRecord): Promise<void> => {
+      const res = await fetch(`${convexSiteUrl()}/api/verify/poll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: record.challengeId,
+          challengeSecret: record.challengeSecret,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { status?: string };
+      if (data.status === "expired") {
+        window.clearInterval(this.verifyPoll);
+        showStatus(VERIFY_COPY.expired);
+      }
+    };
+
+    codeButton.addEventListener("click", () => {
+      void startVerification();
+    });
+    confirmButton.addEventListener("click", () => {
+      void confirmCode();
+    });
+
+    const confirmCode = async (): Promise<void> => {
+      const stored = loadProof(storage.store);
+      const step = describeSendStep({
+        email: emailField.input.value,
+        code: codeInput.value,
+        stored,
+        now: Date.now(),
+      });
+      if (step.kind !== "confirm") {
+        showStatus(step.kind === "blocked" ? step.message : VERIFY_COPY.unconfirmed);
+        return;
+      }
+      const res = await fetch(`${convexSiteUrl()}/api/verify/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: step.token,
+          challengeId: step.challengeId,
+          challengeSecret: step.challengeSecret,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        status?: string;
+        sessionExpiresAt?: number | null;
+      };
+      if (data.status === "confirmed" && stored) {
+        window.clearInterval(this.verifyPoll);
+        saveProof(storage.store, {
+          ...stored,
+          status: "confirmed",
+          sessionExpiresAt: data.sessionExpiresAt ?? null,
+        });
+        codeInput.value = "";
+        refreshReady();
+        return;
+      }
+      showStatus(
+        data.status === "expired"
+          ? VERIFY_COPY.expired
+          : data.status === "mismatch"
+            ? VERIFY_COPY.mismatch
+            : VERIFY_COPY.invalid,
+      );
+    };
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (sendButton.disabled) return;
       if (honeypot.value !== "") return;
       errorLine.style.display = "none";
+      const step = describeSendStep({
+        email: emailField.input.value,
+        code: codeInput.value,
+        stored: loadProof(storage.store),
+        now: Date.now(),
+      });
+      if (step.kind !== "send") {
+        if (step.kind === "start") await startVerification();
+        else showStatus(step.kind === "blocked" ? step.message : VERIFY_COPY.check);
+        return;
+      }
 
       const body = new URLSearchParams({
         sender_name: nameField.input.value,
@@ -466,6 +642,7 @@ class ShortmailWidget extends HTMLElement {
         custom_subject: customInput.value,
         message: message.value,
         website: honeypot.value,
+        session_secret: step.sessionSecret,
       });
 
       sendButton.disabled = true;
@@ -476,6 +653,7 @@ class ShortmailWidget extends HTMLElement {
           body: body.toString(),
         });
         if (res.ok) {
+          window.clearInterval(this.verifyPoll);
           form.replaceWith(this.successNote());
           return;
         }
@@ -485,7 +663,11 @@ class ShortmailWidget extends HTMLElement {
             ? "This person is receiving too many messages today — please try again tomorrow."
             : data.error === "disposable_email"
               ? "Please use a non-disposable email address."
-              : "Something went wrong — please try again.";
+              : data.error === "email_unverified"
+                ? VERIFY_COPY.unconfirmed
+                : data.error === "sender_rate_limited"
+                  ? "You have sent several letters from this address today. Try again tomorrow."
+                  : "Something went wrong — please try again.";
         errorLine.style.display = "block";
         sendButton.disabled = false;
       } catch {

@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import Home from "./page";
 
 const PRIVACY =
-  "The letter is delivered as email to you. ShortMail does not keep the letter body in its database. The visitor's name and email are required, and both are on the email you receive, so the visitor is not anonymous. ShortMail does not put a copy in the visitor's sent folder. It does store the subject, including whether a reply was requested, and aggregate events for page views and successful sends.";
+  "The letter is delivered as email to you. ShortMail does not keep the letter body in its database. The visitor's name and email are required, and both are on the email you receive, so the visitor is not anonymous. ShortMail does not put a copy in the visitor's sent folder. It does store the subject, including whether a reply was requested, and aggregate events for page views and successful sends. Before a letter can be delivered, the visitor proves they can open that inbox. ShortMail stores a hash of the address and a hash of that browser's proof for up to 30 days, not a copy of the letter.";
 
 describe("homepage", () => {
   it("offers two account links and the approved copy", () => {
@@ -52,6 +52,7 @@ describe("homepage", () => {
       "utf8",
     );
     expect(widget).toContain("/api/send/");
+    expect(widget).toContain("session_secret");
 
     const diff = spawnSync(
       "git",
@@ -61,7 +62,6 @@ describe("homepage", () => {
         "--",
         "app/src/widget/formSkin.ts",
         "app/src/app/layout.tsx",
-        "app/src/widget/shortmail-widget.ts",
       ],
       { cwd: new URL("../../..", import.meta.url), encoding: "utf8" },
     );

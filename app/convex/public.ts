@@ -1,9 +1,11 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { bumpIpWindow, bumpVanityDailyCap } from "./lib/rateLimit";
+import { bump, bumpIpWindow, bumpVanityDailyCap, utcDay } from "./lib/rateLimit";
 import { insertEventRow } from "./lib/events";
 import { DAILY_SEND_CAP_DEFAULT } from "./lib/identity";
+import { SENDER_DAILY_MAX, normalizeSenderEmail, sha256Hex } from "./lib/senderProof";
+import { sessionIsLive } from "./senderProof";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -67,7 +69,10 @@ export const configForVanity = internalQuery({
 
 export type SubmitSendResult =
   | { ok: true }
-  | { ok: false; reason: "user_not_found" | "daily_cap_exceeded" };
+  | {
+      ok: false;
+      reason: "user_not_found" | "daily_cap_exceeded" | "email_unverified" | "sender_rate_limited";
+    };
 
 /**
  * DB side of the send flow, called from the /api/send httpAction after the
@@ -87,6 +92,7 @@ export const submitSend = internalMutation({
     text: v.string(),
     ip: v.optional(v.string()),
     idempotencyKey: v.string(),
+    sessionSecret: v.string(),
   },
   handler: async (ctx, args): Promise<SubmitSendResult> => {
     const user = await ctx.db
@@ -95,10 +101,22 @@ export const submitSend = internalMutation({
       .unique();
     if (!user) return { ok: false, reason: "user_not_found" };
 
+    const allowed = await sessionIsLive(ctx, args.senderEmail, args.sessionSecret);
+    if (!allowed) return { ok: false, reason: "email_unverified" };
+
     // Advisory per-IP window (5/hour): recorded, never blocks.
     if (args.ip) {
       await bumpIpWindow(ctx, "send", args.ip, HOUR_MS, 5);
     }
+
+    const emailHash = await sha256Hex(normalizeSenderEmail(args.senderEmail));
+    const senderCap = await bump(
+      ctx,
+      `verify:send:${emailHash}:${args.vanity}:${utcDay()}`,
+      null,
+      SENDER_DAILY_MAX,
+    );
+    if (!senderCap.ok) return { ok: false, reason: "sender_rate_limited" };
 
     const cap = await bumpVanityDailyCap(ctx, "send", args.vanity, DAILY_SEND_CAP_DEFAULT);
     if (!cap.ok) return { ok: false, reason: "daily_cap_exceeded" };
