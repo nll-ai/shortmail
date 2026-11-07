@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { dispatchWidgetChange } from "../../widget/liveUpdates";
 import Link from "next/link";
+import Script from "next/script";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -98,6 +99,8 @@ export function DashboardData() {
           Live preview — what your visitors see
         </p>
         <div className="border border-neutral-300 bg-white p-6">
+          {/* widget.js registers <shortmail-widget>. Without it the box stays empty. */}
+          <Script src="/widget.js" strategy="afterInteractive" />
           <shortmail-widget vanity={me.vanityName} />
         </div>
         <div className=" border p-4 text-sm space-y-2">
