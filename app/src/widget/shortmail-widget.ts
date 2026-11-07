@@ -102,7 +102,28 @@ class ShortmailWidget extends HTMLElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: "open" });
-    this.shadow.adoptedStyleSheets = [getFormSheet()];
+    const verifySheet = new CSSStyleSheet();
+    verifySheet.replaceSync(`
+      .sm-text-button {
+        align-self: flex-start;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--sm-text, #171717);
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+        cursor: pointer;
+      }
+      .sm-text-button:focus-visible {
+        outline: 2px solid var(--sm-accent, #171717);
+        outline-offset: 2px;
+      }
+    `);
+    this.shadow.adoptedStyleSheets = [getFormSheet(), verifySheet];
   }
 
   connectedCallback(): void {
@@ -442,27 +463,28 @@ class ShortmailWidget extends HTMLElement {
 
     const verifyStatus = document.createElement("p");
     verifyStatus.className = "sm-hint";
+    const codeBlock = document.createElement("label");
+    codeBlock.className = "sm-label";
+    codeBlock.style.display = "none";
+    const codeLabel = document.createElement("span");
+    codeLabel.className = "sm-label-text";
+    codeLabel.textContent = "Confirmation code";
     const codeInput = document.createElement("input");
     codeInput.className = "sm-input";
     codeInput.autocomplete = "one-time-code";
     codeInput.placeholder = "Paste the code from your email";
-    codeInput.style.display = "none";
-    const codeButton = document.createElement("button");
-    codeButton.type = "button";
-    codeButton.className = "sm-button";
-    codeButton.textContent = "Email me a confirmation code";
     const confirmButton = document.createElement("button");
     confirmButton.type = "button";
-    confirmButton.className = "sm-button";
+    confirmButton.className = "sm-text-button";
     confirmButton.textContent = "Confirm email";
-    confirmButton.style.display = "none";
-    codeButton.style.marginTop = "0.5rem";
-    codeButton.style.background = "transparent";
-    codeButton.style.color = "#171717";
-    codeButton.style.border = "1px solid #171717";
+    confirmButton.style.marginTop = "0.5rem";
+    codeBlock.append(codeLabel, codeInput, confirmButton);
+    const codeButton = document.createElement("button");
+    codeButton.type = "button";
+    codeButton.className = "sm-text-button";
+    codeButton.textContent = "Email me a confirmation code";
     form.appendChild(verifyStatus);
-    form.appendChild(codeInput);
-    form.appendChild(confirmButton);
+    form.appendChild(codeBlock);
     form.appendChild(codeButton);
 
     const errorLine = document.createElement("p");
@@ -512,10 +534,13 @@ class ShortmailWidget extends HTMLElement {
         now: Date.now(),
       });
       const ready = step.kind === "send";
-      codeInput.style.display = ready ? "none" : codeInput.style.display;
-      confirmButton.style.display = ready ? "none" : confirmButton.style.display;
-      codeButton.style.display = ready ? "none" : "block";
-      if (ready) showStatus(VERIFY_COPY.ready);
+      if (ready) {
+        codeBlock.style.display = "none";
+        codeButton.style.display = "none";
+        showStatus(VERIFY_COPY.ready);
+      } else {
+        codeButton.style.display = "block";
+      }
     };
     emailField.input.addEventListener("input", refreshReady);
     refreshReady();
@@ -523,8 +548,7 @@ class ShortmailWidget extends HTMLElement {
     const startVerification = async (): Promise<void> => {
       const created = await createProof(emailField.input.value);
       saveProof(storage.store, created.record);
-      codeInput.style.display = "block";
-      confirmButton.style.display = "block";
+      codeBlock.style.display = "block";
       codeButton.style.display = "block";
       codeButton.textContent = "Send another code";
       showStatus(VERIFY_COPY.check);
