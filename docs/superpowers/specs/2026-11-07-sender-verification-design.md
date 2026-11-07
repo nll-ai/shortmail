@@ -14,7 +14,9 @@ Sessions last 30 days from confirmation, then expire. They are not forever. Chan
 
 ## Limits
 
-Verification mail: 1 per address per 10 minutes, 5 per address per UTC day, 300 total per UTC day. Over the limit, the response is still the same `{ status: "accepted" }` and no mail is sent. Polling and confirm attempts are capped per challenge. Sender addresses that already proved possession are also limited to 20 letters per page per UTC day, and the existing 200-letter owner cap, honeypot, and disposable-address check stay. Forwarded IP headers are not a hard block.
+Verification mail: 1 per address per 10 minutes, 5 per address per UTC day, 300 total per UTC day. The start call returns `issued` only after that exact challenge was stored and the message was handed to Resend. Cooldown, quota, a missing public origin, and a mail failure all return the same `unavailable` status and do not replace a code already on the form. Polling and confirm attempts are capped per challenge. Sender addresses that already proved possession are also limited to 20 letters per page per UTC day, and the existing 200-letter owner cap, honeypot, and disposable-address check stay. Forwarded IP headers are not a hard block.
+
+This check is only on the Convex send path used by the Vercel app and the widget. The legacy FastAPI app still served at shortmail.nonlinearlabs.ai does not ask for this proof. DNS has not been cut over.
 
 Missing, mismatched, expired, or replayed proof fails closed, including a direct API call and a cached widget that does not send a session secret.
 

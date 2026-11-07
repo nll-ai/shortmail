@@ -51,6 +51,67 @@ async function deleteExpired(ctx: MutationCtx, now: number): Promise<void> {
 }
 
 /**
+ * Decide whether this attempt may send mail, using the real rate-limit rows.
+ * Does not insert a proof. Invalid addresses and a missing public origin
+ * do not consume quota.
+ */
+export async function reserveVerificationSend(
+  ctx: MutationCtx,
+  args: {
+    email: string;
+    challengeId: string;
+    challengeSecretHash: string;
+    sessionSecretHash: string;
+    verifyTokenHash: string;
+    originConfigured: boolean;
+    now?: number;
+  },
+): Promise<boolean> {
+  const now = args.now ?? Date.now();
+  const email = normalizeSenderEmail(args.email);
+  const hashesOk =
+    HEX_64.test(args.challengeSecretHash) &&
+    HEX_64.test(args.sessionSecretHash) &&
+    HEX_64.test(args.verifyTokenHash) &&
+    args.challengeId.length >= 22 &&
+    args.challengeId.length <= 128;
+  if (
+    !shouldSendVerification({
+      emailLooksValid: emailLooksValid(email) && hashesOk,
+      disposable: isDisposableEmail(email),
+      addressCooldownOk: true,
+      addressDailyOk: true,
+      globalOk: true,
+      originConfigured: args.originConfigured,
+    })
+  ) {
+    return false;
+  }
+  const emailHash = await sha256Hex(email);
+  const addressCooldown = await bump(
+    ctx,
+    `verify:cool:${emailHash}`,
+    ADDRESS_COOLDOWN_MS,
+    1,
+  );
+  if (!addressCooldown.ok) return false;
+  const addressDaily = await bump(
+    ctx,
+    `verify:addr:${emailHash}:${utcDay(now)}`,
+    null,
+    ADDRESS_DAILY_MAX,
+  );
+  if (!addressDaily.ok) return false;
+  const global = await bump(
+    ctx,
+    `verify:global:${utcDay(now)}`,
+    null,
+    GLOBAL_DAILY_MAX,
+  );
+  return global.ok;
+}
+
+/**
  * Record a confirmation request. Returns whether a message may be sent.
  * The raw verification token never enters the database.
  */
@@ -68,46 +129,9 @@ export const beginVerification = internalMutation({
     const now = Date.now();
     await deleteExpired(ctx, now);
     const email = normalizeSenderEmail(args.email);
-    const hashesOk =
-      HEX_64.test(args.challengeSecretHash) &&
-      HEX_64.test(args.sessionSecretHash) &&
-      HEX_64.test(args.verifyTokenHash) &&
-      args.challengeId.length >= 22 &&
-      args.challengeId.length <= 128;
-    if (
-      !shouldSendVerification({
-        emailLooksValid: emailLooksValid(email) && hashesOk,
-        disposable: isDisposableEmail(email),
-        addressCooldownOk: true,
-        addressDailyOk: true,
-        globalOk: true,
-        originConfigured: args.originConfigured,
-      })
-    ) {
-      return { deliver: false };
-    }
+    const allowed = await reserveVerificationSend(ctx, { ...args, now });
+    if (!allowed) return { deliver: false };
     const emailHash = await sha256Hex(email);
-    const addressCooldown = await bump(
-      ctx,
-      `verify:cool:${emailHash}`,
-      ADDRESS_COOLDOWN_MS,
-      1,
-    );
-    if (!addressCooldown.ok) return { deliver: false };
-    const addressDaily = await bump(
-      ctx,
-      `verify:addr:${emailHash}:${utcDay(now)}`,
-      null,
-      ADDRESS_DAILY_MAX,
-    );
-    if (!addressDaily.ok) return { deliver: false };
-    const global = await bump(
-      ctx,
-      `verify:global:${utcDay(now)}`,
-      null,
-      GLOBAL_DAILY_MAX,
-    );
-    if (!global.ok) return { deliver: false };
 
     const existing = await ctx.db
       .query("senderProofs")
@@ -127,6 +151,22 @@ export const beginVerification = internalMutation({
       sessionExpiresAt: null,
     });
     return { deliver: true };
+  },
+});
+
+/**
+ * Drop a proof whose confirmation mail never went out.
+ */
+export const abandonVerification = internalMutation({
+  args: { challengeId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const doc = await ctx.db
+      .query("senderProofs")
+      .withIndex("by_challenge", (q) => q.eq("challengeId", args.challengeId))
+      .unique();
+    if (doc && doc.confirmedAt === null) await ctx.db.delete(doc._id);
+    return null;
   },
 });
 

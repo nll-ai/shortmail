@@ -24,9 +24,39 @@ export const VERIFY_COPY = {
   storage:
     "This browser will not keep the confirmation after you leave. You can still finish in this tab.",
   unconfirmed: "Confirm your email before the letter can be sent.",
-  accepted:
-    "If that address can receive mail, a code is on its way. It expires in 20 minutes.",
+  unavailable:
+    "We could not send a code right now. Wait a few minutes and try again. Your letter stays on this page.",
 } as const;
+
+export type StartResult =
+  | { status: "issued"; challengeId: string }
+  | { status: "unavailable" }
+  | null;
+
+/**
+ * Keep a pending proof unless this exact attempt was mailed.
+ *
+ * A cooldown, a lost response, or a late reply for a different attempt
+ * must not replace a code the visitor can still enter.
+ */
+export function applyIssuedProof(
+  stored: ProofRecord | null,
+  attempt: ProofRecord,
+  result: StartResult,
+): ProofRecord | null {
+  if (result?.status === "issued" && result.challengeId === attempt.challengeId) {
+    return attempt;
+  }
+  return stored;
+}
+
+/**
+ * Sheets the shadow root must keep. Owner CSS is added after the form
+ * sheet and the verification sheet, never instead of the verification sheet.
+ */
+export function adoptedSheets<T>(form: T, verify: T, owner: T | null): T[] {
+  return owner ? [form, verify, owner] : [form, verify];
+}
 
 export type ProofRecord = {
   email: string;

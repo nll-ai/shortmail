@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   VERIFY_COPY,
+  adoptedSheets,
+  applyIssuedProof,
   createProof,
   describeSendStep,
   loadProof,
@@ -69,5 +71,58 @@ describe("sender session storage", () => {
       describeSendStep({ email: "ada@example.com", code: "", stored, now: NOW }).kind,
     ).toBe("blocked");
     expect(VERIFY_COPY.ready).toContain("Nothing is sent until you do");
+  });
+
+  it("keeps the mailed challenge when a later attempt is not issued", async () => {
+    const first = await createProof("ada@example.com");
+    const second = await createProof("ada@example.com");
+    const mailed = applyIssuedProof(null, first.record, {
+      status: "issued",
+      challengeId: first.record.challengeId,
+    });
+    const delayedUnavailable = applyIssuedProof(mailed, second.record, {
+      status: "unavailable",
+    });
+    const lostResponse = applyIssuedProof(delayedUnavailable, second.record, null);
+    expect(lostResponse?.challengeId).toBe(first.record.challengeId);
+
+    const reordered = applyIssuedProof(
+      applyIssuedProof(null, second.record, { status: "unavailable" }),
+      first.record,
+      { status: "issued", challengeId: first.record.challengeId },
+    );
+    expect(reordered?.challengeId).toBe(first.record.challengeId);
+    expect(
+      describeSendStep({
+        email: "ada@example.com",
+        code: "the-original-code",
+        stored: reordered,
+        now: NOW,
+      }),
+    ).toMatchObject({
+      kind: "confirm",
+      challengeId: first.record.challengeId,
+      token: "the-original-code",
+    });
+  });
+
+  it("stops showing a confirmed state after the address changes", () => {
+    const stored = confirmed("ada@example.com");
+    expect(
+      describeSendStep({
+        email: "other@example.com",
+        code: "",
+        stored,
+        now: NOW,
+      }).kind,
+    ).toBe("start");
+  });
+
+  it("keeps the verification sheet when owner CSS is applied", () => {
+    expect(adoptedSheets("form", "verify", "owner")).toEqual([
+      "form",
+      "verify",
+      "owner",
+    ]);
   });
 });

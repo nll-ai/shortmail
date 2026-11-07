@@ -65,7 +65,10 @@ export default function EmbedDocsPage() {
           another site, and ShortMail does not use a third-party cookie for it.
           Messages always go to <em>your</em> inbox — a hostile host cannot
           redirect them. A cached copy of widget.js that does not send a
-          session proof fails closed: the letter is not delivered.
+          session proof fails closed: the letter is not delivered. This
+          proof is part of the current Convex widget only. The older FastAPI
+          app, while it is still what shortmail.nonlinearlabs.ai serves, does
+          not ask for it.
         </p>
       </section>
 

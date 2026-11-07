@@ -101,7 +101,10 @@ describe("widget verification in the browser", () => {
             sessionExpiresAt: null,
           });
         }
-        res.end(JSON.stringify({ status: "accepted" }));
+        res.end(JSON.stringify({
+          status: "issued",
+          challengeId: json.challengeId,
+        }));
         return;
       }
       if (url.pathname === "/api/verify/poll") {
@@ -202,8 +205,15 @@ describe("widget verification in the browser", () => {
     await codePage.goto(`http://127.0.0.1:${portA}/verify#t=${encodeURIComponent(lastToken)}`);
     await codePage.screenshot({ path: "/opt/cursor/artifacts/verify_ux_code_page.png" });
     await codePage.close();
-    await setShadowValue(pageA, "Paste the code from your email", "not-the-code");
-    await clickShadow(pageA, "Confirm email");
+    await pageA.evaluate(() => {
+      const root = document.querySelector("shortmail-widget")?.shadowRoot;
+      const input = root?.querySelector(
+        'input[placeholder="Paste the code from your email"]',
+      ) as HTMLInputElement | null;
+      if (!input) throw new Error("code input missing");
+      input.value = "not-the-code";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    });
     await pageA.waitForFunction(() => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
       return root?.textContent?.includes("not valid") ?? false;

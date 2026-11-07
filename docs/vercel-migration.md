@@ -101,6 +101,10 @@ the prod deployment. Note `migrate.ts` upserts by email — safe to re-run.
 - Rate limiting is now real (legacy `RateLimiter` existed but was never
   wired): per-vanity daily send cap 200/day (enforced), per-IP windows
   (advisory).
+- Sender inbox confirmation exists only on the Convex `/api/send` path
+  (Vercel app and `widget.js`). The legacy FastAPI app on
+  `shortmail.nonlinearlabs.ai` still accepts a letter without that proof.
+  DNS has not been cut over, so that host is unchanged.
 - Embedding is script-based (web component), never an iframe. Host pages can
   read what visitors type — owners can restrict origins per account.
 

@@ -247,10 +247,19 @@ http.route({
         verifyTokenHash: await sha256Hex(token),
         originConfigured: origin.length > 0,
       });
-      if (started.deliver) {
+      if (!started.deliver) return json({ status: "unavailable" });
+      try {
         await deliverVerificationEmail(email, token, origin);
+      } catch {
+        await ctx.runMutation(internal.senderProof.abandonVerification, {
+          challengeId: asString(payload.challengeId),
+        });
+        return json({ status: "unavailable" });
       }
-      return json({ status: "accepted" });
+      return json({
+        status: "issued",
+        challengeId: asString(payload.challengeId),
+      });
     }
 
     if (command === "poll") {

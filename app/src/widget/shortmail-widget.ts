@@ -17,12 +17,15 @@ import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
 import {
   VERIFY_COPY,
+  adoptedSheets,
+  applyIssuedProof,
   createProof,
   describeSendStep,
   loadProof,
   openSenderStore,
   saveProof,
   type ProofRecord,
+  type StartResult,
 } from "./senderSession";
 const CONVEX_SITE = process.env.WIDGET_CONVEX_SITE_URL ?? "";
 const convexSiteUrl = () => CONVEX_SITE;
@@ -293,10 +296,12 @@ class ShortmailWidget extends HTMLElement {
       try {
         const ownerSheet = new CSSStyleSheet();
         ownerSheet.replaceSync(this.config.theme.customCss);
-        this.shadow.adoptedStyleSheets = [
-          ...(this.shadow.adoptedStyleSheets ?? []).slice(0, 1),
+        const [formSheet, verifySheet] = this.shadow.adoptedStyleSheets ?? [];
+        this.shadow.adoptedStyleSheets = adoptedSheets(
+          formSheet ?? getFormSheet(),
+          verifySheet ?? getFormSheet(),
           ownerSheet,
-        ];
+        );
       } catch {
         // a malformed sheet must never break the form
       }
@@ -533,27 +538,40 @@ class ShortmailWidget extends HTMLElement {
         stored: loadProof(storage.store),
         now: Date.now(),
       });
+      const storedNow = loadProof(storage.store);
       const ready = step.kind === "send";
+      const samePending =
+        storedNow?.email === emailField.input.value.trim().toLowerCase() &&
+        storedNow.status === "pending";
       if (ready) {
         codeBlock.style.display = "none";
         codeButton.style.display = "none";
         showStatus(VERIFY_COPY.ready);
       } else {
         codeButton.style.display = "block";
+        if (!samePending) codeBlock.style.display = "none";
+        if (verifyStatus.textContent === VERIFY_COPY.ready) {
+          verifyStatus.textContent = storage.persistent ? "" : VERIFY_COPY.storage;
+        }
       }
     };
     emailField.input.addEventListener("input", refreshReady);
     refreshReady();
 
-    const startVerification = async (): Promise<void> => {
+    let startInFlight: Promise<void> | null = null;
+    const startVerification = (): Promise<void> => {
+      if (startInFlight) return startInFlight;
+      startInFlight = issueVerification().finally(() => {
+        startInFlight = null;
+      });
+      return startInFlight;
+    };
+    const issueVerification = async (): Promise<void> => {
+      const previous = loadProof(storage.store);
       const created = await createProof(emailField.input.value);
-      saveProof(storage.store, created.record);
-      codeBlock.style.display = "block";
-      codeButton.style.display = "block";
-      codeButton.textContent = "Send another code";
-      showStatus(VERIFY_COPY.check);
+      let result: StartResult = null;
       try {
-        await fetch(`${convexSiteUrl()}/api/verify/start`, {
+        const res = await fetch(`${convexSiteUrl()}/api/verify/start`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -563,13 +581,25 @@ class ShortmailWidget extends HTMLElement {
             sessionSecretHash: created.sessionSecretHash,
           }),
         });
+        if (res.ok) result = (await res.json()) as StartResult;
       } catch {
-        showStatus("Network error — please try again.");
+        result = null;
+      }
+      const kept = applyIssuedProof(previous, created.record, result);
+      if (previous) saveProof(storage.store, previous);
+      if (!kept || kept.challengeId !== created.record.challengeId) {
+        showStatus(result === null ? "Network error — please try again." : VERIFY_COPY.unavailable);
+        refreshReady();
         return;
       }
+      saveProof(storage.store, kept);
+      codeBlock.style.display = "block";
+      codeButton.style.display = "block";
+      codeButton.textContent = "Send another code";
+      showStatus(VERIFY_COPY.check);
       window.clearInterval(this.verifyPoll);
       this.verifyPoll = window.setInterval(() => {
-        void pollOnce(created.record);
+        void pollOnce(kept);
       }, 5000);
     };
 
@@ -589,6 +619,11 @@ class ShortmailWidget extends HTMLElement {
       }
     };
 
+    codeInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      confirmButton.click();
+    });
     codeButton.addEventListener("click", () => {
       void startVerification();
     });
