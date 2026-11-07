@@ -1,6 +1,6 @@
 # ShortMail landing design
 
-Status: approved direction, not implemented. Eric approved an owner-focused product page with a static, non-sending example on 2026-11-07. This file is the spec. Implement the landing only after this document is reviewed. The pull request that adds this file is documentation only.
+Status: approved for implementation on 2026-11-07, including the v2 specimen (Dr. Nkechi Adeyemi / Elena Ruiz). This file is the spec. The black “Proposed mockup” bar in review screenshots is not part of the page.
 
 The live homepage at `/` currently mounts `LandingLetter` with `demo`. The caption says the demo does not send. `handleSubmit` still `POST`s `/api/send/cce87ae9c1d7`. The replacement page removes that path.
 
@@ -51,18 +51,21 @@ Hero lede: `People write you at one link. Each letter is at most 500 characters.
 
 Hero link: `Create your page`. Href `/dashboard`.
 
-Specimen caption, before the letter: `Fictional example. This is not a form, and nothing on it can be sent.`
+Specimen caption, before the letter: `Fictional example`
 
-Specimen definition list:
+The caption is the only place that says the card is fictional. The card itself reads as a person’s page.
 
-- To: `Sample Owner`
-- From: `A. Visitor, visitor@example.com`
-- Subject headings an owner might publish: `A question about your work`, `An invitation to talk`, `A note of thanks`
-- Letter: `Hello. I have one specific question about the paper you posted in March. Is the dataset public?`
-- Length: `95/500`
-- Reply requested: `No`
+Specimen, in this order:
 
-The three headings are invented examples. Render them as text. The path below is also text, not a link.
+- Name: `Dr. Nkechi Adeyemi`
+- Role: `Professor of environmental health`
+- Subject headings, as text, with `Data request` marked selected and the others quiet: `Question about a paper`, `Prospective student`, `Data request`, `Speaking invitation`
+- From: `Elena Ruiz, elena.ruiz@example.com`
+- Letter: `Dr. Adeyemi, I assigned your 2023 heat-mortality paper in my methods seminar. Two students want the ward-level counts behind Figure 3. Can you share them, or tell me who can, before Friday?`
+- Length: `189/500`. The counter is the letter’s character length. That sentence is 189 characters.
+- Reply requested: `Yes`
+
+`example.com` is the reserved example domain. Do not use a real address. The path in the free-page list stays plain text, not a link.
 
 Section `h2`: `A free page`
 
@@ -145,7 +148,7 @@ Tests use fixtures and network mocks. They must not send mail, create a WorkOS u
 
 `app/src/components/LetterSpecimen.test.tsx`, Vitest and jsdom:
 
-- Rendered markup contains the caption, the sample letter, `95/500`, and `visitor@example.com`.
+- Rendered markup contains `Fictional example`, the 189-character letter, `189/500`, `Dr. Nkechi Adeyemi`, and `elena.ruiz@example.com`. The letter constant’s `.length` is 189.
 - Markup contains no `form`, `input`, `textarea`, `select`, `button`, `shortmail-widget`, `cce87ae9c1d7`, or the live headings "I'd like you to consult for me" and "SciPy 2026 Fundraiser".
 - Rendering calls `fetch` zero times.
 
@@ -173,4 +176,4 @@ Regression, mocks only:
 
 ## Implementation gate
 
-Do not start the landing change until this spec is reviewed. A review change to copy, section order, or the shared `/dashboard` destination updates this file first.
+Eric approved this spec and the v2 mockups on 2026-11-07. A later copy change updates this file in the same pull request as the code it describes.
