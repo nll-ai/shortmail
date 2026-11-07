@@ -23,7 +23,7 @@ export function LetterSpecimen() {
   return (
     <figure className="mt-14">
       <figcaption className="mb-3 text-[15px] leading-snug text-[#525252]">
-        Fictional example
+        Example
       </figcaption>
       <div className="border border-[#d4d4d4] p-6 max-sm:p-[1.15rem]">
         <p className="text-lg font-semibold tracking-tight">

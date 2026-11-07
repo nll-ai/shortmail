@@ -51,9 +51,9 @@ Hero lede: `People write you at one link. Each letter is at most 500 characters.
 
 Hero link: `Create your page`. Href `/dashboard`.
 
-Specimen caption, before the letter: `Fictional example`
+Specimen caption, before the letter: `Example`
 
-The caption is the only place that says the card is fictional. The card itself reads as a person’s page.
+The caption is the only label on the card. The card itself reads as a person’s page.
 
 Specimen, in this order:
 
@@ -148,7 +148,7 @@ Tests use fixtures and network mocks. They must not send mail, create a WorkOS u
 
 `app/src/components/LetterSpecimen.test.tsx`, Vitest and jsdom:
 
-- Rendered markup contains `Fictional example`, the 189-character letter, `189/500`, `Dr. Nkechi Adeyemi`, and `elena.ruiz@example.com`. The letter constant’s `.length` is 189.
+- Rendered markup contains `Example`, the 189-character letter, `189/500`, `Dr. Nkechi Adeyemi`, and `elena.ruiz@example.com`. The letter constant’s `.length` is 189. The caption is not `Fictional example`.
 - Markup contains no `form`, `input`, `textarea`, `select`, `button`, `shortmail-widget`, `cce87ae9c1d7`, or the live headings "I'd like you to consult for me" and "SciPy 2026 Fundraiser".
 - Rendering calls `fetch` zero times.
 
