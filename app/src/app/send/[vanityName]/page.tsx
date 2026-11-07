@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { EmbedConfig } from "@/widget/config";
+import { configUrl, convexSiteUrl } from "@/widget/api";
 
 // Config must reflect the live Convex deployment (new headings appear
 // immediately); never cache at build time.
@@ -17,15 +18,11 @@ export default async function SendPage({
   params: Promise<{ vanityName: string }>;
 }) {
   const { vanityName } = await params;
-  const base = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!base) notFound();
+  if (!convexSiteUrl()) notFound();
 
-  // httpActions (config + send) serve on the .site twin, not .cloud. The
-  // server-side fetch gives real 404s and the displayName for metadata.
-  const res = await fetch(
-    `${base.replace(".convex.cloud", ".convex.site")}/api/embed/${encodeURIComponent(vanityName)}/config`,
-    { cache: "no-store" },
-  );
+  // httpActions (config + send) serve on the site URL, not the cloud URL.
+  // The server-side fetch gives real 404s and the displayName for metadata.
+  const res = await fetch(configUrl(vanityName), { cache: "no-store" });
   if (!res.ok) notFound();
   const config = (await res.json()) as EmbedConfig;
 
