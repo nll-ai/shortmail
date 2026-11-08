@@ -54,16 +54,25 @@ describe("homepage", () => {
     expect(widget).toContain("/api/send/");
     expect(widget).toContain("session_secret");
 
+    const repoRoot = new URL("../../..", import.meta.url);
+    // CI fetches refs/remotes/origin/main without touching a checked-out main.
+    // Local runs fall back to main when origin/main is absent.
+    const hasOriginMain =
+      spawnSync("git", ["rev-parse", "--verify", "refs/remotes/origin/main"], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      }).status === 0;
+    const base = hasOriginMain ? "origin/main" : "main";
     const diff = spawnSync(
       "git",
       [
         "diff",
-        "main",
+        base,
         "--",
         "app/src/widget/formSkin.ts",
         "app/src/app/layout.tsx",
       ],
-      { cwd: new URL("../../..", import.meta.url), encoding: "utf8" },
+      { cwd: repoRoot, encoding: "utf8" },
     );
     expect(diff.status).toBe(0);
     expect(diff.stdout).toBe("");

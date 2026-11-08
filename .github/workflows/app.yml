@@ -14,9 +14,12 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch main for the landing diff check
+      - name: Fetch origin/main for the landing diff check
         working-directory: .
-        run: git fetch origin main:refs/heads/main
+        run: bash scripts/ci-fetch-landing-base.sh
+      - name: Prove the landing-base fetch on this checkout shape
+        working-directory: .
+        run: bash scripts/ci-fetch-landing-base.test.sh
       - uses: actions/setup-node@v4
         with:
           node-version: 24
