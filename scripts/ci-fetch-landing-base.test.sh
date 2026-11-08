@@ -2,6 +2,9 @@
 # Regression: the old App workflow wrote origin/main into refs/heads/main.
 # That fails when main is already checked out. The replacement always writes
 # refs/remotes/origin/main and leaves a usable base for the landing diff.
+#
+# Uses synthetic repos so PR runners (no local refs/heads/main) and main
+# push runners are both covered.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -11,13 +14,16 @@ LANDING_PATHS=(app/src/widget/formSkin.ts app/src/app/layout.tsx)
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
 
-# Always clone the main tip, even when this worktree is on a feature branch.
-source_repo="file://${ROOT}"
-
-clone_main_tip() {
-  local name="$1"
-  git clone --depth=1 --branch main "$source_repo" "$WORKDIR/$name" >/dev/null
-  git -C "$WORKDIR/$name" remote set-url origin "$source_repo"
+init_upstream() {
+  local dir="$1"
+  mkdir -p "$dir/app/src/widget" "$dir/app/src/app"
+  git -C "$dir" init -q -b main
+  git -C "$dir" config user.email "ci@example.com"
+  git -C "$dir" config user.name "CI"
+  printf 'skin\n' >"$dir/app/src/widget/formSkin.ts"
+  printf 'layout\n' >"$dir/app/src/app/layout.tsx"
+  git -C "$dir" add app
+  git -C "$dir" commit -qm "landing base"
 }
 
 assert_landing_diff() {
@@ -27,8 +33,12 @@ assert_landing_diff() {
   git -C "$repo" diff --quiet "$base" -- "${LANDING_PATHS[@]}"
 }
 
+echo "== build upstream with a main tip =="
+init_upstream "$WORKDIR/upstream"
+UPSTREAM="file://${WORKDIR}/upstream"
+
 echo "== main checkout: old fetch must fail =="
-clone_main_tip main-shape
+git clone --depth=1 "$UPSTREAM" "$WORKDIR/main-shape" >/dev/null
 (
   cd "$WORKDIR/main-shape"
   current="$(git branch --show-current)"
@@ -56,7 +66,7 @@ echo "== main checkout: new fetch must leave origin/main for the landing diff ==
 )
 
 echo "== detached PR-like shallow checkout: no local main, no origin/main =="
-clone_main_tip pr-shape
+git clone --depth=1 "$UPSTREAM" "$WORKDIR/pr-shape" >/dev/null
 (
   cd "$WORKDIR/pr-shape"
   git checkout --detach HEAD >/dev/null
