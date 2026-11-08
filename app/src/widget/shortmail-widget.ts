@@ -12,6 +12,7 @@
  * Owners may restrict embedding via embedAllowedOrigins.
  */
 
+import { renderFaqAnswer } from "./faqAnswer";
 import { presetById } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
@@ -85,12 +86,28 @@ const POLISH_CSS = `
     line-height: 1.3;
     color: var(--sm-text, #171717);
   }
-  .sm-faqs { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
-  .sm-faq {
+  .sm-faqs { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+  .sm-faq { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .sm-faq-question {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--sm-text, #171717);
+    overflow-wrap: anywhere;
+  }
+  .sm-faq-answer {
     margin: 0;
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--sm-muted, #525252);
+    overflow-wrap: anywhere;
+  }
+  .sm-faq-answer p { margin: 0; }
+  .sm-faq-answer a {
+    color: var(--sm-text, #171717);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
   .sm-grid-2, .sm-label, .sm-fieldset {
     width: 100%;
@@ -311,7 +328,7 @@ class ShortmailWidget extends HTMLElement {
             answer: change.answer,
           });
         }
-        this.appendFaqQuestion(change.question);
+        this.appendFaq(change.question, change.answer);
         break;
       }
       case "faq-edited": {
@@ -323,8 +340,14 @@ class ShortmailWidget extends HTMLElement {
             faq.answer = change.answer;
           }
         }
-        const el = this.faqNodes().find((f) => f.textContent === previous);
-        if (el) el.textContent = change.question;
+        const el = this.faqByQuestion(previous);
+        if (el) {
+          el.dataset.question = change.question;
+          const question = el.querySelector(".sm-faq-question");
+          if (question) question.textContent = change.question;
+          const answer = el.querySelector(".sm-faq-answer");
+          if (answer) answer.replaceChildren(renderFaqAnswer(change.answer));
+        }
         break;
       }
       case "faq-removed": {
@@ -333,7 +356,7 @@ class ShortmailWidget extends HTMLElement {
             (f) => f.question !== change.question,
           );
         }
-        this.faqNodes().find((f) => f.textContent === change.question)?.remove();
+        this.faqByQuestion(change.question)?.remove();
         const faqs = this.shadow.querySelector(".sm-faqs");
         if (faqs && faqs.childElementCount === 0) faqs.remove();
         break;
@@ -463,7 +486,7 @@ class ShortmailWidget extends HTMLElement {
     form.appendChild(heading);
 
     for (const faq of cfg.faqs) {
-      this.appendFaqQuestion(faq.question, form);
+      this.appendFaq(faq.question, faq.answer, form);
     }
 
     const nameField = this.textField("Your name", "name");
@@ -864,9 +887,12 @@ class ShortmailWidget extends HTMLElement {
     this.shadow.appendChild(form);
   }
 
-  /** Questions visitors see. Answers stay in config and are not painted. */
   private faqNodes(): HTMLElement[] {
     return [...this.shadow.querySelectorAll(".sm-faq")] as HTMLElement[];
+  }
+
+  private faqByQuestion(question: string): HTMLElement | undefined {
+    return this.faqNodes().find((node) => node.dataset.question === question);
   }
 
   private ensureFaqList(form?: Element | null): HTMLElement | null {
@@ -882,14 +908,21 @@ class ShortmailWidget extends HTMLElement {
     return faqs;
   }
 
-  private appendFaqQuestion(question: string, form?: Element | null): void {
+  private appendFaq(question: string, answer: string, form?: Element | null): void {
     const faqs = this.ensureFaqList(form);
     if (!faqs) return;
-    const p = document.createElement("p");
-    p.className = "sm-faq";
-    p.setAttribute("part", "faq");
-    p.textContent = question;
-    faqs.appendChild(p);
+    const item = document.createElement("div");
+    item.className = "sm-faq";
+    item.setAttribute("part", "faq");
+    item.dataset.question = question;
+    const questionEl = document.createElement("p");
+    questionEl.className = "sm-faq-question";
+    questionEl.textContent = question;
+    const answerEl = document.createElement("div");
+    answerEl.className = "sm-faq-answer";
+    answerEl.append(renderFaqAnswer(answer));
+    item.append(questionEl, answerEl);
+    faqs.appendChild(item);
   }
 
   private textField(labelText: string, part: string): {

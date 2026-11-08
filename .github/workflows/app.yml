@@ -1,0 +1,33 @@
+name: App
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Typecheck, unit, Cypress, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      # Puppeteer specs import Chrome from a machine-local path. Cypress is the browser suite.
+      - run: npx vitest run --exclude '**/*.browser.test.ts'
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: app
+          install: false
+          browser: chrome
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_CONVEX_URL: https://ci-placeholder.convex.cloud

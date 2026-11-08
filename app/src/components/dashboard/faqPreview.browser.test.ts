@@ -125,16 +125,18 @@ function dashboardHtml(): string {
 function readFaqs(page: BrowserPage): Promise<FaqView> {
   return page.evaluate(() => {
     const root = document.querySelector("shortmail-widget")?.shadowRoot;
-    const faqs = [...(root?.querySelectorAll(".sm-faq") ?? [])];
-    const first = faqs[0] as HTMLElement | undefined;
-    const style = first ? getComputedStyle(first) : null;
+    const questions = [...(root?.querySelectorAll(".sm-faq-question") ?? [])];
+    const answer = root?.querySelector(".sm-faq-answer") as HTMLElement | undefined;
+    const style = answer ? getComputedStyle(answer) : null;
+    const link = root?.querySelector(".sm-faq-answer a") as HTMLElement | undefined;
+    const linkStyle = link ? getComputedStyle(link) : null;
     return {
       text: root?.textContent ?? "",
       html: root?.innerHTML ?? "",
-      questions: faqs.map((node) => node.textContent ?? ""),
-      linkHrefs: [...(root?.querySelectorAll("a") ?? [])].map((node) => (node as HTMLAnchorElement).href),
+      questions: questions.map((node) => node.textContent ?? ""),
+      linkHrefs: [...(root?.querySelectorAll("a") ?? [])].map((node) => (node as HTMLAnchorElement).getAttribute("href") ?? ""),
       faqColor: style?.color ?? "",
-      faqCursor: style?.cursor ?? "",
+      faqCursor: linkStyle?.cursor ?? "",
       faqSize: style?.fontSize ?? "",
     };
   }) as Promise<FaqView>;
@@ -221,7 +223,7 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
     origin.close();
   });
 
-  it("shows the visitor question, ignores the answer markup, and applies add, rename, and remove", async () => {
+  it("shows the visitor question and safe answer link, and applies add, rename, and remove", async () => {
     const browser = await puppeteer.launch({
       executablePath: "/usr/local/bin/google-chrome",
       headless: "new",
@@ -243,11 +245,10 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
     expect(initial.text).toContain(QUESTION);
     expect(initial.text).toContain("Send a shortmail to Fixture Owner");
     expect(initial.text).toContain("Your name");
-    expect(initial.html).not.toContain("calendly.com");
+    expect(initial.linkHrefs).toEqual(["https://calendly.com/ericmjl/45-minute-meeting"]);
     expect(initial.html).not.toContain("<script");
-    expect(initial.linkHrefs).toEqual([]);
     expect(initial.faqColor).toBe("rgb(82, 82, 82)");
-    expect(initial.faqCursor).toBe("auto");
+    expect(initial.faqCursor).toBe("pointer");
     expect(initial.faqSize).toBe("14px");
     expect(initial.text.indexOf(QUESTION)).toBeLessThan(initial.text.indexOf("Your name"));
 
@@ -256,7 +257,7 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
       if (faq instanceof HTMLElement) faq.click();
     });
     const afterClick = await readFaqs(page);
-    expect(afterClick.html).not.toContain("calendly.com");
+    expect(afterClick.linkHrefs).toEqual(["https://calendly.com/ericmjl/45-minute-meeting"]);
     expect(afterClick.questions).toEqual([QUESTION]);
 
     const shot = async (scheme: "light" | "dark", width: number, stem: string) => {
@@ -275,14 +276,14 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
     await page.click("#add-faq");
     await page.waitForFunction((question: string) => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
-      return [...(root?.querySelectorAll(".sm-faq") ?? [])].some((node) => node.textContent === question);
+      return [...(root?.querySelectorAll(".sm-faq-question") ?? [])].some((node) => node.textContent === question);
     }, { timeout: 5000 }, ADDED);
     const added = await readFaqs(page);
     expect(added.questions).toEqual([QUESTION, ADDED]);
-    expect(added.html).not.toContain("calendly.com");
+    expect(added.linkHrefs).toContain("https://calendly.com/ericmjl/45-minute-meeting");
+    expect(added.linkHrefs).toContain("https://evil.example/");
     expect(added.html).not.toContain("<script");
     expect(added.html).not.toContain("javascript:");
-    expect(added.linkHrefs).toEqual([]);
     expect(added.text.indexOf(ADDED)).toBeLessThan(added.text.indexOf("Your name"));
     await page.screenshot({
       path: "/opt/cursor/artifacts/fixture_faq_preview_after_add_desktop_light.png",
@@ -296,12 +297,12 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
     }, { timeout: 5000 }, RENAMED);
     const renamed = await readFaqs(page);
     expect(renamed.questions).toEqual([RENAMED, ADDED]);
-    expect(renamed.html).not.toContain("calendly.com");
+    expect(renamed.linkHrefs).toContain("https://calendly.com/ericmjl/45-minute-meeting");
 
     await page.click("#remove-added");
     await page.waitForFunction((question: string) => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
-      const questions = [...(root?.querySelectorAll(".sm-faq") ?? [])].map((node) => node.textContent);
+      const questions = [...(root?.querySelectorAll(".sm-faq-question") ?? [])].map((node) => node.textContent);
       return !questions.includes(question);
     }, { timeout: 5000 }, ADDED);
     const removed = await readFaqs(page);
@@ -324,11 +325,11 @@ describe("dashboard FAQ preview matches the visitor widget", () => {
     await page.waitForFunction((question: string) => {
       const root = document.querySelector("shortmail-widget")?.shadowRoot;
       return root?.querySelector(".sm-faqs") !== null
-        && [...(root?.querySelectorAll(".sm-faq") ?? [])].some((node) => node.textContent === question);
+        && [...(root?.querySelectorAll(".sm-faq-question") ?? [])].some((node) => node.textContent === question);
     }, { timeout: 5000 }, "Is the link public?");
     const readded = await readFaqs(page);
     expect(readded.questions).toEqual(["Is the link public?"]);
-    expect(readded.html).not.toContain("calendly.com");
+    expect(readded.linkHrefs).toEqual(["https://calendly.com/ericmjl/45-minute-meeting"]);
     expect(readded.text.indexOf("Is the link public?")).toBeLessThan(readded.text.indexOf("Your name"));
 
     await page.evaluate(() => {

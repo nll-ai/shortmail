@@ -60,7 +60,7 @@ export default function Home() {
           <li>
             You can publish up to 5 subject headings. Visitors pick one of
             yours, or write their own. A free account can also save 3 FAQ
-            entries. Visitors do not see those answers on the letter page.
+            entries. Visitors see those answers under the questions on the letter page.
           </li>
           <li>
             The letter arrives as email. Analytics, theming, an embed, and a

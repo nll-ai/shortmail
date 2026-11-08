@@ -22,7 +22,7 @@ describe("homepage", () => {
     expect(signIn).toHaveLength(1);
     expect(html.replaceAll("&#x27;", "'")).toContain(PRIVACY);
     expect(html).toContain(
-      "Visitors do not see those answers on the letter page.",
+      "Visitors see those answers under the questions on the letter page.",
     );
     expect(html).toContain("189/500");
     expect(html).not.toContain("<form");
