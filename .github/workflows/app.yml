@@ -14,6 +14,9 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch main for the landing diff check
+        working-directory: .
+        run: git fetch origin main:refs/heads/main
       - uses: actions/setup-node@v4
         with:
           node-version: 24
