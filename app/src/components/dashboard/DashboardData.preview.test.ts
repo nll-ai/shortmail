@@ -19,4 +19,28 @@ describe("dashboard live preview", () => {
     expect(widgetAt).toBeGreaterThan(scriptAt);
     expect(source).toContain("Live preview — what your visitors see");
   });
+
+  it("renames a FAQ in the preview from the question that is already shown", () => {
+    const saveAt = source.indexOf("await editFaq(");
+    const nextCatch = source.indexOf("} catch", saveAt);
+    const block = source.slice(saveAt, nextCatch);
+
+    expect(saveAt).toBeGreaterThan(-1);
+    expect(block).toContain('kind: "faq-edited"');
+    expect(block).toContain("previousQuestion: f.question");
+    expect(block).toContain("question: editQuestion");
+    expect(block).toContain("answer: editAnswer");
+  });
+
+  it("removes a FAQ from the preview by the question visitors see", () => {
+    const removeAt = source.indexOf("await removeFaq({ id: f.id })");
+    const nextCatch = source.indexOf("} catch", removeAt);
+    const block = source.slice(removeAt, nextCatch);
+
+    expect(removeAt).toBeGreaterThan(-1);
+    expect(block).toContain('kind: "faq-removed"');
+    expect(block).toContain("question: f.question");
+    expect(block).not.toContain("faq-edited");
+    expect(block).not.toContain("editQuestion");
+  });
 });

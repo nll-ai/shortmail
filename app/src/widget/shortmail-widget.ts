@@ -12,6 +12,7 @@
  * Owners may restrict embedding via embedAllowedOrigins.
  */
 
+import { renderFaqAnswer } from "./faqAnswer";
 import { presetById } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
@@ -85,12 +86,28 @@ const POLISH_CSS = `
     line-height: 1.3;
     color: var(--sm-text, #171717);
   }
-  .sm-faqs { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
-  .sm-faq {
+  .sm-faqs { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+  .sm-faq { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .sm-faq-question {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--sm-text, #171717);
+    overflow-wrap: anywhere;
+  }
+  .sm-faq-answer {
     margin: 0;
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--sm-muted, #525252);
+    overflow-wrap: anywhere;
+  }
+  .sm-faq-answer p { margin: 0; }
+  .sm-faq-answer a {
+    color: var(--sm-text, #171717);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
   .sm-grid-2, .sm-label, .sm-fieldset {
     width: 100%;
@@ -267,7 +284,7 @@ class ShortmailWidget extends HTMLElement {
     switch (change.kind) {
       case "display-name": {
         if (this.config) this.config.displayName = change.value;
-        const heading = this.shadow.querySelector(".heading");
+        const heading = this.shadow.querySelector(".sm-heading");
         if (heading) {
           heading.textContent = `Send a shortmail to ${change.value}`;
         }
@@ -311,25 +328,26 @@ class ShortmailWidget extends HTMLElement {
             answer: change.answer,
           });
         }
-        const form = this.shadow.querySelector(".form");
-        const headingEl = this.shadow.querySelector(".heading");
-        const faq = document.createElement("p");
-        faq.className = "sm-hint";
-        faq.setAttribute("part", "faq");
-        faq.textContent = change.question;
-        if (form && headingEl) form.insertBefore(faq, headingEl.nextSibling);
+        this.appendFaq(change.question, change.answer);
         break;
       }
       case "faq-edited": {
+        const previous = change.previousQuestion ?? change.question;
         if (this.config) {
-          const faq = this.config.faqs.find(
-            (f) => f.question === change.question,
-          );
-          if (faq) faq.answer = change.answer;
+          const faq = this.config.faqs.find((f) => f.question === previous);
+          if (faq) {
+            faq.question = change.question;
+            faq.answer = change.answer;
+          }
         }
-        const faqEls = [...this.shadow.querySelectorAll(".faq")];
-        const el = faqEls.find((f) => f.textContent === change.question);
-        if (el) el.textContent = change.question;
+        const el = this.faqByQuestion(previous);
+        if (el) {
+          el.dataset.question = change.question;
+          const question = el.querySelector(".sm-faq-question");
+          if (question) question.textContent = change.question;
+          const answer = el.querySelector(".sm-faq-answer");
+          if (answer) answer.replaceChildren(renderFaqAnswer(change.answer));
+        }
         break;
       }
       case "faq-removed": {
@@ -338,9 +356,9 @@ class ShortmailWidget extends HTMLElement {
             (f) => f.question !== change.question,
           );
         }
-        const faqEls = [...this.shadow.querySelectorAll(".faq")];
-        const el = faqEls.find((f) => f.textContent === change.question);
-        el?.remove();
+        this.faqByQuestion(change.question)?.remove();
+        const faqs = this.shadow.querySelector(".sm-faqs");
+        if (faqs && faqs.childElementCount === 0) faqs.remove();
         break;
       }
       case "theme": {
@@ -467,17 +485,8 @@ class ShortmailWidget extends HTMLElement {
     heading.textContent = `Send a shortmail to ${cfg.displayName}`;
     form.appendChild(heading);
 
-    if (cfg.faqs.length > 0) {
-      const faqs = document.createElement("div");
-      faqs.className = "sm-faqs";
-      for (const faq of cfg.faqs) {
-        const p = document.createElement("p");
-        p.className = "sm-faq";
-        p.setAttribute("part", "faq");
-        p.textContent = faq.question;
-        faqs.appendChild(p);
-      }
-      form.appendChild(faqs);
+    for (const faq of cfg.faqs) {
+      this.appendFaq(faq.question, faq.answer, form);
     }
 
     const nameField = this.textField("Your name", "name");
@@ -876,6 +885,44 @@ class ShortmailWidget extends HTMLElement {
     });
 
     this.shadow.appendChild(form);
+  }
+
+  private faqNodes(): HTMLElement[] {
+    return [...this.shadow.querySelectorAll(".sm-faq")] as HTMLElement[];
+  }
+
+  private faqByQuestion(question: string): HTMLElement | undefined {
+    return this.faqNodes().find((node) => node.dataset.question === question);
+  }
+
+  private ensureFaqList(form?: Element | null): HTMLElement | null {
+    const root = form ?? this.shadow.querySelector(".sm-form");
+    if (!root) return null;
+    const existing = root.querySelector(".sm-faqs");
+    if (existing) return existing as HTMLElement;
+    const faqs = document.createElement("div");
+    faqs.className = "sm-faqs";
+    const heading = root.querySelector(".sm-heading");
+    if (heading?.nextSibling) root.insertBefore(faqs, heading.nextSibling);
+    else root.appendChild(faqs);
+    return faqs;
+  }
+
+  private appendFaq(question: string, answer: string, form?: Element | null): void {
+    const faqs = this.ensureFaqList(form);
+    if (!faqs) return;
+    const item = document.createElement("div");
+    item.className = "sm-faq";
+    item.setAttribute("part", "faq");
+    item.dataset.question = question;
+    const questionEl = document.createElement("p");
+    questionEl.className = "sm-faq-question";
+    questionEl.textContent = question;
+    const answerEl = document.createElement("div");
+    answerEl.className = "sm-faq-answer";
+    answerEl.append(renderFaqAnswer(answer));
+    item.append(questionEl, answerEl);
+    faqs.appendChild(item);
   }
 
   private textField(labelText: string, part: string): {

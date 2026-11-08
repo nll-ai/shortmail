@@ -307,6 +307,7 @@ function FaqsSection({
                       });
                       dispatchWidgetChange({
                         kind: "faq-edited",
+                        previousQuestion: f.question,
                         question: editQuestion,
                         answer: editAnswer,
                       });
@@ -351,10 +352,9 @@ function FaqsSection({
                       try {
                         await removeFaq({ id: f.id });
                         dispatchWidgetChange({
-                        kind: "faq-edited",
-                        question: editQuestion,
-                        answer: editAnswer,
-                      });
+                          kind: "faq-removed",
+                          question: f.question,
+                        });
                       } catch (err) {
                         setError(friendlyError(err));
                       }
