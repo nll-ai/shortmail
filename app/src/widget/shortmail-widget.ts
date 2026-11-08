@@ -267,7 +267,7 @@ class ShortmailWidget extends HTMLElement {
     switch (change.kind) {
       case "display-name": {
         if (this.config) this.config.displayName = change.value;
-        const heading = this.shadow.querySelector(".heading");
+        const heading = this.shadow.querySelector(".sm-heading");
         if (heading) {
           heading.textContent = `Send a shortmail to ${change.value}`;
         }
@@ -311,24 +311,19 @@ class ShortmailWidget extends HTMLElement {
             answer: change.answer,
           });
         }
-        const form = this.shadow.querySelector(".form");
-        const headingEl = this.shadow.querySelector(".heading");
-        const faq = document.createElement("p");
-        faq.className = "sm-hint";
-        faq.setAttribute("part", "faq");
-        faq.textContent = change.question;
-        if (form && headingEl) form.insertBefore(faq, headingEl.nextSibling);
+        this.appendFaqQuestion(change.question);
         break;
       }
       case "faq-edited": {
+        const previous = change.previousQuestion ?? change.question;
         if (this.config) {
-          const faq = this.config.faqs.find(
-            (f) => f.question === change.question,
-          );
-          if (faq) faq.answer = change.answer;
+          const faq = this.config.faqs.find((f) => f.question === previous);
+          if (faq) {
+            faq.question = change.question;
+            faq.answer = change.answer;
+          }
         }
-        const faqEls = [...this.shadow.querySelectorAll(".faq")];
-        const el = faqEls.find((f) => f.textContent === change.question);
+        const el = this.faqNodes().find((f) => f.textContent === previous);
         if (el) el.textContent = change.question;
         break;
       }
@@ -338,9 +333,9 @@ class ShortmailWidget extends HTMLElement {
             (f) => f.question !== change.question,
           );
         }
-        const faqEls = [...this.shadow.querySelectorAll(".faq")];
-        const el = faqEls.find((f) => f.textContent === change.question);
-        el?.remove();
+        this.faqNodes().find((f) => f.textContent === change.question)?.remove();
+        const faqs = this.shadow.querySelector(".sm-faqs");
+        if (faqs && faqs.childElementCount === 0) faqs.remove();
         break;
       }
       case "theme": {
@@ -467,17 +462,8 @@ class ShortmailWidget extends HTMLElement {
     heading.textContent = `Send a shortmail to ${cfg.displayName}`;
     form.appendChild(heading);
 
-    if (cfg.faqs.length > 0) {
-      const faqs = document.createElement("div");
-      faqs.className = "sm-faqs";
-      for (const faq of cfg.faqs) {
-        const p = document.createElement("p");
-        p.className = "sm-faq";
-        p.setAttribute("part", "faq");
-        p.textContent = faq.question;
-        faqs.appendChild(p);
-      }
-      form.appendChild(faqs);
+    for (const faq of cfg.faqs) {
+      this.appendFaqQuestion(faq.question, form);
     }
 
     const nameField = this.textField("Your name", "name");
@@ -876,6 +862,34 @@ class ShortmailWidget extends HTMLElement {
     });
 
     this.shadow.appendChild(form);
+  }
+
+  /** Questions visitors see. Answers stay in config and are not painted. */
+  private faqNodes(): HTMLElement[] {
+    return [...this.shadow.querySelectorAll(".sm-faq")] as HTMLElement[];
+  }
+
+  private ensureFaqList(form?: Element | null): HTMLElement | null {
+    const root = form ?? this.shadow.querySelector(".sm-form");
+    if (!root) return null;
+    const existing = root.querySelector(".sm-faqs");
+    if (existing) return existing as HTMLElement;
+    const faqs = document.createElement("div");
+    faqs.className = "sm-faqs";
+    const heading = root.querySelector(".sm-heading");
+    if (heading?.nextSibling) root.insertBefore(faqs, heading.nextSibling);
+    else root.appendChild(faqs);
+    return faqs;
+  }
+
+  private appendFaqQuestion(question: string, form?: Element | null): void {
+    const faqs = this.ensureFaqList(form);
+    if (!faqs) return;
+    const p = document.createElement("p");
+    p.className = "sm-faq";
+    p.setAttribute("part", "faq");
+    p.textContent = question;
+    faqs.appendChild(p);
   }
 
   private textField(labelText: string, part: string): {
