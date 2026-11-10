@@ -55,6 +55,9 @@ describe("sender proof rules", () => {
     );
     expect(message.text).toContain("abcDEF_123");
     expect(message.text).toContain("#t=");
+    expect(message.text).toContain("Paste the code into the form");
+    expect(message.text).not.toContain("only shows the code");
+    expect(message.html).toContain("Paste the code into the form");
     expect(message.text).not.toContain("ward-level");
     expect(message.html).not.toContain("?");
     expect(() => verificationLink("https://evil.example/phish", "tok")).toThrow();

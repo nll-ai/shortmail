@@ -9,6 +9,8 @@ import {
   loadProof,
   memoryStore,
   saveProof,
+  sendFieldGaps,
+  verificationChrome,
   type ProofRecord,
 } from "./senderSession";
 
@@ -155,6 +157,59 @@ describe("sender session storage", () => {
       }).committed,
     ).toBe(false);
     expect(loadProof(reordered)?.challengeId).toBe(tabA.challengeId);
+  });
+
+  it("names every missing letter field, including a custom subject", () => {
+    const filled = {
+      name: "Eric Ma",
+      email: "ericmjl@icloud.com",
+      emailValid: true,
+      subject: "OTHER",
+      customSubject: "TEST",
+      message: "TEST",
+    };
+    expect(sendFieldGaps(filled)).toBeNull();
+    expect(sendFieldGaps({ ...filled, subject: "", customSubject: "" })).toBe(
+      "Add a subject before the letter can be sent.",
+    );
+    expect(sendFieldGaps({ ...filled, customSubject: "  " })).toBe(
+      "Add your own subject before the letter can be sent.",
+    );
+    expect(
+      sendFieldGaps({
+        ...filled,
+        name: "",
+        subject: "",
+        customSubject: "",
+        message: "",
+      }),
+    ).toBe("Add your name, a subject, and a message before the letter can be sent.");
+  });
+
+  it("shows the code box again when a pending proof is still the one for this email", () => {
+    const stored: ProofRecord = {
+      ...confirmed("ericmjl@icloud.com"),
+      status: "pending",
+      sessionExpiresAt: null,
+    };
+    const step = describeSendStep({
+      email: "ericmjl@icloud.com",
+      code: "",
+      stored,
+      now: NOW,
+    });
+    expect(verificationChrome(step)).toEqual({
+      showCode: true,
+      showConfirm: true,
+      showSend: false,
+      showRequestCode: true,
+      status: VERIFY_COPY.check,
+    });
+    expect(
+      verificationChrome(
+        describeSendStep({ email: "ericmjl@icloud.com", code: "", stored: confirmed("ericmjl@icloud.com"), now: NOW }),
+      ).showSend,
+    ).toBe(true);
   });
 
   it("keeps the verification sheet when owner CSS is applied", () => {

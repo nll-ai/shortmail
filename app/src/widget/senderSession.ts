@@ -211,6 +211,96 @@ export async function createProof(email: string): Promise<{
   };
 }
 
+export type VerificationChrome = {
+  showCode: boolean;
+  showConfirm: boolean;
+  showSend: boolean;
+  showRequestCode: boolean;
+  status: string | null;
+};
+
+/**
+ * Which verification controls to show for a send step.
+ *
+ * A pending code has to come back after a reload, including the code box
+ * and the Confirm button. Confirmation itself does not send the letter.
+ *
+ * :param step: Decision from describeSendStep.
+ * :returns: Visibility flags, and a status line, or null to leave the current line.
+ */
+export function verificationChrome(step: SendStep): VerificationChrome {
+  if (step.kind === "send") {
+    return {
+      showCode: false,
+      showConfirm: false,
+      showSend: true,
+      showRequestCode: false,
+      status: VERIFY_COPY.ready,
+    };
+  }
+  if (
+    step.kind === "confirm" ||
+    (step.kind === "blocked" && step.message === VERIFY_COPY.check)
+  ) {
+    return {
+      showCode: true,
+      showConfirm: true,
+      showSend: false,
+      showRequestCode: true,
+      status: step.kind === "blocked" ? VERIFY_COPY.check : null,
+    };
+  }
+  if (step.kind === "blocked") {
+    return {
+      showCode: false,
+      showConfirm: false,
+      showSend: true,
+      showRequestCode: true,
+      status: step.message,
+    };
+  }
+  return {
+    showCode: false,
+    showConfirm: false,
+    showSend: true,
+    showRequestCode: true,
+    status: null,
+  };
+}
+
+/**
+ * Why Send cannot post yet, naming every missing letter field.
+ *
+ * :param fields: Current form values. emailValid is the email input's validity.
+ * :returns: One sentence, or null when the letter fields are complete.
+ */
+export function sendFieldGaps(fields: {
+  name: string;
+  email: string;
+  emailValid: boolean;
+  subject: string;
+  customSubject: string;
+  message: string;
+}): string | null {
+  const missing: string[] = [];
+  if (fields.name.trim().length === 0) missing.push("your name");
+  if (fields.email.trim().length === 0 || !fields.emailValid) missing.push("a valid email");
+  if (fields.subject === "OTHER") {
+    if (fields.customSubject.trim().length === 0) missing.push("your own subject");
+  } else if (fields.subject.trim().length === 0) {
+    missing.push("a subject");
+  }
+  if (fields.message.trim().length === 0) missing.push("a message");
+  if (missing.length === 0) return null;
+  const list =
+    missing.length === 1
+      ? missing[0]
+      : missing.length === 2
+        ? `${missing[0]} and ${missing[1]}`
+        : `${missing.slice(0, -1).join(", ")}, and ${missing[missing.length - 1]}`;
+  return `Add ${list} before the letter can be sent.`;
+}
+
 /**
  * Decide what pressing Send or Confirm should do. The letter is not sent
  * as a side effect of confirmation.

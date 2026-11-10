@@ -25,6 +25,8 @@ import {
   loadProof,
   openSenderStore,
   saveProof,
+  sendFieldGaps,
+  verificationChrome,
   type ProofRecord,
   type StartResult,
 } from "./senderSession";
@@ -236,6 +238,8 @@ class ShortmailWidget extends HTMLElement {
   private changeHandler = (e: Event): void =>
     this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
   private verifyPoll = 0;
+  /** A reconnect must not fetch config again and wipe a letter in progress. */
+  private booted = false;
   private hostSheet = new CSSStyleSheet();
   private polishSheet = new CSSStyleSheet();
   private verifySheet = new CSSStyleSheet();
@@ -271,6 +275,8 @@ class ShortmailWidget extends HTMLElement {
     this.changeHandler = (e: Event) =>
       this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
     window.addEventListener(WIDGET_CHANGE_EVENT, this.changeHandler);
+    if (this.booted) return;
+    this.booted = true;
     void this.load();
   }
 
@@ -476,6 +482,7 @@ class ShortmailWidget extends HTMLElement {
     this.shadow.innerHTML = "";
 
     const form = document.createElement("form");
+    form.noValidate = true;
     form.setAttribute("part", "form");
     form.className = "sm-form";
 
@@ -584,18 +591,24 @@ class ShortmailWidget extends HTMLElement {
     counter.textContent = `0/${MAX_MESSAGE_LENGTH}`;
     message.addEventListener("input", () => {
       counter.textContent = `${message.value.length}/${MAX_MESSAGE_LENGTH}`;
-      syncCanSubmit();
     });
     messageLabel.appendChild(message);
     messageLabel.appendChild(counter);
     form.appendChild(messageLabel);
 
-    // Honeypot: invisible to humans, catnip for bots.
+    // Honeypot: invisible to humans, catnip for bots that set every value.
+    // Chrome address autofill writes the visitor's email into an off-screen
+    // input named "website" (autocomplete="off" does not stop it). Send then
+    // returned before fetch, so a confirmed letter never left the browser.
+    // A name Chrome does not classify, plus readonly, keeps that from happening.
+    // Bots that assign `.value` still trip the field. Readonly does not block that.
     const honeypot = document.createElement("input");
     honeypot.type = "text";
-    honeypot.name = "website";
+    honeypot.name = "shortmail_leave_blank";
     honeypot.tabIndex = -1;
     honeypot.autocomplete = "off";
+    honeypot.readOnly = true;
+    honeypot.setAttribute("aria-hidden", "true");
     honeypot.className = "sm-honeypot";
     form.appendChild(honeypot);
 
@@ -629,6 +642,7 @@ class ShortmailWidget extends HTMLElement {
 
     const errorLine = document.createElement("p");
     errorLine.className = "sm-error";
+    errorLine.setAttribute("role", "alert");
     errorLine.style.display = "none";
     form.appendChild(errorLine);
 
@@ -636,27 +650,13 @@ class ShortmailWidget extends HTMLElement {
     sendButton.type = "submit";
     sendButton.className = "sm-button";
     sendButton.setAttribute("part", "button");
-    sendButton.setAttribute("part", "button");
     sendButton.textContent = "Send shortmail";
-    sendButton.disabled = true;
     form.appendChild(sendButton);
 
-    const canSubmit = (): boolean =>
-      nameField.input.value.trim().length > 0 &&
-      emailField.input.validity.valid &&
-      message.value.trim().length > 0 &&
-      (select.value === "OTHER"
-        ? customInput.value.trim().length > 0
-        : select.value !== "");
-
-    function syncCanSubmit(): void {
-      sendButton.disabled = !canSubmit();
-    }
-    for (const el of [nameField.input, emailField.input, customInput]) {
-      el.addEventListener("input", syncCanSubmit);
-    }
-    select.addEventListener("change", syncCanSubmit);
-    syncCanSubmit();
+    const showError = (text: string): void => {
+      errorLine.textContent = text;
+      errorLine.style.display = "block";
+    };
 
     const storage = openSenderStore(safeLocalStorage());
     if (!storage.persistent) {
@@ -670,34 +670,28 @@ class ShortmailWidget extends HTMLElement {
     const refreshReady = (): void => {
       const step = describeSendStep({
         email: emailField.input.value,
-        code: "",
+        code: codeInput.value,
         stored: loadProof(storage.store),
         now: Date.now(),
       });
-      const storedNow = loadProof(storage.store);
-      const ready = step.kind === "send";
-      const samePending =
-        storedNow?.email === emailField.input.value.trim().toLowerCase() &&
-        storedNow.status === "pending";
-      if (ready) {
-        codeBlock.style.display = "none";
-        codeButton.style.display = "none";
-        confirmButton.style.display = "none";
-        sendButton.style.display = "block";
-        showStatus(VERIFY_COPY.ready);
-      } else {
-        if (!samePending) {
-          codeBlock.style.display = "none";
-          confirmButton.style.display = "none";
-          sendButton.style.display = "block";
-        }
-        codeButton.style.display = "block";
-        if (verifyStatus.textContent === VERIFY_COPY.ready) {
-          showStatus(storage.persistent ? "" : VERIFY_COPY.storage);
-        }
+      const chrome = verificationChrome(step);
+      codeBlock.style.display = chrome.showCode ? "block" : "none";
+      confirmButton.style.display = chrome.showConfirm ? "block" : "none";
+      sendButton.style.display = chrome.showSend ? "block" : "none";
+      codeButton.style.display = chrome.showRequestCode ? "block" : "none";
+      codeButton.textContent = chrome.showCode
+        ? "Send another code"
+        : "Email me a confirmation code";
+      if (chrome.status) showStatus(chrome.status);
+      else if (verifyStatus.textContent === VERIFY_COPY.ready) {
+        showStatus(storage.persistent ? "" : VERIFY_COPY.storage);
       }
     };
     emailField.input.addEventListener("input", refreshReady);
+    const storedAtOpen = loadProof(storage.store);
+    if (storedAtOpen && emailField.input.value.trim() === "") {
+      emailField.input.value = storedAtOpen.email;
+    }
     refreshReady();
 
     let startInFlight: Promise<void> | null = null;
@@ -739,11 +733,7 @@ class ShortmailWidget extends HTMLElement {
         return;
       }
       const kept = committed.stored;
-      codeBlock.style.display = "block";
-      codeButton.style.display = "block";
-      codeButton.textContent = "Send another code";
-      confirmButton.style.display = "block";
-      sendButton.style.display = "none";
+      refreshReady();
       showStatus(VERIFY_COPY.check);
       window.clearInterval(this.verifyPoll);
       this.verifyPoll = window.setInterval(() => {
@@ -827,7 +817,24 @@ class ShortmailWidget extends HTMLElement {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (sendButton.disabled) return;
-      if (honeypot.value !== "") return;
+      const gap = sendFieldGaps({
+        name: nameField.input.value,
+        email: emailField.input.value,
+        emailValid: emailField.input.validity.valid,
+        subject: select.value,
+        customSubject: customInput.value,
+        message: message.value,
+      });
+      if (gap) {
+        showError(gap);
+        return;
+      }
+      if (honeypot.value !== "") {
+        showError(
+          "A hidden field was filled, so the letter was not sent. Reload the page and try again.",
+        );
+        return;
+      }
       errorLine.style.display = "none";
       const step = describeSendStep({
         email: emailField.input.value,
