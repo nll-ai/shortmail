@@ -41,11 +41,13 @@ the visitor's time writing it and the owner's time reading it.
 
 ## Platform
 
-Web. Next.js 16 (App Router) + Convex + WorkOS AuthKit + Resend. Deployed
-Vercel (prod: shortmail-gamma.vercel.app; cutover target:
-shortmail.nonlinearlabs.ai).
+Web. Next.js 16 (App Router) + Convex + WorkOS AuthKit + Resend, deployed
+on Vercel. Canonical host: `shortmail.nonlinearlabs.ai`. DNS has not been
+cut over, so that name still serves the legacy Modal app. Until the
+cutover, the live Vercel URL is `shortmail-gamma.vercel.app`. The Next.js
+app already accepts the canonical host for sign-in callbacks and uses it
+in the embed snippet.
 
 ## Open decisions
 
 - Commercial licensing contact details (currently eric.ma@nonlinearlabs.ai).
-- Final production domain (post-cutover).

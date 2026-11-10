@@ -1,16 +1,20 @@
 # Vercel + Convex migration — operations runbook
 
 The new stack (this repo's `app/` directory) runs on **Vercel** (Next.js 16)
-with **Convex** as the backend. The legacy FastAPI app still runs on Modal at
-`shortmail.nonlinearlabs.ai` — production DNS has **not** been cut over.
+with **Convex** as the backend. The canonical hostname is
+`shortmail.nonlinearlabs.ai`. Production DNS has **not** been cut over, so
+that name still reaches the legacy FastAPI app on Modal. The Next.js app
+already trusts HTTPS on that host for a same-host WorkOS callback, and the
+embed snippet uses it. `https://shortmail-gamma.vercel.app` stays up through
+the transition, including for embeds that already point there.
 
 ## Deployments
 
-| Surface | URL | Convex backend |
+| Surface | URL | Backend |
 |---|---|---|
-| Production (new stack) | https://shortmail-gamma.vercel.app | `hallowed-leopard-387` (prod deployment) |
-| Per-PR previews | `shortmail-<hash>-eric-mas-projects-a230afd1.vercel.app` | fresh per-branch backend, auto-seeded |
-| Legacy production (Modal) | https://shortmail.nonlinearlabs.ai | SQLite on Modal volume `shortmail` |
+| Live Vercel production | https://shortmail-gamma.vercel.app | Convex `hallowed-leopard-387` |
+| Canonical hostname | https://shortmail.nonlinearlabs.ai | Still Modal (SQLite volume `shortmail`) until DNS cutover. App code is ready for this host. |
+| Per-PR previews | `shortmail-<hash>-eric-mas-projects-a230afd1.vercel.app` | fresh per-branch Convex backend, auto-seeded |
 
 ## Environment inventory
 
@@ -71,13 +75,22 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
 
 ## Production cutover runbook (NOT executed — Eric's call)
 
+App preparation already in git, and not itself a cutover: HTTPS
+`shortmail.nonlinearlabs.ai` is an allowed same-host `/callback`, and embed
+copy uses `https://shortmail.nonlinearlabs.ai/widget.js`. Gamma, project
+previews, and localhost stay allowed. Untrusted hosts still fall back to
+the gamma callback.
+
+Still a separate change, not done here:
+
 1. Add `shortmail.nonlinearlabs.ai` to the Vercel project (Domains tab).
 2. In Cloudflare DNS, change the existing `shortmail` record content to
    `cname.vercel-dns.com`. Grey-cloud is Vercel's recommendation; if you keep
    it orange-cloud, SSL/TLS must be **Full (strict)** and
    `/.well-known/acme-challenge/*` must pass through untouched.
-3. Remove `custom_domains` from `deployments/app_deploy.py` and `modal deploy`
-   (retires the Modal serving path).
+3. After the new host has soaked, remove `custom_domains` from
+   `deployments/app_deploy.py` and `modal deploy` (retires the Modal serving
+   path). Leave that Modal setting in place until then.
 4. Rollback = revert step 2 (TTL ~300s).
 
 ## Data migration (already executed on both backends)
@@ -102,11 +115,21 @@ the prod deployment. Note `migrate.ts` upserts by email — safe to re-run.
   wired): per-vanity daily send cap 200/day (enforced), per-IP windows
   (advisory).
 - Sender inbox confirmation exists only on the Convex `/api/send` path
-  (Vercel app and `widget.js`). The legacy FastAPI app on
-  `shortmail.nonlinearlabs.ai` still accepts a letter without that proof.
-  DNS has not been cut over, so that host is unchanged.
-- Embedding is script-based (web component), never an iframe. Host pages can
-  read what visitors type — owners can restrict origins per account.
+  (Vercel app and `widget.js`). DNS has not been cut over, so
+  `shortmail.nonlinearlabs.ai` still serves the legacy FastAPI app, which
+  accepts a letter without that proof.
+- Sign-in stays on the host that started it when that host is
+  `shortmail.nonlinearlabs.ai` (HTTPS only), `shortmail-gamma.vercel.app`,
+  a `shortmail-*-eric-mas-projects-a230afd1.vercel.app` preview, or
+  localhost. Any other host uses the gamma callback. This is not an open
+  redirect, and it does not change WorkOS, Vercel domains, or DNS.
+- Embedding is script-based (web component), never an iframe. Dashboard and
+  embed docs tell owners to load
+  `https://shortmail.nonlinearlabs.ai/widget.js`. Until DNS cutover that
+  URL still hits Modal. Existing embeds of
+  `https://shortmail-gamma.vercel.app/widget.js` keep working because gamma
+  stays up. Host pages can read what visitors type — owners can restrict
+  origins per account.
 
 ## Maintenance notes
 
