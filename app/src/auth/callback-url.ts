@@ -12,7 +12,7 @@ const TRUSTED_HTTPS_HOSTS = new Set([
 ]);
 
 const PREVIEW_HOST =
-  /^shortmail-[a-z0-9]+-eric-mas-projects-a230afd1\.vercel\.app$/;
+  /^shortmail-[a-z0-9-]+-eric-mas-projects-a230afd1\.vercel\.app$/;
 
 /**
  * Callback URL for the host that started sign-in.

@@ -15,6 +15,12 @@ describe("callback URL", () => {
     );
   });
 
+  it("keeps a branch-alias preview sign-in on that preview host", () => {
+    const origin =
+      "https://shortmail-git-cursor-canonica-804ede-eric-mas-projects-a230afd1.vercel.app";
+    expect(callbackUrlFor(origin, FALLBACK)).toBe(`${origin}/callback`);
+  });
+
   it("keeps production sign-in on production", () => {
     expect(callbackUrlFor("https://shortmail-gamma.vercel.app", FALLBACK)).toBe(FALLBACK);
   });
@@ -53,6 +59,12 @@ describe("callback URL", () => {
     ).toBe(FALLBACK);
     expect(
       callbackUrlFor("https://shortmail-gamma.vercel.app.evil.example", FALLBACK),
+    ).toBe(FALLBACK);
+    expect(
+      callbackUrlFor(
+        "https://shortmail-git-foo-eric-mas-projects-a230afd1.vercel.app.evil.example",
+        FALLBACK,
+      ),
     ).toBe(FALLBACK);
     expect(
       callbackUrlFor(
