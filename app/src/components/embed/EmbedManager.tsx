@@ -3,8 +3,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
-
-const PROD_WIDGET_URL = "https://shortmail-gamma.vercel.app/widget.js";
+import { embedSnippet } from "../../embed/widget-url";
 
 function originOf(input: string): string | null {
   const trimmed = input.trim().replace(/\/$/, "");
@@ -36,11 +35,7 @@ export function EmbedManager() {
     draft ?? (me.embedAllowedOrigins ?? []).join("\n");
   const vanity = me.vanityName;
 
-  const snippet = `<script src="${PROD_WIDGET_URL.replace(
-    "https://shortmail-gamma.vercel.app",
-    typeof window !== "undefined" ? window.location.origin : "https://shortmail-gamma.vercel.app",
-  )}" defer></script>
-<shortmail-widget vanity="${vanity}"></shortmail-widget>`;
+  const snippet = embedSnippet(vanity);
 
   async function handleSave(): Promise<void> {
     setSaveState({ kind: "saving" });

@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { embedSnippet } from "../../embed/widget-url";
 
 export const metadata = { title: "ShortMail embed docs" };
 
-const CODE_SNIPPET = `<script src="https://shortmail-gamma.vercel.app/widget.js" defer></script>
-<shortmail-widget vanity="your-vanity"></shortmail-widget>`;
+const CODE_SNIPPET = embedSnippet("your-vanity");
 
 export default function EmbedDocsPage() {
   return (
@@ -66,9 +66,12 @@ export default function EmbedDocsPage() {
           Messages always go to <em>your</em> inbox — a hostile host cannot
           redirect them. A cached copy of widget.js that does not send a
           session proof fails closed: the letter is not delivered. This
-          proof is part of the current Convex widget only. The older FastAPI
-          app, while it is still what shortmail.nonlinearlabs.ai serves, does
-          not ask for it.
+          proof is part of the Convex widget. The snippet above loads it
+          from https://shortmail.nonlinearlabs.ai/widget.js. DNS has not
+          been cut over, so until then that hostname still serves the older
+          FastAPI app, which does not ask for this proof. Pages that already
+          load widget.js from https://shortmail-gamma.vercel.app keep using
+          the Convex widget.
         </p>
       </section>
 
