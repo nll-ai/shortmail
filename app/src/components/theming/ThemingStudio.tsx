@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
-import { THEME_PRESETS } from "../../widget/presets";
+import { THEME_PRESETS, presetById } from "../../widget/presets";
 import { applyTheme } from "../../widget/theme";
-import { presetVarsAsStyle } from "../../widget/presets";
+import { primaryClass } from "@/theme/controls";
 
 const SAMPLE_MESSAGES = [
   { name: "Ada Lovelace", email: "ada@example.com", text: "Loved your talk — any chance you could keynote our meetup next month?" },
@@ -24,25 +24,24 @@ export function ThemingStudio() {
 
   const draftPreset = preset ?? (theme?.tier === "premium" ? theme.preset : "default");
   const draftCss = customCss ?? (theme?.tier === "premium" ? (theme.customCss ?? "") : "");
-  const themeVars = useMemo(() => presetVarsAsStyle(draftPreset), [draftPreset]);
 
   if (theme === undefined) {
-    return <p className="text-sm text-gray-400">Loading theme…</p>;
+    return <p className="text-sm text-muted">Loading theme…</p>;
   }
   if (theme === null) {
-    return <p className="text-sm text-gray-400">Setting up your account…</p>;
+    return <p className="text-sm text-muted">Setting up your account…</p>;
   }
   if (theme.tier === "free") {
     return (
-      <div className="mt-6  border border-indigo-200 bg-indigo-50 p-6">
+      <div className="mt-6 border border-info-border bg-info-bg p-6 text-info-foreground">
         <h2 className="text-lg font-semibold">Theming is a premium feature</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm">
           Pick a color preset and add your own CSS so your send form matches
           your site — on the hosted page and everywhere it is embedded.
         </p>
         <a
           href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className="mt-4 inline-block  bg-black px-5 py-2 text-sm text-white hover:opacity-80"
+          className={`mt-4 inline-block ${primaryClass}`}
         >
           Upgrade to premium
         </a>
@@ -87,8 +86,8 @@ export function ThemingStudio() {
               onClick={() => setPreset(p.id)}
               className={` border px-4 py-1.5 text-sm ${
                 draftPreset === p.id
-                  ? "border-black bg-black text-white"
-                  : "border-gray-300 hover:bg-gray-50"
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-line bg-background text-foreground hover:bg-surface"
               }`}
             >
               {p.label}
@@ -99,7 +98,7 @@ export function ThemingStudio() {
 
       <div>
         <h3 className="text-sm font-semibold">Custom CSS (optional)</h3>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           Sanitized on save: url()/imports/fonts are stripped, 16KB max. Scope
           is the form only — it cannot affect the rest of any page.
         </p>
@@ -109,10 +108,10 @@ export function ThemingStudio() {
           rows={6}
           spellCheck={false}
           placeholder={'button {\n  letter-spacing: 0.02em;\n}'}
-          className="mt-2 w-full  border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
+          className="mt-2 w-full border border-line bg-background p-3 font-mono text-xs text-foreground focus:border-foreground focus:outline-none"
         />
         {!preview.css && draftCss.trim() && (
-          <p className="mt-1 text-xs text-amber-600">
+          <p className="mt-1 text-xs text-warning-foreground">
             ⚠ Nothing to preview — the CSS was sanitized away or is invalid.
           </p>
         )}
@@ -122,15 +121,15 @@ export function ThemingStudio() {
         <button
           onClick={() => void handleSave()}
           disabled={saveState.kind === "saving"}
-          className=" bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
+          className={primaryClass}
         >
           {saveState.kind === "saving" ? "Saving…" : "Save theme"}
         </button>
         {saveState.kind === "saved" && (
-          <span className="text-sm text-green-700">Saved ✓ — live on your send page.</span>
+          <span className="text-sm text-success">Saved ✓ — live on your send page.</span>
         )}
         {saveState.kind === "error" && (
-          <span className="text-sm text-red-600">
+          <span className="text-sm text-danger">
             {saveState.message === "PREMIUM_REQUIRED"
               ? "Premium required."
               : saveState.message}
@@ -140,20 +139,30 @@ export function ThemingStudio() {
 
       <div>
         <h3 className="text-sm font-semibold">Live preview</h3>
-        <p className="mt-1 text-xs text-gray-500">
-          Exactly what visitors see on your send page.
+        <p className="mt-1 text-xs text-muted">
+          Exactly what visitors see on your send page. Default follows the
+          system scheme. A saved preset keeps its colors.
         </p>
-        <div className="mt-3  border p-6" style={preview.style}>
+        <div
+          className="mt-3 border p-6"
+          style={{
+            ...preview.style,
+            background: "var(--sm-bg)",
+            color: "var(--sm-text)",
+            borderColor: "var(--sm-border)",
+            colorScheme: presetById(draftPreset).colorScheme,
+          }}
+        >
           {preview.css ? (
             <style dangerouslySetInnerHTML={{ __html: preview.css }} />
           ) : null}
-          <div className={`${preview.scopeClass} space-y-3 rounded-[var(--sm-radius,0.75rem)] bg-[var(--sm-bg,#ffffff)] p-4 text-[var(--sm-text,#111111)]`}>
+          <div className={`${preview.scopeClass} space-y-3 rounded-[var(--sm-radius,0.75rem)] bg-[var(--sm-bg)] p-4 text-[var(--sm-text)]`}>
             {SAMPLE_MESSAGES.map((m) => (
-              <div key={m.email} className="border-b border-[var(--sm-border,#e5e7eb)] pb-2 text-sm">
+              <div key={m.email} className="border-b border-[var(--sm-border)] pb-2 text-sm">
                 <p className="font-medium">{m.name}</p>
-                <p className="text-[var(--sm-muted,#6b7280)]">{m.email}</p>
+                <p className="text-[var(--sm-muted)]">{m.email}</p>
                 <p className="mt-1">{m.text}</p>
-                <button className="mt-2  bg-[var(--sm-accent,#111111)] px-4 py-1 text-[var(--sm-accent-text,#ffffff)]">
+                <button className="mt-2 bg-[var(--sm-accent)] px-4 py-1 text-[var(--sm-accent-text)]">
                   Reply
                 </button>
               </div>

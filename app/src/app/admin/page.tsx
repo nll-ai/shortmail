@@ -7,7 +7,7 @@ import { QueryBoundary } from "@/components/QueryBoundary";
 
 export default function AdminPage() {
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto min-h-svh max-w-3xl bg-background p-8 text-foreground">
       <h1 className="text-2xl font-bold mb-4">Admin</h1>
       <QueryBoundary>
         <AdminHome />
@@ -20,11 +20,11 @@ function AdminHome() {
   const me = useQuery(api.users.me);
 
   if (me === undefined) {
-    return <p className="text-sm text-gray-400">Loading…</p>;
+    return <p className="text-sm text-muted">Loading…</p>;
   }
   if (me === null || !me.adminRole) {
     return (
-      <p className=" border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      <p className="border border-danger-border bg-danger-bg p-4 text-sm text-danger-foreground">
         Admin access required.
       </p>
     );
@@ -32,7 +32,7 @@ function AdminHome() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-muted">
         Signed in as <strong>{me.email}</strong> — role:{" "}
         <code>{me.adminRole}</code>
       </p>
@@ -48,7 +48,7 @@ function StatsPanel() {
   const stats = useQuery(api.admin.adminStats);
 
   if (stats === undefined) {
-    return <p className="text-sm text-gray-400">Loading stats…</p>;
+    return <p className="text-sm text-muted">Loading stats…</p>;
   }
 
   return (
@@ -64,7 +64,7 @@ function StatsPanel() {
         <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">10 most recent users</h2>
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="text-xs uppercase text-gray-500">
+            <tr className="text-xs uppercase text-muted">
               <th className="py-1">Email</th>
               <th className="py-1">Vanity</th>
               <th className="py-1">Paid</th>
@@ -90,7 +90,7 @@ function StatsPanel() {
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className=" border p-4">
-      <p className="text-xs uppercase text-gray-500">{label}</p>
+      <p className="text-xs uppercase text-muted">{label}</p>
       <p className="text-2xl font-bold">{value}</p>
     </div>
   );

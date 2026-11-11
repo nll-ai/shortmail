@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { embedSnippet } from "../../embed/widget-url";
+import { codeBlockClass } from "@/theme/controls";
 
 export const metadata = { title: "ShortMail embed docs" };
 
@@ -7,9 +8,9 @@ const CODE_SNIPPET = embedSnippet("your-vanity");
 
 export default function EmbedDocsPage() {
   return (
-    <main className="mx-auto max-w-3xl p-8 space-y-6">
+    <main className="mx-auto min-h-svh max-w-3xl space-y-6 bg-background p-8 text-foreground">
       <h1 className="text-2xl font-bold">Embed ShortMail anywhere</h1>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-muted">
         ShortMail embeds as a <strong>web component with an isolated shadow
         root</strong> — not an iframe. Your site&apos;s CSS cannot break the
         form, and the form cannot restyle your site.
@@ -17,10 +18,10 @@ export default function EmbedDocsPage() {
 
       <section>
         <h2 className="text-lg font-semibold">1. Add the script tag</h2>
-        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className={codeBlockClass}>
           {CODE_SNIPPET}
         </pre>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted">
           Replace <code>your-vanity</code> with your vanity name (Dashboard →
           Your send page). Premium accounts only.
         </p>
@@ -28,15 +29,15 @@ export default function EmbedDocsPage() {
 
       <section>
         <h2 className="text-lg font-semibold">2. Style it (optional)</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-muted">
           Configure colors and fonts in Dashboard → Theming; embedded forms
           pick up your theme automatically. For deeper styling from the host
           page, use <code>::part()</code>:
         </p>
-        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className={codeBlockClass}>
           {`shortmail-widget::part(button) { border-radius: 8px; }`}
         </pre>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted">
           Exposed parts: <code>form</code>, <code>input</code>,{" "}
           <code>button</code>, <code>heading</code>, <code>faq</code>.
         </p>
@@ -46,18 +47,18 @@ export default function EmbedDocsPage() {
         <h2 className="text-lg font-semibold">
           3. Restrict where it may embed (optional)
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-muted">
           By default your form can be embedded anywhere. In Dashboard → Embed
           you can allow-list specific origins; non-matching sites render a
           &quot;not allowed&quot; state instead of your form.
         </p>
       </section>
 
-      <section className=" border border-amber-300 bg-amber-50 p-4">
-        <h2 className="text-sm font-semibold text-amber-900">
+      <section className="border border-warning-border bg-warning-bg p-4 text-warning-foreground">
+        <h2 className="text-sm font-semibold">
           Trust model — please read
         </h2>
-        <p className="mt-1 text-sm text-amber-900">
+        <p className="mt-1 text-sm">
           The host page can read what visitors type into an embedded widget,
           including the browser proof that lets them send again without a new
           code (that is true of every non-iframe embed). Embed only on sites

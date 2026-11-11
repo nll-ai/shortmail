@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
+/*
+ * One token set for every ShortMail page. The media query is in the first
+ * stylesheet, so the first paint matches the OS and a later change to the
+ * system setting updates the page without a reload. Paid presets do not use
+ * these tokens: they set their own --sm-* values.
+ */
 :root {
+  color-scheme: light dark;
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --muted: #525252;
+  --line: #767676;
+  --surface: #ffffff;
+  --accent: #171717;
+  --accent-foreground: #ffffff;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --danger-border: #991b1b;
+  --danger-foreground: #991b1b;
+  --warning-bg: #fffbeb;
+  --warning-border: #b45309;
+  --warning-foreground: #78350f;
+  --info-bg: #eef2ff;
+  --info-border: #4338ca;
+  --info-foreground: #312e81;
+  --link: #2563eb;
+  --success: #15803d;
+  --code: #171717;
+  --code-foreground: #f5f5f5;
+  --focus: #171717;
+  --input: #767676;
+  --chart-views: #4338ca;
+  --chart-sends: #047857;
+  --chart-label: #525252;
+  --chart-axis: #767676;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --muted: #a3a3a3;
+    --line: #8a8a8a;
+    --surface: #171717;
+    --accent: #ededed;
+    --accent-foreground: #171717;
+    --danger: #fca5a5;
+    --danger-bg: #450a0a;
+    --danger-border: #fecaca;
+    --danger-foreground: #fecaca;
+    --warning-bg: #422006;
+    --warning-border: #fbbf24;
+    --warning-foreground: #fde68a;
+    --info-bg: #1e1b4b;
+    --info-border: #a5b4fc;
+    --info-foreground: #e0e7ff;
+    --link: #93c5fd;
+    --success: #86efac;
+    --code: #171717;
+    --code-foreground: #f5f5f5;
+    --focus: #ededed;
+    --input: #8a8a8a;
+    --chart-views: #a5b4fc;
+    --chart-sends: #6ee7b7;
+    --chart-label: #a3a3a3;
+    --chart-axis: #8a8a8a;
   }
 }
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+  --color-info-foreground: var(--info-foreground);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-focus: var(--focus);
+  --color-input: var(--input);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 body {
+  min-height: 100svh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+  box-shadow: 0 0 0 1000px var(--surface) inset;
 }

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { embedSnippet } from "../../embed/widget-url";
+import { codeBlockClass, primaryClass } from "@/theme/controls";
 
 function originOf(input: string): string | null {
   const trimmed = input.trim().replace(/\/$/, "");
@@ -25,10 +26,10 @@ export function EmbedManager() {
   >({ kind: "idle" });
 
   if (me === undefined) {
-    return <p className="text-sm text-gray-400">Loading…</p>;
+    return <p className="text-sm text-muted">Loading…</p>;
   }
   if (me === null) {
-    return <p className="text-sm text-red-500">Sign in required.</p>;
+    return <p className="text-sm text-danger">Sign in required.</p>;
   }
 
   const originsValue =
@@ -63,10 +64,10 @@ export function EmbedManager() {
     <div className="mt-6 space-y-6">
       <div>
         <h3 className="text-sm font-semibold">1. Your embed snippet</h3>
-        <pre className="mt-2  bg-gray-900 p-4 text-xs text-gray-100 overflow-x-auto">
+        <pre className={codeBlockClass}>
           {snippet}
         </pre>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           Paste into any HTML page. The form renders inside a shadow root —
           no iframe. See{" "}
           <a href="/embed-docs" className="underline">
@@ -78,7 +79,7 @@ export function EmbedManager() {
 
       <div>
         <h3 className="text-sm font-semibold">2. Restrict embedding (optional)</h3>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           One origin per line (e.g. <code>https://yoursite.com</code>). Empty
           = your form may be embedded anywhere. Non-matching sites get a
           &quot;not allowed&quot; state instead of your form.
@@ -88,22 +89,22 @@ export function EmbedManager() {
           onChange={(e) => setDraft(e.target.value)}
           rows={4}
           spellCheck={false}
-          className="mt-2 w-full  border border-gray-300 p-3 font-mono text-xs focus:border-black focus:outline-none"
+          className="mt-2 w-full border border-line bg-background p-3 font-mono text-xs text-foreground focus:border-foreground focus:outline-none"
           placeholder={"https://yoursite.com"}
         />
         <div className="mt-2 flex items-center gap-3">
           <button
             onClick={() => void handleSave()}
             disabled={saveState.kind === "saving" || draft === null}
-            className=" bg-black px-5 py-2 text-sm text-white hover:opacity-80 disabled:opacity-40"
+            className={primaryClass}
           >
             {saveState.kind === "saving" ? "Saving…" : "Save origins"}
           </button>
           {saveState.kind === "saved" && (
-            <span className="text-sm text-green-700">Saved ✓</span>
+            <span className="text-sm text-success">Saved ✓</span>
           )}
           {saveState.kind === "error" && (
-            <span className="text-sm text-red-600">{saveState.message}</span>
+            <span className="text-sm text-danger">{saveState.message}</span>
           )}
         </div>
       </div>

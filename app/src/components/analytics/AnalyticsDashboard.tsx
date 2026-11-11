@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { primaryClass } from "@/theme/controls";
 
 type PerDay = { day: string; views: number; sends: number };
 
@@ -37,7 +38,7 @@ function Bars({ perDay }: { perDay: PerDay[] }) {
               y={height - vh}
               width={barWidth}
               height={vh}
-              fill="#6366f1"
+              fill="var(--chart-views)"
             >
               <title>{`${d.day}: ${d.views} views`}</title>
             </rect>
@@ -46,7 +47,7 @@ function Bars({ perDay }: { perDay: PerDay[] }) {
               y={height - sh}
               width={barWidth}
               height={sh}
-              fill="#10b981"
+              fill="var(--chart-sends)"
             >
               <title>{`${d.day}: ${d.sends} sends`}</title>
             </rect>
@@ -56,7 +57,7 @@ function Bars({ perDay }: { perDay: PerDay[] }) {
                 y={height + 16}
                 textAnchor="middle"
                 fontSize="10"
-                fill="#9ca3af"
+                fill="var(--chart-label)"
               >
                 {shortDay(d.day)}
               </text>
@@ -64,7 +65,7 @@ function Bars({ perDay }: { perDay: PerDay[] }) {
           </g>
         );
       })}
-      <line x1={pad} y1={height} x2={width - pad} y2={height} stroke="#e5e7eb" />
+      <line x1={pad} y1={height} x2={width - pad} y2={height} stroke="var(--chart-axis)" />
     </svg>
   );
 }
@@ -73,25 +74,25 @@ export function AnalyticsDashboard() {
   const stats = useQuery(api.analytics.ownerStats, { days: 30 });
 
   if (stats === undefined) {
-    return <p className="text-sm text-gray-400">Loading analytics…</p>;
+    return <p className="text-sm text-muted">Loading analytics…</p>;
   }
 
   if (stats.tier === "free") {
     return (
-      <div className="mt-6  border border-indigo-200 bg-indigo-50 p-6">
+      <div className="mt-6 border border-info-border bg-info-bg p-6 text-info-foreground">
         <h2 className="text-lg font-semibold">Analytics is a premium feature</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm">
           See who is contacting you, when, and what they care about: 30-day
           trends of form views and messages, your most popular subject
           headings, and how many people asked for a reply.
         </p>
         <a
           href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className="mt-4 inline-block  bg-black px-5 py-2 text-sm text-white hover:opacity-80"
+          className={`mt-4 inline-block ${primaryClass}`}
         >
           Upgrade to premium
         </a>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs">
           (While billing is not yet wired up, ask an admin to toggle your
           account — the button records your interest.)
         </p>
@@ -105,15 +106,15 @@ export function AnalyticsDashboard() {
     <div className="mt-6 space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <div className=" border p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Views (30d)</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Views (30d)</p>
           <p className="text-2xl font-bold">{totals.views}</p>
         </div>
         <div className=" border p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Messages sent (30d)</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Messages sent (30d)</p>
           <p className="text-2xl font-bold">{totals.sends}</p>
         </div>
         <div className=" border p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Wanted a reply</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Wanted a reply</p>
           <p className="text-2xl font-bold">
             {replyNeededRatio === null
               ? "—"
@@ -123,12 +124,12 @@ export function AnalyticsDashboard() {
       </div>
 
       <div className=" border p-4">
-        <div className="flex items-center gap-4 text-xs text-gray-600">
+        <div className="flex items-center gap-4 text-xs text-muted">
           <span className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2  bg-indigo-500" /> views
+            <span className="inline-block h-2 w-2 bg-[var(--chart-views)]" /> views
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2  bg-emerald-500" /> sends
+            <span className="inline-block h-2 w-2 bg-[var(--chart-sends)]" /> sends
           </span>
           <span>last {stats.days} days</span>
         </div>
@@ -138,13 +139,13 @@ export function AnalyticsDashboard() {
       <div className=" border p-4">
         <h3 className="text-sm font-semibold">Most popular subject headings</h3>
         {topSubjects.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-500">No messages yet.</p>
+          <p className="mt-2 text-sm text-muted">No messages yet.</p>
         ) : (
           <ol className="mt-2 space-y-1 text-sm">
             {topSubjects.map((s) => (
               <li key={s.subject} className="flex justify-between">
                 <span>{s.subject}</span>
-                <span className="text-gray-500">{s.count}</span>
+                <span className="text-muted">{s.count}</span>
               </li>
             ))}
           </ol>

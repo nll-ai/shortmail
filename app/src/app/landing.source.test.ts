@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -33,7 +32,12 @@ describe("homepage", () => {
   it("does not import the live send demo", () => {
     const source = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
     expect(source).toContain("min-h-11");
-    expect(source).toContain("focus-visible:outline-2");
+    expect(source).toContain("focusClass");
+    const controls = readFileSync(
+      new URL("../theme/controls.ts", import.meta.url),
+      "utf8",
+    );
+    expect(controls).toContain("focus-visible:outline-2");
     expect(source).toContain(
       'fontFamily: "var(--font-geist-sans), sans-serif"',
     );
@@ -46,35 +50,23 @@ describe("homepage", () => {
     ).toBe(false);
   });
 
-  it("leaves the widget send path and shared files unchanged", () => {
+  it("keeps the send path and shares the adaptive color scheme", () => {
     const widget = readFileSync(
       new URL("../widget/shortmail-widget.ts", import.meta.url),
       "utf8",
     );
     expect(widget).toContain("/api/send/");
     expect(widget).toContain("session_secret");
+    expect(widget).toContain("color-scheme: light dark");
+    expect(widget).not.toMatch(/color-scheme:\s*light\s*;/);
 
-    const repoRoot = new URL("../../..", import.meta.url);
-    // CI fetches refs/remotes/origin/main without touching a checked-out main.
-    // Local runs fall back to main when origin/main is absent.
-    const hasOriginMain =
-      spawnSync("git", ["rev-parse", "--verify", "refs/remotes/origin/main"], {
-        cwd: repoRoot,
-        encoding: "utf8",
-      }).status === 0;
-    const base = hasOriginMain ? "origin/main" : "main";
-    const diff = spawnSync(
-      "git",
-      [
-        "diff",
-        base,
-        "--",
-        "app/src/widget/formSkin.ts",
-        "app/src/app/layout.tsx",
-      ],
-      { cwd: repoRoot, encoding: "utf8" },
+    const skin = readFileSync(
+      new URL("../widget/formSkin.ts", import.meta.url),
+      "utf8",
     );
-    expect(diff.status).toBe(0);
-    expect(diff.stdout).toBe("");
+    expect(skin).toContain("ADAPTIVE");
+
+    const layout = readFileSync(new URL("./layout.tsx", import.meta.url), "utf8");
+    expect(layout).toContain('colorScheme: "light dark"');
   });
 });

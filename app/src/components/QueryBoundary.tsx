@@ -26,7 +26,7 @@ export class QueryBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="mt-4 rounded-lg border border-warning-border bg-warning-bg p-4 text-sm text-warning-foreground">
           <p className="font-medium">Setting up your data…</p>
           <p className="mt-1">
             Retrying automatically ({this.state.error.message}).

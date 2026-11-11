@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { LetterSpecimen } from "@/components/LetterSpecimen";
+import { focusClass } from "@/theme/controls";
 
 export const metadata: Metadata = {
   title: "ShortMail",
   description: "One link for short letters. 500 characters, delivered as email.",
 };
 
-const linkFocus =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]";
+const linkFocus = focusClass;
 
 /**
  * Owner-focused marketing page.
@@ -18,15 +18,15 @@ const linkFocus =
 export default function Home() {
   return (
     <div
-      className="min-h-svh bg-white text-[#171717]"
+      className="min-h-svh bg-background text-foreground"
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
     >
-      <header className="border-b border-[#e5e5e5]">
+      <header className="border-b border-line">
         <div className="mx-auto flex max-w-[42rem] items-center justify-between px-6">
           <span className="text-sm font-bold tracking-[0.04em]">ShortMail</span>
           <a
             href="/dashboard"
-            className={`inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-[15px] font-medium text-[#171717] ${linkFocus}`}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-[15px] font-medium text-foreground ${linkFocus}`}
           >
             Sign in
           </a>
@@ -37,13 +37,13 @@ export default function Home() {
         <h1 className="text-4xl font-bold leading-[1.2] tracking-tight max-sm:text-[32px]">
           A page for the letters you want.
         </h1>
-        <p className="mt-4 text-lg leading-[1.55] text-[#525252]">
+        <p className="mt-4 text-lg leading-[1.55] text-muted">
           People write you at one link. Each letter is at most 500 characters.
           It arrives as ordinary email.
         </p>
         <a
           href="/dashboard"
-          className={`mt-6 inline-flex min-h-11 items-center bg-[#171717] px-[18px] text-base font-medium text-white ${linkFocus}`}
+          className={`mt-6 inline-flex min-h-11 items-center bg-accent px-[18px] text-base font-medium text-accent-foreground ${linkFocus}`}
         >
           Create your page
         </a>
@@ -70,7 +70,7 @@ export default function Home() {
         </ol>
 
         <h2 className="mb-3.5 mt-14 text-[15px] font-semibold">What is kept</h2>
-        <p className="leading-[1.55] text-[#525252]">
+        <p className="leading-[1.55] text-muted">
           The letter is delivered as email to you. ShortMail does not keep the
           letter body in its database. The visitor&apos;s name and email are
           required, and both are on the email you receive, so the visitor is
@@ -83,8 +83,8 @@ export default function Home() {
         </p>
       </main>
 
-      <footer className="mt-12 border-t border-[#e5e5e5]">
-        <div className="mx-auto flex max-w-[42rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-5 text-[13px] text-[#525252]">
+      <footer className="mt-12 border-t border-line">
+        <div className="mx-auto flex max-w-[42rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-5 text-[13px] text-muted">
           <span>© Nonlinear Labs · BUSL-1.1</span>
           <span>One account, one email.</span>
         </div>

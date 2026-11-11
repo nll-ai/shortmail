@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { EmbedConfig } from "@/widget/config";
+import { SendFrame } from "../SendFrame";
 
 // Config must reflect the live Convex deployment (new headings appear
 // immediately); never cache at build time.
@@ -30,16 +31,10 @@ export default async function SendPage({
   const config = (await res.json()) as EmbedConfig;
 
   return (
-    <main
-      className="min-h-svh bg-white px-4 py-10 text-[#171717]"
-      style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
-    >
-      <div className="mx-auto max-w-lg border border-[#d4d4d4] bg-white p-6 sm:p-8">
-        <script src="/widget.js" defer />
-        <shortmail-widget vanity={vanityName} />
-      </div>
-      {/* displayName renders inside the widget; kept for metadata parity */}
-      <meta name="shortmail:display-name" content={config.displayName} />
-    </main>
+    <SendFrame
+      vanityName={vanityName}
+      theme={config.theme}
+      displayName={config.displayName}
+    />
   );
 }
