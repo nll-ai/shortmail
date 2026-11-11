@@ -22,6 +22,7 @@ import type * as lib_events from "../lib/events.js";
 import type * as lib_identity from "../lib/identity.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_sendRequest from "../lib/sendRequest.js";
+import type * as lib_senderProof from "../lib/senderProof.js";
 import type * as lib_subjectTag from "../lib/subjectTag.js";
 import type * as migrate from "../migrate.js";
 import type * as public_ from "../public.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   "lib/identity": typeof lib_identity;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/sendRequest": typeof lib_sendRequest;
+  "lib/senderProof": typeof lib_senderProof;
   "lib/subjectTag": typeof lib_subjectTag;
   migrate: typeof migrate;
   public: typeof public_;

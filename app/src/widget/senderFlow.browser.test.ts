@@ -15,13 +15,27 @@ import {
   SESSION_TTL_MS,
 } from "../../convex/lib/senderProof";
 
-const require = createRequire("/tmp/sm-audit/package.json");
-const puppeteer = require("puppeteer-core") as {
+type PuppeteerLauncher = {
   launch: (options: { executablePath: string; headless: string; args: string[] }) => Promise<{
     newPage: () => Promise<BrowserPage>;
     close: () => Promise<void>;
   }>;
 };
+
+// This suite drives Chrome through a machine-local puppeteer-core install
+// used for manual audits. A clean checkout does not have that package.
+function loadPuppeteer(): PuppeteerLauncher | null {
+  try {
+    const require = createRequire("/tmp/sm-audit/package.json");
+    // The audit package is CommonJS and is absent from this app's dependencies.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("puppeteer-core") as PuppeteerLauncher;
+  } catch {
+    return null;
+  }
+}
+
+const puppeteer = loadPuppeteer();
 
 type BrowserPage = {
   goto: (url: string, options?: { waitUntil: "networkidle0" }) => Promise<unknown>;
@@ -36,7 +50,7 @@ type BrowserPage = {
 
 type Row = ProofRow & { token: string };
 
-describe("widget verification in the browser", () => {
+describe.skipIf(puppeteer === null)("widget verification in the browser", () => {
   let api: Server;
   let originA: Server;
   let originB: Server;
@@ -186,7 +200,7 @@ describe("widget verification in the browser", () => {
   });
 
   it("confirms in the original tab, sends only after that, and does not share the proof", async () => {
-    const browser = await puppeteer.launch({
+    const browser = await puppeteer!.launch({
       executablePath: "/usr/local/bin/google-chrome",
       headless: "new",
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
