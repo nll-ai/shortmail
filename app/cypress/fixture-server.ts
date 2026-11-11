@@ -5,12 +5,15 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import esbuild from "esbuild";
 import { compile } from "@tailwindcss/node";
+import { planReorder, sortByOrder, type OwnedItem } from "../convex/lib/order";
 
 const QUESTION = "Can I find time with you to chat?";
 const ANSWER =
   "Yes, please use Calendly: https://calendly.com/ericmjl/45-minute-meeting.";
 const LABEL =
   "FIXTURE — real widget.js, mocked config. Not a signed-in account. No Convex write. No email.";
+const REORDER_LABEL =
+  "FIXTURE — local reorder harness. Not the Vercel preview. Not a signed-in account. No email.";
 
 const CLASSES = [
   "bg-neutral-900", "px-4", "py-2", "text-xs", "tracking-wide", "text-white",
@@ -86,8 +89,9 @@ function readBody(req: import("node:http").IncomingMessage): Promise<string> {
   });
 }
 
-function page(body: string, css: string, harness: boolean): string {
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><script src="/widget.js" defer></script>${harness ? '<script src="/harness.js" defer></script>' : ""}</head><body><p class="bg-neutral-900 px-4 py-2 text-xs tracking-wide text-white">${LABEL}</p>${body}</body></html>`;
+function page(body: string, css: string, scripts: string[], label = LABEL): string {
+  const tags = scripts.map((src) => `<script src="${src}" defer></script>`).join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style>${tags}</head><body><p class="bg-neutral-900 px-4 py-2 text-xs tracking-wide text-white">${label}</p>${body}</body></html>`;
 }
 
 function dashboard(css: string): string {
@@ -119,18 +123,52 @@ function dashboard(css: string): string {
       </div>
     </main>`,
     css,
-    true,
+    ["/widget.js", "/harness.js"],
   );
 }
 
-function hosted(css: string, vanity: string): string {
+function hosted(css: string, vanity: string, label = LABEL): string {
   return page(
     `<main class="mx-auto max-w-lg border border-line bg-background p-6 text-sm text-foreground">
       <shortmail-widget vanity="${vanity}"></shortmail-widget>
     </main>`,
     css,
-    false,
+    ["/widget.js"],
+    label,
   );
+}
+
+type HeadingRow = OwnedItem & { heading: string };
+type FaqRow = OwnedItem & { question: string; answer: string };
+
+function freshLists(): { headings: HeadingRow[]; faqs: FaqRow[] } {
+  return {
+    headings: [
+      { id: "h1", heading: "I'd like you to consult for me", _creationTime: 1 },
+      { id: "h2", heading: "I'd like to invite you to give a talk", _creationTime: 2 },
+      { id: "h3", heading: "SciPy 2026 Fundraiser", _creationTime: 3 },
+    ],
+    faqs: [
+      { id: "f1", question: QUESTION, answer: ANSWER, _creationTime: 1 },
+      {
+        id: "f2",
+        question: "Do you read every letter?",
+        answer: "Yes. Write the letter here: https://example.com/letters",
+        _creationTime: 2,
+      },
+    ],
+  };
+}
+
+function classTokens(file: string): string[] {
+  const text = readFileSync(file, "utf8");
+  const tokens: string[] = [];
+  for (const match of text.matchAll(/["'`]([^"'`]*)["'`]/g)) {
+    for (const token of match[1].split(/\s+/)) {
+      if (/^[a-zA-Z0-9:/_![\]%.()-]+$/.test(token) && /[-:[\]/]/.test(token)) tokens.push(token);
+    }
+  }
+  return tokens;
 }
 
 /**
@@ -153,9 +191,11 @@ export async function startFaqFixture(): Promise<string> {
     entryPoints: {
       widget: "src/widget/shortmail-widget.ts",
       harness: "cypress/harness.ts",
+      reorder: "cypress/reorder-client.tsx",
     },
     bundle: true,
     format: "iife",
+    jsx: "automatic",
     outdir,
     define: {
       "process.env.WIDGET_CONVEX_SITE_URL": JSON.stringify(origin),
@@ -178,6 +218,7 @@ export async function startFaqFixture(): Promise<string> {
   const themes = themeMod.themePages();
   const widgetJs = readFileSync(path.join(outdir, "widget.js"));
   const harnessJs = readFileSync(path.join(outdir, "harness.js"));
+  const reorderJs = readFileSync(path.join(outdir, "reorder.js"));
   const globals = readFileSync(path.join(appRoot, "src/app/globals.css"), "utf8");
   const compiled = await compile(globals, {
     base: appRoot,
@@ -191,10 +232,29 @@ export async function startFaqFixture(): Promise<string> {
       }
     }
   }
+  for (const file of [
+    "src/components/dashboard/ReorderRows.tsx",
+    "src/theme/controls.ts",
+    "cypress/reorder-client.tsx",
+  ]) {
+    for (const token of classTokens(path.join(appRoot, file))) used.add(token);
+  }
   const css = `${globals}\n${compiled.build([...used])}`;
   const dashboardHtml = dashboard(css);
   const sendHtml = hosted(css, "fixture");
   const unsafeHtml = hosted(css, "unsafe");
+  const reorderHtml = page(
+    `<div id="reorder-root"></div>`,
+    css,
+    ["/reorder.js"],
+    REORDER_LABEL,
+  );
+  const reorderSendHtml = hosted(css, "reorder", REORDER_LABEL);
+  let lists = freshLists();
+  const publicLists = () => ({
+    headings: sortByOrder(lists.headings).map(({ id, heading }) => ({ id, heading })),
+    faqs: sortByOrder(lists.faqs).map(({ id, question, answer }) => ({ id, question, answer })),
+  });
 
   const respond = (res: import("node:http").ServerResponse, body: string | Buffer, type: string) => {
     res.writeHead(200, { "Content-Type": type, "Cache-Control": "no-store" });
@@ -210,6 +270,7 @@ export async function startFaqFixture(): Promise<string> {
     if (req.method === "POST" && url.pathname === "/__reset") {
       calls.length = 0;
       sends.length = 0;
+      lists = freshLists();
       res.writeHead(204);
       res.end();
       return;
@@ -227,6 +288,29 @@ export async function startFaqFixture(): Promise<string> {
       respond(res, JSON.stringify({ ok: true }), "application/json");
       return;
     }
+    if (url.pathname === "/__lists") {
+      respond(res, JSON.stringify(publicLists()), "application/json");
+      return;
+    }
+    if (req.method === "POST" && url.pathname === "/__reorder") {
+      const payload = JSON.parse(body) as { table?: string; ids?: string[] };
+      const ids = Array.isArray(payload.ids) ? payload.ids : [];
+      if (payload.table === "headings") {
+        const ordered = planReorder(lists.headings, ids);
+        const byId = new Map(lists.headings.map((row) => [row.id, row]));
+        lists.headings = ordered.map((id, position) => ({ ...byId.get(id)!, position }));
+      } else if (payload.table === "faqs") {
+        const ordered = planReorder(lists.faqs, ids);
+        const byId = new Map(lists.faqs.map((row) => [row.id, row]));
+        lists.faqs = ordered.map((id, position) => ({ ...byId.get(id)!, position }));
+      } else {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "unknown-table" }));
+        return;
+      }
+      respond(res, JSON.stringify(publicLists()), "application/json");
+      return;
+    }
     if (url.pathname === "/widget.js") {
       respond(res, widgetJs, "text/javascript");
       return;
@@ -235,7 +319,28 @@ export async function startFaqFixture(): Promise<string> {
       respond(res, harnessJs, "text/javascript");
       return;
     }
+    if (url.pathname === "/reorder.js") {
+      respond(res, reorderJs, "text/javascript");
+      return;
+    }
     const embed = url.pathname.match(/^\/api\/embed\/([^/]+)\/config$/);
+    if (embed && decodeURIComponent(embed[1]) === "reorder") {
+      const view = publicLists();
+      respond(
+        res,
+        JSON.stringify({
+          vanityName: "reorder",
+          displayName: "Fixture Owner",
+          headings: view.headings.map((heading) => heading.heading),
+          faqs: view.faqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+          isPaid: false,
+          theme: null,
+          embedAllowedOrigins: [],
+        }),
+        "application/json",
+      );
+      return;
+    }
     if (embed) {
       const spec = configs[decodeURIComponent(embed[1])] ?? null;
       if (!spec) {
@@ -267,9 +372,17 @@ export async function startFaqFixture(): Promise<string> {
       respond(res, dashboardHtml, "text/html; charset=utf-8");
       return;
     }
+    if (url.pathname === "/reorder") {
+      respond(res, reorderHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/send/reorder") {
+      respond(res, reorderSendHtml, "text/html; charset=utf-8");
+      return;
+    }
     const themeHtml = themes[url.pathname];
     if (themeHtml) {
-      respond(res, page(themeHtml, css, false), "text/html; charset=utf-8");
+      respond(res, page(themeHtml, css, ["/widget.js"]), "text/html; charset=utf-8");
       return;
     }
     if (url.pathname === "/send/fixture") {

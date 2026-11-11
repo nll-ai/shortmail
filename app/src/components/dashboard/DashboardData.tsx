@@ -9,6 +9,8 @@ import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { controlClass, fieldClass } from "@/theme/controls";
+import { FaqRows, HeadingRows } from "./ReorderRows";
+import { useServerOrder } from "./useServerOrder";
 
 const FREE_HEADING_LIMIT = 5;
 const FREE_FAQ_LIMIT = 3;
@@ -33,6 +35,8 @@ function friendlyError(e: unknown): string {
       return "Vanity names can use lowercase letters, numbers, dashes and underscores only.";
     case "PREMIUM_REQUIRED":
       return "This setting requires a paid account.";
+    case "NOT_FOUND":
+      return "That item is no longer on your list. Refresh and try again.";
     default:
       return "Something went wrong — please try again.";
   }
@@ -182,41 +186,51 @@ function HeadingsSection({
 }) {
   const addSubjectHeading = useMutation(api.forms.addSubjectHeading);
   const removeSubjectHeading = useMutation(api.forms.removeSubjectHeading);
+  const reorderSubjectHeadings = useMutation(api.forms.reorderSubjectHeadings);
   const [heading, setHeading] = useState("");
   const [error, setError] = useState("");
+  const order = useServerOrder(headings);
 
   const atLimit = !isPaid && headings.length >= FREE_HEADING_LIMIT;
+
+  async function commit(next: readonly { id: Id<"subjectHeadings">; heading: string }[]) {
+    const token = order.begin(next);
+    dispatchWidgetChange({
+      kind: "headings-reordered",
+      headings: next.map((item) => item.heading),
+    });
+    setError("");
+    try {
+      await reorderSubjectHeadings({ ids: next.map((item) => item.id) });
+    } catch (err) {
+      order.fail(token);
+      dispatchWidgetChange({
+        kind: "headings-reordered",
+        headings: headings.map((item) => item.heading),
+      });
+      setError(friendlyError(err));
+    }
+  }
 
   return (
     <section className=" border p-4 text-sm">
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Subject headings</h2>
-      <ul className="mb-3 space-y-1">
-        {headings.length === 0 && (
-          <li className="text-muted">No subject headings yet.</li>
-        )}
-        {headings.map((h) => (
-          <li key={h.id} className="flex items-center justify-between gap-2">
-            <span>{h.heading}</span>
-            <button
-              type="button"
-              className="text-xs text-danger hover:underline"
-              onClick={async () => {
-                setError("");
-                try {
-                  await removeSubjectHeading({
-                    id: h.id,
-                  });
-                  dispatchWidgetChange({ kind: "heading-removed", heading: h.heading });
-                } catch (err) {
-                  setError(friendlyError(err));
-                }
-              }}
-            >
-              remove
-            </button>
-          </li>
-        ))}
-      </ul>
+      <HeadingRows
+        headings={order.shown}
+        onReorder={(next) => {
+          void commit(next);
+        }}
+        onRemove={(item) => {
+          setError("");
+          void removeSubjectHeading({ id: item.id })
+            .then(() => {
+              dispatchWidgetChange({ kind: "heading-removed", heading: item.heading });
+            })
+            .catch((err: unknown) => {
+              setError(friendlyError(err));
+            });
+        }}
+      />
       <form
         className="flex flex-col gap-2 sm:flex-row"
         onSubmit={async (e) => {
@@ -263,111 +277,113 @@ function FaqsSection({
   const addFaq = useMutation(api.forms.addFaq);
   const editFaq = useMutation(api.forms.editFaq);
   const removeFaq = useMutation(api.forms.removeFaq);
+  const reorderFaqs = useMutation(api.forms.reorderFaqs);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [editingId, setEditingId] = useState<Id<"faqs"> | null>(null);
   const [editQuestion, setEditQuestion] = useState("");
   const [editAnswer, setEditAnswer] = useState("");
   const [error, setError] = useState("");
+  const order = useServerOrder(faqs);
 
   const atLimit = !isPaid && faqs.length >= FREE_FAQ_LIMIT;
+  const editing = faqs.find((faq) => faq.id === editingId) ?? null;
+
+  async function commit(
+    next: readonly { id: Id<"faqs">; question: string; answer: string }[],
+  ) {
+    const token = order.begin(next);
+    dispatchWidgetChange({
+      kind: "faqs-reordered",
+      faqs: next.map((item) => ({ question: item.question, answer: item.answer })),
+    });
+    setError("");
+    try {
+      await reorderFaqs({ ids: next.map((item) => item.id) });
+    } catch (err) {
+      order.fail(token);
+      dispatchWidgetChange({
+        kind: "faqs-reordered",
+        faqs: faqs.map((item) => ({ question: item.question, answer: item.answer })),
+      });
+      setError(friendlyError(err));
+    }
+  }
 
   return (
     <section className=" border p-4 text-sm">
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
-      <ul className="mb-3 space-y-3">
-        {faqs.length === 0 && (
-          <li className="text-muted">No FAQs yet.</li>
-        )}
-        {faqs.map((f) =>
-          editingId === f.id ? (
-            <li key={f.id} className="space-y-2  border p-3">
-              <input
-                className={inputClass}
-                value={editQuestion}
-                onChange={(e) => setEditQuestion(e.target.value)}
-              />
-              <textarea
-                className={`${inputClass} min-h-20`}
-                value={editAnswer}
-                onChange={(e) => setEditAnswer(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className={buttonClass}
-                  onClick={async () => {
-                    setError("");
-                    try {
-                      await editFaq({
-                        id: f.id,
-                        question: editQuestion,
-                        answer: editAnswer,
-                      });
-                      dispatchWidgetChange({
-                        kind: "faq-edited",
-                        previousQuestion: f.question,
-                        question: editQuestion,
-                        answer: editAnswer,
-                      });
-                      setEditingId(null);
-                    } catch (err) {
-                      setError(friendlyError(err));
-                    }
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="text-xs text-muted hover:underline"
-                  onClick={() => setEditingId(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </li>
-          ) : (
-            <li key={f.id}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">{f.question}</span>
-                <span className="flex gap-2">
-                  <button
-                    type="button"
-                    className="text-xs text-link hover:underline"
-                    onClick={() => {
-                      setEditingId(f.id);
-                      setEditQuestion(f.question);
-                      setEditAnswer(f.answer);
-                    }}
-                  >
-                    edit
-                  </button>
-                  <button
-                    type="button"
-                    className="text-xs text-danger hover:underline"
-                    onClick={async () => {
-                      setError("");
-                      try {
-                        await removeFaq({ id: f.id });
-                        dispatchWidgetChange({
-                          kind: "faq-removed",
-                          question: f.question,
-                        });
-                      } catch (err) {
-                        setError(friendlyError(err));
-                      }
-                    }}
-                  >
-                    remove
-                  </button>
-                </span>
-              </div>
-              <p className="whitespace-pre-wrap text-muted">{f.answer}</p>
-            </li>
-          ),
-        )}
-      </ul>
+      <FaqRows
+        faqs={order.shown}
+        editingId={editingId}
+        onReorder={(next) => {
+          void commit(next);
+        }}
+        onEdit={(faq) => {
+          setEditingId(faq.id);
+          setEditQuestion(faq.question);
+          setEditAnswer(faq.answer);
+        }}
+        onRemove={(faq) => {
+          setError("");
+          void removeFaq({ id: faq.id })
+            .then(() => {
+              dispatchWidgetChange({ kind: "faq-removed", question: faq.question });
+            })
+            .catch((err: unknown) => {
+              setError(friendlyError(err));
+            });
+        }}
+        editor={
+          <>
+            <input
+              className={inputClass}
+              value={editQuestion}
+              onChange={(e) => setEditQuestion(e.target.value)}
+            />
+            <textarea
+              className={`${inputClass} min-h-20`}
+              value={editAnswer}
+              onChange={(e) => setEditAnswer(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className={buttonClass}
+                onClick={async () => {
+                  if (!editing) return;
+                  setError("");
+                  try {
+                    await editFaq({
+                      id: editing.id,
+                      question: editQuestion,
+                      answer: editAnswer,
+                    });
+                    dispatchWidgetChange({
+                      kind: "faq-edited",
+                      previousQuestion: editing.question,
+                      question: editQuestion,
+                      answer: editAnswer,
+                    });
+                    setEditingId(null);
+                  } catch (err) {
+                    setError(friendlyError(err));
+                  }
+                }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                className="text-xs text-muted hover:underline"
+                onClick={() => setEditingId(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        }
+      />
       <form
         className="space-y-2"
         onSubmit={async (e) => {

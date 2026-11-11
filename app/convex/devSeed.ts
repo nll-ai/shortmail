@@ -78,11 +78,11 @@ async function seedUser(ctx: MutationCtx, spec: SeedSpec): Promise<void> {
     createdAt: Date.now(),
   });
 
-  for (const heading of spec.headings) {
-    await ctx.db.insert("subjectHeadings", { ownerId: userId, heading });
+  for (const [position, heading] of spec.headings.entries()) {
+    await ctx.db.insert("subjectHeadings", { ownerId: userId, heading, position });
   }
-  for (const faq of spec.faqs) {
-    await ctx.db.insert("faqs", { ownerId: userId, ...faq });
+  for (const [position, faq] of spec.faqs.entries()) {
+    await ctx.db.insert("faqs", { ownerId: userId, ...faq, position });
   }
 }
 
