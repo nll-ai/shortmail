@@ -6,9 +6,9 @@ const SCIPY = "SciPy 2026 Fundraiser";
 const CHAT = "Can I find time with you to chat?";
 const READ = "Do you read every letter?";
 
-function labels(list: "headings" | "faqs") {
-  return cy.get(`[data-list="${list}"] [data-label]`).then(($nodes) => {
-    return [...$nodes].map((node) => (node.textContent ?? "").trim());
+function expectLabels(list: "headings" | "faqs", expected: string[]) {
+  cy.get(`[data-list="${list}"] [data-label]`).should(($nodes) => {
+    expect([...$nodes].map((node) => (node.textContent ?? "").trim())).to.deep.equal(expected);
   });
 }
 
@@ -58,7 +58,10 @@ function dragHandle(fromLabel: string, toLabel: string, shot?: string) {
       cy.get("[data-over='true']").should("exist");
       cy.then(() => fire("touchmove", y1));
       cy.get("[data-over='true']").should("exist");
-      if (shot) cy.screenshot(shot, { capture: "viewport" });
+      if (shot) {
+        cy.screenshot(shot, { capture: "viewport" });
+        return;
+      }
       cy.then(() => fire("touchend", y1));
     });
   });
@@ -74,28 +77,53 @@ describe("reorder headings and FAQs", () => {
     emulate("light");
     cy.visit("/reorder");
     cy.contains("FIXTURE — local reorder harness").should("be.visible");
-    labels("headings").should("deep.equal", [CONSULT, TALK, SCIPY]);
-    labels("faqs").should("deep.equal", [CHAT, READ]);
+    expectLabels("headings", [CONSULT, TALK, SCIPY]);
+    expectLabels("faqs", [CHAT, READ]);
     handle(TALK).should("be.visible").and("have.attr", "aria-roledescription", "sortable");
 
-    dragHandle(TALK, CONSULT, "fixture-reorder-mid-drag-mobile-light");
-    cy.get("body").invoke("attr", "data-drop").then((value) => {
-      cy.writeFile("/tmp/drop.txt", String(value), { log: false });
-    });
-    labels("headings").should("deep.equal", [TALK, CONSULT, SCIPY]);
+    dragHandle(TALK, CONSULT);
+    expectLabels("headings", [TALK, CONSULT, SCIPY]);
+    cy.get("button[aria-label^='Move ']").should("not.exist");
 
-    cy.get(`button[aria-label="Move ${CHAT} up"]`).should("be.disabled");
-    cy.get(`button[aria-label="Move ${CHAT} down"]`).focus().should("be.focused").click();
-    labels("faqs").should("deep.equal", [READ, CHAT]);
+    // Space lifts the handle, ArrowDown moves it, Space drops it.
+    cy.window().then((win) => {
+      const button = [...win.document.querySelectorAll("button")].find(
+        (node) => node.getAttribute("aria-label") === `Drag to reorder ${CHAT}`,
+      );
+      if (!(button instanceof win.HTMLElement)) throw new Error("missing faq handle");
+      button.focus();
+      button.dispatchEvent(
+        new win.KeyboardEvent("keydown", { code: "Space", key: " ", bubbles: true, cancelable: true }),
+      );
+    });
+    cy.get("[data-drag-overlay]").should("contain.text", CHAT);
+    cy.wait(50);
+    cy.window().then((win) => {
+      win.document.dispatchEvent(
+        new win.KeyboardEvent("keydown", {
+          code: "ArrowDown",
+          key: "ArrowDown",
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
+    cy.wait(50);
+    cy.window().then((win) => {
+      win.document.dispatchEvent(
+        new win.KeyboardEvent("keydown", { code: "Space", key: " ", bubbles: true, cancelable: true }),
+      );
+    });
+    expectLabels("faqs", [READ, CHAT]);
 
     cy.reload();
-    labels("headings").should("deep.equal", [TALK, CONSULT, SCIPY]);
-    labels("faqs").should("deep.equal", [READ, CHAT]);
+    expectLabels("headings", [TALK, CONSULT, SCIPY]);
+    expectLabels("faqs", [READ, CHAT]);
     cy.screenshot("fixture-reorder-dashboard-mobile-light", { capture: "fullPage" });
 
     emulate("dark");
     cy.reload();
-    labels("headings").should("deep.equal", [TALK, CONSULT, SCIPY]);
+    expectLabels("headings", [TALK, CONSULT, SCIPY]);
     handle(TALK).should("be.visible");
     cy.screenshot("fixture-reorder-dashboard-mobile-dark", { capture: "fullPage" });
 
@@ -128,5 +156,9 @@ describe("reorder headings and FAQs", () => {
     cy.get("shortmail-widget").shadow().find("select option").should("have.length", 5);
     cy.get("shortmail-widget").shadow().find("select").invoke("attr", "size", 5);
     cy.screenshot("fixture-reorder-send-mobile-dark", { capture: "fullPage" });
+
+    emulate("light");
+    cy.visit("/reorder");
+    dragHandle(TALK, SCIPY, "fixture-reorder-mid-drag-mobile-light");
   });
 });

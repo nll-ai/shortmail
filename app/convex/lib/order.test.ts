@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   compareOrderable,
-  moveDisabled,
-  moveItem,
   planReorder,
   reconcilePending,
   sequentialPositions,
@@ -103,40 +101,6 @@ describe("planReorder", () => {
 
   it("normalizes to the current order when the client sends nothing", () => {
     expect(planReorder(owned, [])).toEqual(["a", "b", "c"]);
-  });
-});
-
-describe("moveItem", () => {
-  const items = ["a", "b", "c"];
-
-  it("moves an item up or down", () => {
-    expect(moveItem(items, 1, -1)).toEqual(["b", "a", "c"]);
-    expect(moveItem(items, 1, 1)).toEqual(["a", "c", "b"]);
-  });
-
-  it("refuses a move past either end", () => {
-    expect(moveItem(items, 0, -1)).toBeNull();
-    expect(moveItem(items, 2, 1)).toBeNull();
-    expect(moveItem(items, -1, 1)).toBeNull();
-    expect(moveItem(["only"], 0, -1)).toBeNull();
-    expect(moveItem(["only"], 0, 1)).toBeNull();
-  });
-
-  it("does not mutate the input", () => {
-    moveItem(items, 0, 1);
-    expect(items).toEqual(["a", "b", "c"]);
-  });
-});
-
-describe("moveDisabled", () => {
-  it("disables up on the first row and down on the last", () => {
-    expect(moveDisabled(0, 3)).toEqual({ up: true, down: false });
-    expect(moveDisabled(1, 3)).toEqual({ up: false, down: false });
-    expect(moveDisabled(2, 3)).toEqual({ up: false, down: true });
-  });
-
-  it("disables both controls when the list has one row", () => {
-    expect(moveDisabled(0, 1)).toEqual({ up: true, down: true });
   });
 });
 

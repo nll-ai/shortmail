@@ -22,7 +22,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { moveDisabled, moveItem } from "../../../convex/lib/order";
 import { focusClass } from "../../theme/controls";
 
 const handleClass = [
@@ -31,7 +30,6 @@ const handleClass = [
   focusClass,
 ].join(" ");
 
-const nudgeClass = `px-1 text-[11px] leading-none text-muted enabled:hover:underline disabled:cursor-not-allowed disabled:opacity-40 ${focusClass}`;
 const removeClass = `inline-flex min-h-11 touch-manipulation items-center px-2 text-xs text-danger enabled:hover:underline ${focusClass}`;
 const editClass = `inline-flex min-h-11 touch-manipulation items-center px-2 text-xs text-link enabled:hover:underline ${focusClass}`;
 
@@ -90,13 +88,76 @@ class QuietTouchSensor extends TouchSensor {
   }
 }
 
+type KeySensor = {
+  props: {
+    active: unknown;
+    context: { current: { collisionRect: { left: number; top: number; height: number } | null } };
+    options: {
+      keyboardCodes?: { end: string[]; cancel: string[] };
+      coordinateGetter?: (
+        event: KeyboardEvent,
+        args: {
+          active: unknown;
+          context: unknown;
+          currentCoordinates: { x: number; y: number };
+        },
+      ) => { x: number; y: number } | undefined;
+    };
+  };
+  referenceCoordinates: { x: number; y: number } | undefined;
+  handleEnd: (event: Event) => void;
+  handleCancel: (event: Event) => void;
+  handleMove: (event: Event, coordinates: { x: number; y: number }) => void;
+};
+
+/**
+ * Arrow keys move the lifted row. The stock sensor spends those keys on
+ * scrolling the page first, so a phone-length dashboard never reaches the
+ * next row. The stock method is private, so this replaces it on the subclass.
+ */
+class QuietKeyboardSensor extends KeyboardSensor {}
+
+(QuietKeyboardSensor.prototype as unknown as { handleKeyDown: (event: KeyboardEvent) => void }).handleKeyDown =
+  function (this: KeySensor, event: KeyboardEvent) {
+    const { active, context, options } = this.props;
+    const keyboardCodes = options.keyboardCodes ?? {
+      end: ["Space", "Enter", "Tab"],
+      cancel: ["Escape"],
+    };
+    if (keyboardCodes.end.includes(event.code)) {
+      this.handleEnd(event);
+      return;
+    }
+    if (keyboardCodes.cancel.includes(event.code)) {
+      this.handleCancel(event);
+      return;
+    }
+    const rect = context.current.collisionRect;
+    const currentCoordinates = rect ? { x: rect.left, y: rect.top } : { x: 0, y: 0 };
+    if (!this.referenceCoordinates) this.referenceCoordinates = currentCoordinates;
+    const next = options.coordinateGetter?.(event, {
+      active,
+      context: context.current,
+      currentCoordinates,
+    });
+    if (!next || !this.referenceCoordinates) return;
+    const dy = next.y - this.referenceCoordinates.y;
+    // closestCenter uses the row's middle. Tall FAQ rows need an extra
+    // nudge or the middle stays on the row that was picked up.
+    const nudge = dy > 8 ? (rect?.height ?? 0) : dy < -8 ? -(rect?.height ?? 0) : 0;
+    this.handleMove(event, {
+      x: next.x - this.referenceCoordinates.x,
+      y: dy + nudge,
+    });
+  };
+
 function useReorderSensors() {
   return useSensors(
     useSensor(QuietMouseSensor, { activationConstraint: { distance: 6 } }),
     // No press-and-hold. Touch starts immediately; the handle's touch-action
     // and dnd-kit's non-passive touchmove listener keep the page from scrolling.
     useSensor(QuietTouchSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(QuietKeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 }
 
@@ -130,18 +191,12 @@ function announcementsFor<T extends { id: string }>(
 function SortableRow({
   id,
   label,
-  index,
-  count,
   disabled,
-  onNudge,
   children,
 }: {
   id: string;
   label: string;
-  index: number;
-  count: number;
   disabled?: boolean;
-  onNudge: (delta: -1 | 1) => void;
   children: ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
@@ -161,48 +216,9 @@ function SortableRow({
     >
       <div className={`flex items-start gap-1 ${isDragging ? "opacity-40" : ""}`}>
         <DragHandle label={label} disabled={disabled} attributes={attributes} listeners={listeners} />
-        <NudgeButtons label={label} index={index} count={count} disabled={disabled} onNudge={onNudge} />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </li>
-  );
-}
-
-function NudgeButtons({
-  label,
-  index,
-  count,
-  disabled,
-  onNudge,
-}: {
-  label: string;
-  index: number;
-  count: number;
-  disabled?: boolean;
-  onNudge: (delta: -1 | 1) => void;
-}) {
-  const ends = moveDisabled(index, count);
-  return (
-    <span className="flex shrink-0 flex-col justify-center py-1">
-      <button
-        type="button"
-        className={nudgeClass}
-        aria-label={`Move ${label} up`}
-        disabled={disabled || ends.up}
-        onClick={() => onNudge(-1)}
-      >
-        up
-      </button>
-      <button
-        type="button"
-        className={nudgeClass}
-        aria-label={`Move ${label} down`}
-        disabled={disabled || ends.down}
-        onClick={() => onNudge(1)}
-      >
-        down
-      </button>
-    </span>
   );
 }
 
@@ -287,18 +303,12 @@ function SortableList<T extends { id: string }>({
     >
       <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
         <ul className={list === "faqs" ? "mb-3 space-y-3" : "mb-3 space-y-1"} data-list={list}>
-          {items.map((item, index) => (
+          {items.map((item) => (
             <SortableRow
               key={item.id}
               id={item.id}
               label={labelFor(item)}
-              index={index}
-              count={items.length}
               disabled={disabled?.(item)}
-              onNudge={(delta) => {
-                const next = moveItem(items, index, delta);
-                if (next) onReorder(next);
-              }}
             >
               {children(item)}
             </SortableRow>

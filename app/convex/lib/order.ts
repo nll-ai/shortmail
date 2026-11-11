@@ -96,34 +96,6 @@ export function planReorder(
 }
 
 /**
- * Move one item toward the start or the end.
- *
- * :param items: The current display order.
- * :param index: The item to move.
- * :param delta: `-1` for up, `1` for down.
- * :returns: The next order, or null when the move would pass an end.
- */
-export function moveItem<T>(items: readonly T[], index: number, delta: -1 | 1): T[] | null {
-  const target = index + delta;
-  if (index < 0 || index >= items.length || target < 0 || target >= items.length) return null;
-  const next = items.slice();
-  const [item] = next.splice(index, 1);
-  next.splice(target, 0, item);
-  return next;
-}
-
-/**
- * Whether the up and down controls should be disabled.
- *
- * :param index: The item's place in the current list.
- * :param count: How many items are shown.
- * :returns: `up` is disabled on the first row, `down` on the last.
- */
-export function moveDisabled(index: number, count: number): { up: boolean; down: boolean } {
-  return { up: index <= 0, down: index >= count - 1 || count === 0 };
-}
-
-/**
  * Decide whether an optimistic order can be dropped in favor of the server.
  *
  * Extras on the server (a row added concurrently) are ignored as long as the
