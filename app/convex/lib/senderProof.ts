@@ -203,11 +203,11 @@ export function verificationMessage(origin: string, token: string): {
     "You can also open this page to copy the code:",
     link,
     "",
-    "The page only shows the code. It does not send the letter.",
+    "Paste the code into the form where you wrote the letter. The page does not send the letter.",
     "The code expires in 20 minutes.",
     "If you did not ask for this, ignore this message.",
   ].join("\n");
-  const html = `<p>Enter this code on the ShortMail form where you started the letter:</p><p><strong>${escapeHtml(token)}</strong></p><p>You can also open this page to copy the code:</p><p><a href="${escapeHtml(link)}">${escapeHtml(link)}</a></p><p>The page only shows the code. It does not send the letter. The code expires in 20 minutes.</p><p>If you did not ask for this, ignore this message.</p>`;
+  const html = `<p>Enter this code on the ShortMail form where you started the letter:</p><p><strong>${escapeHtml(token)}</strong></p><p>You can also open this page to copy the code:</p><p><a href="${escapeHtml(link)}">${escapeHtml(link)}</a></p><p>Paste the code into the form where you wrote the letter. The page does not send the letter. The code expires in 20 minutes.</p><p>If you did not ask for this, ignore this message.</p>`;
   return { subject: "Your ShortMail confirmation code", text, html };
 }
 

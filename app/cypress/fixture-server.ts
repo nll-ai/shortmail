@@ -47,6 +47,15 @@ const configs: Record<string, { displayName: string; headings: string[]; faqs: F
 };
 
 const calls: string[] = [];
+const sends: Record<string, string>[] = [];
+
+function readBody(req: import("node:http").IncomingMessage): Promise<string> {
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(chunk as Buffer));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+  });
+}
 
 function page(body: string, css: string, harness: boolean): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><script src="/widget.js" defer></script>${harness ? '<script src="/harness.js" defer></script>' : ""}</head><body><p class="bg-neutral-900 px-4 py-2 text-xs tracking-wide text-white">${LABEL}</p>${body}</body></html>`;
@@ -142,16 +151,28 @@ export async function startFaqFixture(): Promise<string> {
 
   server.removeAllListeners("request");
   server.on("request", (req, res) => {
+    void (async () => {
     const url = new URL(req.url ?? "/", origin);
+    const body = await readBody(req);
     calls.push(`${req.method} ${url.pathname}`);
     if (req.method === "POST" && url.pathname === "/__reset") {
       calls.length = 0;
+      sends.length = 0;
       res.writeHead(204);
       res.end();
       return;
     }
     if (url.pathname === "/__calls") {
       respond(res, JSON.stringify(calls), "application/json");
+      return;
+    }
+    if (url.pathname === "/__send") {
+      respond(res, JSON.stringify(sends), "application/json");
+      return;
+    }
+    if (req.method === "POST" && /^\/api\/send\/(fixture|unsafe)$/.test(url.pathname)) {
+      sends.push(Object.fromEntries(new URLSearchParams(body)));
+      respond(res, JSON.stringify({ ok: true }), "application/json");
       return;
     }
     if (url.pathname === "/widget.js") {
@@ -204,6 +225,7 @@ export async function startFaqFixture(): Promise<string> {
     }
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "not-the-fixture" }));
+    })();
   });
 
   return origin;
