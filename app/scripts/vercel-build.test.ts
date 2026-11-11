@@ -24,6 +24,14 @@ if [[ "$*" == *export* ]]; then
   for ((i=0; i<\${#args[@]}; i++)); do
     if [[ "\${args[$i]}" == "--path" ]]; then path="\${args[$((i+1))]}"; fi
   done
+  # Convex export errors when --path already exists. mktemp of a .zip file
+  # creates that file, which is the PR 42 hydration failure.
+  if [[ -e "$path" ]]; then
+    echo "EXPORT_PATH_EXISTED=yes" >> "$STUB_LOG"
+    echo "Error: Path $path already exists." >&2
+    exit 1
+  fi
+  echo "EXPORT_PATH_EXISTED=no" >> "$STUB_LOG"
   python3 -c 'import sys; open(sys.argv[1],"wb").write(b"x"*int(sys.argv[2]))' "$path" "\${STUB_EXPORT_BYTES:-8}"
 fi
 exit 0
@@ -136,6 +144,20 @@ describe("vercel-build.sh", () => {
     expect(result.log).toContain("timeout 300 npx convex import");
   });
 
+  it("retries hydration when the marker is missing and the export path is new", () => {
+    const result = run({
+      ...preview,
+      STUB_ENV_NAMES: "WORKOS_CLIENT_ID\nSHORTMAIL_PUBLIC_ORIGIN",
+    });
+    expect(result.status, result.log).toBe(0);
+    expect(result.log).toContain("EXPORT_PATH_EXISTED=no");
+    expect(result.log).toContain("npx convex export --prod --path");
+    expect(result.log).toContain(
+      "npx convex env --preview-name feat/widgets set SHORTMAIL_PREVIEW_HYDRATED_AT",
+    );
+    expect(result.log).not.toContain("EXPORT_PATH_EXISTED=yes");
+  });
+
   it("does not export again when the preview was already hydrated", () => {
     const result = run({
       ...preview,
@@ -156,6 +178,7 @@ describe("vercel-build.sh", () => {
     expect(result.status).not.toBe(0);
     expect(result.log).toContain("convex export");
     expect(result.log).not.toContain("convex import");
+    expect(result.log).not.toContain("SHORTMAIL_PREVIEW_HYDRATED_AT");
   });
 
   it("scrubs only when the flag is set", () => {

@@ -71,10 +71,14 @@ echo "==> Convex preview deploy for ${PREVIEW_NAME}"
 echo "==> Preview origin ${ORIGIN}"
 
 ENV_FILE=""
-SNAPSHOT=""
+SNAPSHOT_DIR=""
 cleanup() {
   if [[ -n "$ENV_FILE" ]]; then rm -f "$ENV_FILE"; fi
-  if [[ -n "$SNAPSHOT" ]]; then rm -f "$SNAPSHOT"; fi
+  # Only remove the directory this script created. An empty or unexpected
+  # value must not become `rm -rf`.
+  if [[ "$SNAPSHOT_DIR" == /tmp/shortmail-preview.* ]]; then
+    rm -rf "$SNAPSHOT_DIR"
+  fi
 }
 trap cleanup EXIT
 
@@ -140,7 +144,11 @@ if [[ "$DO_HYDRATE" == "yes" ]]; then
     echo "The timeout command is required for the production snapshot." >&2
     exit 1
   fi
-  SNAPSHOT="$(mktemp /tmp/shortmail-preview.XXXXXX.zip)"
+  # `npx convex export --path` refuses a path that already exists. mktemp
+  # creates its file, so the zip lives in a fresh directory and is not
+  # created until export downloads it.
+  SNAPSHOT_DIR="$(mktemp -d /tmp/shortmail-preview.XXXXXX)"
+  SNAPSHOT="$SNAPSHOT_DIR/snapshot.zip"
   echo "==> Exporting production snapshot (timeout ${EXPORT_TIMEOUT}s, max ${MAX_BYTES} bytes)"
   # The production key is inherited by the export process. It is not placed
   # on the command line, and the preview key remains the parent shell's key.
@@ -155,8 +163,8 @@ if [[ "$DO_HYDRATE" == "yes" ]]; then
     --replace \
     --yes \
     "$SNAPSHOT"
-  rm -f "$SNAPSHOT"
-  SNAPSHOT=""
+  rm -rf "$SNAPSHOT_DIR"
+  SNAPSHOT_DIR=""
   STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   npx convex env --preview-name "$PREVIEW_NAME" set SHORTMAIL_PREVIEW_HYDRATED_AT "$STAMP"
 else
