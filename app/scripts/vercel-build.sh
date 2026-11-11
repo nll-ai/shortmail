@@ -122,11 +122,28 @@ fi
 
 # `npx convex deploy` injects this preview's URL as NEXT_PUBLIC_CONVEX_URL
 # for the Next.js build and for widget.js.
-npx convex deploy \
-  --preview-name "$PREVIEW_NAME" \
-  --cmd "npm run build" \
-  --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL \
-  --preview-run "devSeed:seedDemo"
+#
+# A brand-new preview does not exist until this deploy creates it, so the
+# env write above can fail. Convex then rejects auth.config.ts because
+# WORKOS_AUTHKIT_ISSUER is referenced and still unset. Write the env once
+# the deployment exists and deploy a second time.
+deploy_preview() {
+  npx convex deploy \
+    --preview-name "$PREVIEW_NAME" \
+    --cmd "npm run build" \
+    --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL \
+    --preview-run "devSeed:seedDemo"
+}
+
+set +e
+deploy_preview
+deploy_status=$?
+set -e
+if [[ "$deploy_status" -ne 0 ]]; then
+  echo "==> Convex preview deploy failed; writing env and retrying once"
+  configure_preview_env
+  deploy_preview
+fi
 
 configure_preview_env
 
