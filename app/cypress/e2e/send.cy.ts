@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+import { SEND_SUCCESS_MESSAGES } from "../../src/widget/sendSuccess";
+
 export {};
 
 /**
@@ -69,6 +71,21 @@ function clickSend(root: ShadowRoot) {
   button.click();
 }
 
+function successLines(name: string): string[] {
+  return SEND_SUCCESS_MESSAGES.map((line) => line.split("{name}").join(name));
+}
+
+function expectSuccessLine(name: string) {
+  const allowed = successLines(name);
+  shadow().find(".success").should(($node) => {
+    expect($node, "one success panel").to.have.length(1);
+    const text = $node.text();
+    expect(allowed, text).to.include(text);
+    expect(text).to.contain(name);
+    expect(text).not.to.contain("plain, short email");
+  });
+}
+
 function fillAndSend(prepare?: (root: ShadowRoot) => void) {
   cy.get("shortmail-widget").then(($host) => {
     const root = $host[0].shadowRoot;
@@ -94,6 +111,8 @@ describe("confirmed send in the real widget", () => {
       expect(honeypot, "honeypot").to.not.equal(null);
       expect(honeypot?.readOnly).to.equal(true);
     });
+    expectSuccessLine("Fixture Owner");
+    cy.screenshot("fixture-local-send-success", { capture: "fullPage" });
     cy.request("/__send").its("body").should((sends: Record<string, string>[]) => {
       expect(sends).to.have.length(1);
       expect(sends[0].sender_name).to.eq("Eric Ma");
@@ -113,6 +132,7 @@ describe("confirmed send in the real widget", () => {
     shadow().contains("Nothing is sent until you do").should("be.visible");
     shadow().find('input[type="email"]').should("have.value", EMAIL);
     fillAndSend();
+    expectSuccessLine("Fixture Owner");
     cy.request("/__send").its("body").should((sends: Record<string, string>[]) => {
       expect(sends).to.have.length(1);
       expect(sends[0].subject).to.eq("OTHER");
