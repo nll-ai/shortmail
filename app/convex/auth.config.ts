@@ -1,9 +1,10 @@
 /**
  * Dashboard sessions use the AuthKit user-management issuer.
- * MCP access tokens use the AuthKit domain issuer. Their audience is the
- * MCP resource URL once a resource indicator is configured, and the WorkOS
- * client id until then (WorkOS falls back to the client id when no
- * indicator is set). Both audiences are accepted for that issuer.
+ * MCP access tokens use the AuthKit domain in WORKOS_AUTHKIT_ISSUER.
+ * Preview and production builds set that to staging AuthKit. The audience
+ * is SHORTMAIL_MCP_RESOURCE (the deployment's /mcp URL) once a resource
+ * indicator is configured, and the WorkOS client id until then. Both
+ * audiences are accepted for that issuer.
  */
 const clientId = process.env.WORKOS_CLIENT_ID;
 const authkitIssuer = process.env.WORKOS_AUTHKIT_ISSUER?.replace(/\/$/, "");

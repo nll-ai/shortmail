@@ -99,11 +99,11 @@ export default function ConnectPage() {
 
         <h2 className="mb-3.5 mt-14 text-[15px] font-semibold">WorkOS setup</h2>
         <p className="leading-[1.55] text-muted">
-          A preview signs in with the staging AuthKit
+          Preview and production both sign in through the staging AuthKit
           (<code>warm-respect-91-staging.authkit.app</code>). The production
-          server URL uses the production AuthKit
-          (<code>fair-rose-65.authkit.app</code>). The issuer follows the
-          deployment, not a single hardcoded domain.
+          server URL is still <code>{MCP_URL}</code>. Set{" "}
+          <code>WORKOS_AUTHKIT_ISSUER</code> only to point a deployment at a
+          different issuer.
         </p>
         <ol className="mt-4 list-decimal space-y-3 pl-5 leading-normal">
           <li>

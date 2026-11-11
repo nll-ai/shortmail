@@ -1,11 +1,9 @@
 /**
  * Which AuthKit domain signs MCP access tokens.
  *
- * The client id is the WorkOS environment. Preview builds sign in with the
- * staging client, so they must not advertise the production AuthKit domain.
- * An explicit WORKOS_AUTHKIT_ISSUER wins. On Vercel, the deployment
- * environment decides: preview is staging, production is production.
- * Off Vercel, the client id decides.
+ * Production ShortMail signs in through the staging WorkOS environment.
+ * Preview and production Vercel builds both use that staging issuer.
+ * An explicit WORKOS_AUTHKIT_ISSUER wins. Off Vercel, the client id decides.
  */
 
 export const PRODUCTION_CLIENT_ID = "client_01KHAAXWXVRTTH5J15474B94XY";
@@ -22,15 +20,17 @@ const ISSUER_BY_CLIENT_ID = {
 /**
  * AuthKit issuer for this process.
  *
- * :param env: Process environment. `WORKOS_CLIENT_ID` and `VERCEL_ENV` are read.
+ * :param env: Process environment. `WORKOS_AUTHKIT_ISSUER`, `VERCEL_ENV`,
+ *   and `WORKOS_CLIENT_ID` are read.
  * :returns: Issuer URL without a trailing slash, or null when it cannot be resolved.
  */
 export function resolveAuthkitIssuer(env) {
   const explicit = (env.WORKOS_AUTHKIT_ISSUER ?? "").trim().replace(/\/$/, "");
   if (explicit) return explicit;
 
-  if (env.VERCEL_ENV === "preview") return STAGING_AUTHKIT_ISSUER;
-  if (env.VERCEL_ENV === "production") return PRODUCTION_AUTHKIT_ISSUER;
+  if (env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "production") {
+    return STAGING_AUTHKIT_ISSUER;
+  }
 
   const clientId = (env.WORKOS_CLIENT_ID ?? "").trim();
   return ISSUER_BY_CLIENT_ID[clientId] ?? null;

@@ -45,7 +45,7 @@ describe("MCP resource URL", () => {
     );
   });
 
-  it("uses staging AuthKit for previews and production AuthKit for production", () => {
+  it("uses staging AuthKit for preview and production, and keeps the production resource", () => {
     const preview = "https://shortmail-git-cursor-mcp-page-2c5b4b-eric-mas-projects-a230afd1.vercel.app";
     expect(
       authkitIssuer({
@@ -58,17 +58,31 @@ describe("MCP resource URL", () => {
         VERCEL_ENV: "production",
         WORKOS_CLIENT_ID: STAGING_CLIENT_ID,
       }),
-    ).toBe(PRODUCTION_AUTHKIT_ISSUER);
+    ).toBe(STAGING_AUTHKIT_ISSUER);
+    expect(
+      authkitIssuer({
+        VERCEL_ENV: "production",
+        WORKOS_CLIENT_ID: PRODUCTION_CLIENT_ID,
+      }),
+    ).toBe(STAGING_AUTHKIT_ISSUER);
     expect(authkitIssuer({ WORKOS_CLIENT_ID: STAGING_CLIENT_ID })).toBe(STAGING_AUTHKIT_ISSUER);
     expect(authkitIssuer({ WORKOS_CLIENT_ID: PRODUCTION_CLIENT_ID })).toBe(
       PRODUCTION_AUTHKIT_ISSUER,
     );
     expect(
       authkitIssuer({
-        VERCEL_ENV: "preview",
+        VERCEL_ENV: "production",
         WORKOS_AUTHKIT_ISSUER: "https://override.example/",
       }),
     ).toBe("https://override.example");
+
+    const productionIssuer = authkitIssuer({ VERCEL_ENV: "production" });
+    const productionMetadata = protectedResourceMetadata(
+      mcpResourceUrl({ VERCEL_ENV: "production" }),
+      productionIssuer ?? "",
+    );
+    expect(productionMetadata.resource).toBe("https://shortmail.nonlinearlabs.ai/mcp");
+    expect(productionMetadata.authorization_servers).toEqual([STAGING_AUTHKIT_ISSUER]);
 
     const metadata = protectedResourceMetadata(
       `${preview}/mcp`,

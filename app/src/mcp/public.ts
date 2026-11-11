@@ -1,7 +1,7 @@
 /**
  * Public MCP addresses. These are not secrets. The issuer comes from
- * `resolveAuthkitIssuer`: preview deployments use staging AuthKit, and
- * production uses production AuthKit.
+ * `resolveAuthkitIssuer`. Preview and production both use staging AuthKit
+ * unless `WORKOS_AUTHKIT_ISSUER` is set.
  */
 
 import { resolveAuthkitIssuer } from "./authkit-issuer.mjs";

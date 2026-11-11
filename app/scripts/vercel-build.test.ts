@@ -224,7 +224,7 @@ describe("vercel-build.sh", () => {
     });
     expect(result.status).toBe(0);
     expect(result.log).toContain(
-      "npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://fair-rose-65.authkit.app",
+      "npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://warm-respect-91-staging.authkit.app",
     );
     expect(result.log).toContain(
       "npx convex env --prod set SHORTMAIL_MCP_RESOURCE https://shortmail.nonlinearlabs.ai/mcp",

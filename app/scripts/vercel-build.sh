@@ -54,7 +54,7 @@ if [[ "$KIND" == "production" ]]; then
     import { resolveAuthkitIssuer } from "./src/mcp/authkit-issuer.mjs";
     const issuer = resolveAuthkitIssuer(process.env);
     if (!issuer) {
-      console.error("Cannot resolve the production AuthKit issuer.");
+      console.error("Cannot resolve the AuthKit issuer for this build.");
       process.exit(1);
     }
     process.stdout.write(issuer);
