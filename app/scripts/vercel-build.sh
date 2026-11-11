@@ -49,6 +49,9 @@ if [[ "$KIND" == "production" ]]; then
   else
     echo "warning: could not list production Convex env names; continuing the production function deploy" >&2
   fi
+  echo "==> Publishing the MCP token audience on the production Convex deployment"
+  npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://fair-rose-65.authkit.app
+  npx convex env --prod set SHORTMAIL_MCP_RESOURCE https://shortmail.nonlinearlabs.ai/mcp
   npx convex deploy --cmd "npm run build" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
   echo "==> Backfilling subject heading and FAQ order"
   npx convex run --prod migrate:backfillListOrder '{}'

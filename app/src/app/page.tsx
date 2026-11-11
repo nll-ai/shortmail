@@ -86,6 +86,12 @@ export default function Home() {
       <footer className="mt-12 border-t border-line">
         <div className="mx-auto flex max-w-[42rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-5 text-[13px] text-muted">
           <span>© Nonlinear Labs · BUSL-1.1</span>
+          <a
+            href="/connect"
+            className={`inline-flex min-h-11 items-center text-foreground ${linkFocus}`}
+          >
+            Connect an agent
+          </a>
           <span>One account, one email.</span>
         </div>
       </footer>

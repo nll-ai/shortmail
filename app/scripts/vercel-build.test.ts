@@ -200,6 +200,12 @@ describe("vercel-build.sh", () => {
     });
     expect(result.status).toBe(0);
     expect(result.log).toContain(
+      "npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://fair-rose-65.authkit.app",
+    );
+    expect(result.log).toContain(
+      "npx convex env --prod set SHORTMAIL_MCP_RESOURCE https://shortmail.nonlinearlabs.ai/mcp",
+    );
+    expect(result.log).toContain(
       "npx convex deploy --cmd npm run build --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL",
     );
     expect(result.log).toContain("npx convex run --prod migrate:backfillListOrder {}");

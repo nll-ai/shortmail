@@ -88,6 +88,36 @@ function sanitizeChildren(node: ParentNode): Node[] {
   return out;
 }
 
+function decodeHtml(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+/**
+ * Which links markdown will offer, and which the public page will keep.
+ *
+ * Uses the same escape-then-markdown step as rendering, then `safeFaqHref`.
+ * A dropped link leaves its text in the page.
+ *
+ * :param answer: Markdown answer stored for the FAQ.
+ * :returns: One entry per href markdown produced, in document order.
+ */
+export function faqAnswerLinkDecisions(
+  answer: string,
+): { href: string; kept: boolean }[] {
+  const html = marked.parse(escapeHtml(answer), { async: false }) as string;
+  const decisions: { href: string; kept: boolean }[] = [];
+  for (const match of html.matchAll(/href="([^"]*)"/g)) {
+    const href = decodeHtml(match[1] ?? "");
+    decisions.push({ href, kept: safeFaqHref(href) !== null });
+  }
+  return decisions;
+}
+
 /**
  * Render an FAQ answer as inert nodes: markdown structure and safe links.
  *

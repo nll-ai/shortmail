@@ -14,6 +14,11 @@ export default async function Dashboard() {
           <p className="mt-2">
             Signed in as <strong>{user.email}</strong>
           </p>
+          <p className="mt-1 text-sm">
+            <a href="/connect" className="underline">
+              Connect an agent
+            </a>
+          </p>
         </div>
         <SignOutButton />
       </div>
