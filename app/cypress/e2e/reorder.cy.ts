@@ -21,28 +21,70 @@ function emulate(scheme: "light" | "dark") {
   );
 }
 
+function handle(label: string) {
+  return cy.get(`button[aria-label="Drag to reorder ${label}"]`);
+}
+
+/**
+ * Touch events, the same ones iPhone Safari sends. Dispatched on the handle
+ * because that is where the touch sensor listens.
+ */
+function dragHandle(fromLabel: string, toLabel: string, shot?: string) {
+  handle(fromLabel).then(($from) => {
+    handle(toLabel).then(($to) => {
+      const from = $from[0].getBoundingClientRect();
+      const to = $to[0].getBoundingClientRect();
+      const el = $from[0];
+      const view = el.ownerDocument.defaultView;
+      if (!view) throw new Error("missing window");
+      const x = from.left + from.width / 2;
+      const y0 = from.top + from.height / 2;
+      const y1 = to.top + to.height / 2;
+      const fire = (type: string, y: number) => {
+        const touch = new view.Touch({ identifier: 1, target: el, clientX: x, clientY: y });
+        el.dispatchEvent(
+          new view.TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: type === "touchend" ? [] : [touch],
+            targetTouches: type === "touchend" ? [] : [touch],
+            changedTouches: [touch],
+          }),
+        );
+      };
+      fire("touchstart", y0);
+      fire("touchmove", y1);
+      cy.get("[data-drag-overlay]").should("be.visible");
+      cy.get("[data-over='true']").should("exist");
+      cy.then(() => fire("touchmove", y1));
+      cy.get("[data-over='true']").should("exist");
+      if (shot) cy.screenshot(shot, { capture: "viewport" });
+      cy.then(() => fire("touchend", y1));
+    });
+  });
+}
+
 describe("reorder headings and FAQs", () => {
   beforeEach(() => {
     cy.request("POST", "/__reset");
     cy.viewport(390, 844);
   });
 
-  it("reorders with the buttons on a phone and keeps that order after reload", () => {
+  it("reorders by dragging the handle on a phone and keeps that order after reload", () => {
     emulate("light");
     cy.visit("/reorder");
     cy.contains("FIXTURE — local reorder harness").should("be.visible");
     labels("headings").should("deep.equal", [CONSULT, TALK, SCIPY]);
     labels("faqs").should("deep.equal", [CHAT, READ]);
-    cy.get(`button[aria-label="Move ${CONSULT} up"]`).should("be.disabled");
-    cy.get(`button[aria-label="Move ${SCIPY} down"]`).should("be.disabled");
-    cy.get(`button[aria-label="Move ${TALK} up"]`).should("be.enabled");
-    cy.get(`button[aria-label="Move ${TALK} down"]`).should("be.enabled");
-    cy.get(`button[aria-label="Move ${READ} down"]`).should("be.disabled");
+    handle(TALK).should("be.visible").and("have.attr", "aria-roledescription", "sortable");
 
-    cy.get(`button[aria-label="Move ${TALK} up"]`).click();
+    dragHandle(TALK, CONSULT, "fixture-reorder-mid-drag-mobile-light");
+    cy.get("body").invoke("attr", "data-drop").then((value) => {
+      cy.writeFile("/tmp/drop.txt", String(value), { log: false });
+    });
     labels("headings").should("deep.equal", [TALK, CONSULT, SCIPY]);
-    cy.get(`button[aria-label="Move ${TALK} up"]`).should("be.disabled");
 
+    cy.get(`button[aria-label="Move ${CHAT} up"]`).should("be.disabled");
     cy.get(`button[aria-label="Move ${CHAT} down"]`).focus().should("be.focused").click();
     labels("faqs").should("deep.equal", [READ, CHAT]);
 
@@ -54,7 +96,7 @@ describe("reorder headings and FAQs", () => {
     emulate("dark");
     cy.reload();
     labels("headings").should("deep.equal", [TALK, CONSULT, SCIPY]);
-    cy.get(`button[aria-label="Move ${TALK} up"]`).should("be.disabled");
+    handle(TALK).should("be.visible");
     cy.screenshot("fixture-reorder-dashboard-mobile-dark", { capture: "fullPage" });
 
     emulate("light");

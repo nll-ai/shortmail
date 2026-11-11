@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { moveItem } from "../convex/lib/order";
 import { FaqRows, HeadingRows } from "../src/components/dashboard/ReorderRows";
 
 type Heading = { id: string; heading: string };
@@ -48,13 +47,12 @@ function Harness() {
           <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Subject headings</h2>
           <HeadingRows
             headings={lists.headings}
-            onMove={(index, delta) => {
-              const next = moveItem(lists.headings, index, delta);
-              if (!next) return;
-              setLists({ ...lists, headings: next });
+            onReorder={(next) => {
+              const headings = [...next];
+              setLists({ ...lists, headings });
               void reorder(
                 "headings",
-                next.map((item) => item.id),
+                headings.map((item) => item.id),
               ).catch(() => setError("Something went wrong — please try again."));
             }}
             onRemove={() => undefined}
@@ -64,13 +62,12 @@ function Harness() {
           <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
           <FaqRows
             faqs={lists.faqs}
-            onMove={(index, delta) => {
-              const next = moveItem(lists.faqs, index, delta);
-              if (!next) return;
-              setLists({ ...lists, faqs: next });
+            onReorder={(next) => {
+              const faqs = [...next];
+              setLists({ ...lists, faqs });
               void reorder(
                 "faqs",
-                next.map((item) => item.id),
+                faqs.map((item) => item.id),
               ).catch(() => setError("Something went wrong — please try again."));
             }}
             onEdit={() => undefined}

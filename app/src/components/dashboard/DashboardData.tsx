@@ -6,7 +6,6 @@ import { dispatchWidgetChange } from "../../widget/liveUpdates";
 import Link from "next/link";
 import Script from "next/script";
 import { api } from "../../../convex/_generated/api";
-import { moveItem } from "../../../convex/lib/order";
 import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { controlClass, fieldClass } from "@/theme/controls";
@@ -194,9 +193,7 @@ function HeadingsSection({
 
   const atLimit = !isPaid && headings.length >= FREE_HEADING_LIMIT;
 
-  async function move(index: number, delta: -1 | 1) {
-    const next = moveItem(order.shown, index, delta);
-    if (!next) return;
+  async function commit(next: readonly { id: Id<"subjectHeadings">; heading: string }[]) {
     const token = order.begin(next);
     dispatchWidgetChange({
       kind: "headings-reordered",
@@ -220,8 +217,8 @@ function HeadingsSection({
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Subject headings</h2>
       <HeadingRows
         headings={order.shown}
-        onMove={(index, delta) => {
-          void move(index, delta);
+        onReorder={(next) => {
+          void commit(next);
         }}
         onRemove={(item) => {
           setError("");
@@ -292,9 +289,9 @@ function FaqsSection({
   const atLimit = !isPaid && faqs.length >= FREE_FAQ_LIMIT;
   const editing = faqs.find((faq) => faq.id === editingId) ?? null;
 
-  async function move(index: number, delta: -1 | 1) {
-    const next = moveItem(order.shown, index, delta);
-    if (!next) return;
+  async function commit(
+    next: readonly { id: Id<"faqs">; question: string; answer: string }[],
+  ) {
     const token = order.begin(next);
     dispatchWidgetChange({
       kind: "faqs-reordered",
@@ -319,8 +316,8 @@ function FaqsSection({
       <FaqRows
         faqs={order.shown}
         editingId={editingId}
-        onMove={(index, delta) => {
-          void move(index, delta);
+        onReorder={(next) => {
+          void commit(next);
         }}
         onEdit={(faq) => {
           setEditingId(faq.id);
