@@ -50,4 +50,14 @@ describe("dashboard live preview", () => {
     expect(source).toContain('kind: "faqs-reordered"');
     expect(source).toContain("question: item.question, answer: item.answer");
   });
+
+  it("pushes the Convex page into the preview when it changes outside this tab", () => {
+    expect(source).toContain("previewSnapshot(");
+    expect(source).toContain('kind: "snapshot"');
+    expect(source).toContain("api.theming.myTheme");
+    const pushed = source.indexOf('kind: "snapshot"');
+    const localAdd = source.indexOf('kind: "faq-added"');
+    expect(pushed).toBeGreaterThan(-1);
+    expect(localAdd).toBeGreaterThan(-1);
+  });
 });

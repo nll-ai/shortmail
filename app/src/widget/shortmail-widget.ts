@@ -15,7 +15,8 @@
 import { renderFaqAnswer } from "./faqAnswer";
 import { renderSendSuccess } from "./sendSuccess";
 import { ADAPTIVE, presetById, selectChevron } from "./presets";
-import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
+import { WIDGET_CHANGE_EVENT, type WidgetChange, type WidgetSnapshot } from "./liveUpdates";
+import { overlayConfig } from "./snapshot";
 import { getFormSheet } from "./formSkin";
 import {
   VERIFY_COPY,
@@ -247,6 +248,8 @@ class ShortmailWidget extends HTMLElement {
   private shadow!: ShadowRoot;
   private vanity = "";
   private config: EmbedConfig | null = null;
+  /** Server page that arrived after, or during, the one-time config fetch. */
+  private pendingSnapshot: WidgetSnapshot | null = null;
   private changeHandler = (e: Event): void =>
     this.applyWidgetChange((e as CustomEvent<WidgetChange>).detail);
   private verifyPoll = 0;
@@ -311,11 +314,10 @@ class ShortmailWidget extends HTMLElement {
         break;
       }
       case "heading-added": {
-        if (this.config && !this.config.headings.includes(change.heading)) {
-          this.config.headings.push(change.heading);
-        }
+        if (this.config?.headings.includes(change.heading)) break;
+        if (this.config) this.config.headings.push(change.heading);
         const select = this.shadow.querySelector("select");
-        if (select) {
+        if (select && ![...select.options].some((option) => option.value === change.heading)) {
           const opt = document.createElement("option");
           opt.value = change.heading;
           opt.textContent = change.heading;
@@ -347,6 +349,10 @@ class ShortmailWidget extends HTMLElement {
         break;
       }
       case "faq-added": {
+        const already = this.config?.faqs.some(
+          (faq) => faq.question === change.question && faq.answer === change.answer,
+        );
+        if (already) break;
         if (this.config) {
           this.config.faqs.push({
             question: change.question,
@@ -406,6 +412,17 @@ class ShortmailWidget extends HTMLElement {
         this.applyTheme();
         break;
       }
+      case "snapshot": {
+        this.pendingSnapshot = {
+          displayName: change.displayName,
+          headings: change.headings.slice(),
+          faqs: change.faqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+          ...(change.theme !== undefined ? { theme: change.theme } : {}),
+        };
+        if (this.config) this.config = overlayConfig(this.config, this.pendingSnapshot);
+        this.patchFromSnapshot(this.pendingSnapshot);
+        break;
+      }
       case "vanity": {
         this.setAttribute("vanity", change.vanity); // triggers full reload
         break;
@@ -446,7 +463,7 @@ class ShortmailWidget extends HTMLElement {
         this.renderMessage("This shortmail page could not be found.");
         return;
       }
-      this.config = (await res.json()) as EmbedConfig;
+      this.config = overlayConfig((await res.json()) as EmbedConfig, this.pendingSnapshot);
       this.applyTheme();
       this.renderForm();
       this.beaconView();
@@ -939,6 +956,24 @@ class ShortmailWidget extends HTMLElement {
     });
 
     this.shadow.appendChild(form);
+  }
+
+  /**
+   * Replace the visitor-facing bits of a form that is already on screen.
+   *
+   * A letter in progress stays: this does not rebuild the form. A snapshot
+   * that arrives before the form exists is kept and applied when `load`
+   * finishes. The success panel has no form, so it is left alone.
+   *
+   * :param snapshot: Current server page.
+   */
+  private patchFromSnapshot(snapshot: WidgetSnapshot): void {
+    if (!this.shadow.querySelector(".sm-form")) return;
+    const heading = this.shadow.querySelector(".sm-heading");
+    if (heading) heading.textContent = `Send a shortmail to ${snapshot.displayName}`;
+    this.reorderHeadingOptions(snapshot.headings);
+    this.reorderFaqNodes(snapshot.faqs);
+    if (snapshot.theme !== undefined) this.applyTheme();
   }
 
   /** Put subject options in `headings` order. The blank and Other options stay put. */

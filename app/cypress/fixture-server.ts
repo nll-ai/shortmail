@@ -102,9 +102,12 @@ function dashboard(css: string): string {
       <div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <section class="min-w-0 space-y-8 border p-4 text-sm">
           <h2 class="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
-          <p class="font-medium">${QUESTION}</p>
+          <ul id="faq-list" class="mb-3 space-y-3">
+            <li class="font-medium">${QUESTION}</li>
+          </ul>
           <p class="whitespace-pre-wrap text-muted">${ANSWER}</p>
-          <p class="text-xs text-muted">These buttons call the real preview event. They do not save and they do not send mail.</p>
+          <p class="text-xs text-muted">Add, edit, and remove call the real preview event. They do not save and they do not send mail.</p>
+          <p id="external-status" class="text-xs text-muted"></p>
           <form id="add-form" class="space-y-2">
             <input id="previous" class="w-full border-0 border-b border-input bg-transparent px-1 py-1 text-sm text-foreground" value="${QUESTION}" />
             <input id="question" class="w-full border-0 border-b border-input bg-transparent px-1 py-1 text-sm text-foreground" value="${QUESTION}" />
@@ -112,6 +115,7 @@ function dashboard(css: string): string {
             <button id="add-faq" type="submit" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Add FAQ</button>
             <button id="save-edit" type="button" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Save edit</button>
             <button id="remove-faq" type="button" class="text-xs text-danger">Remove</button>
+            <button id="external-change" type="button" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Simulate external change</button>
           </form>
         </section>
         <div class="space-y-4 self-start">

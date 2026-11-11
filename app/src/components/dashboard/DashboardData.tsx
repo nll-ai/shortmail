@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { dispatchWidgetChange } from "../../widget/liveUpdates";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { controlClass, fieldClass } from "@/theme/controls";
 import { FaqRows, HeadingRows } from "./ReorderRows";
+import { previewSnapshot, previewSnapshotKey } from "./previewSnapshot";
 import { useServerOrder } from "./useServerOrder";
 
 const FREE_HEADING_LIMIT = 5;
@@ -49,6 +50,36 @@ export function DashboardData() {
   const { me, provisioning } = useMe();
   const headings = useQuery(api.forms.myHeadings);
   const faqs = useQuery(api.forms.myFaqs);
+  const theme = useQuery(api.theming.myTheme);
+  const headingsShown = useRef<readonly { heading: string }[] | null>(null);
+  const faqsShown = useRef<readonly { question: string; answer: string }[] | null>(null);
+  const ready = me != null && headings !== undefined && faqs !== undefined;
+  const previewKey = ready
+    ? previewSnapshotKey(
+        previewSnapshot({
+          displayName: me.displayName,
+          email: me.email,
+          headings,
+          faqs,
+          theme,
+        }),
+      )
+    : "";
+
+  useEffect(() => {
+    if (!ready || me == null || headings === undefined || faqs === undefined) return;
+    // Lists published by the sections include an in-flight reorder. The
+    // server lists are the fallback on the first paint, before those
+    // sections have rendered.
+    const snapshot = previewSnapshot({
+      displayName: me.displayName,
+      email: me.email,
+      headings: headingsShown.current ?? headings,
+      faqs: faqsShown.current ?? faqs,
+      theme,
+    });
+    dispatchWidgetChange({ kind: "snapshot", ...snapshot });
+  }, [previewKey, ready, me, headings, faqs, theme]);
 
   if (me === undefined || me === null || headings === undefined || faqs === undefined) {
     return <p className="mt-4 text-sm text-muted">Loading your data…</p>;
@@ -83,6 +114,7 @@ export function DashboardData() {
         <HeadingsSection
           isPaid={me.isPaid}
           headings={headings.map((h) => ({ id: h._id, heading: h.heading }))}
+          shownRef={headingsShown}
         />
 
         <FaqsSection
@@ -92,6 +124,7 @@ export function DashboardData() {
             question: f.question,
             answer: f.answer,
           }))}
+          shownRef={faqsShown}
         />
 
         <DisplayNameSection current={me.displayName ?? ""} />
@@ -180,9 +213,11 @@ function VanityControls({
 function HeadingsSection({
   isPaid,
   headings,
+  shownRef,
 }: {
   isPaid: boolean;
   headings: { id: Id<"subjectHeadings">; heading: string }[];
+  shownRef: { current: readonly { heading: string }[] | null };
 }) {
   const addSubjectHeading = useMutation(api.forms.addSubjectHeading);
   const removeSubjectHeading = useMutation(api.forms.removeSubjectHeading);
@@ -190,6 +225,11 @@ function HeadingsSection({
   const [heading, setHeading] = useState("");
   const [error, setError] = useState("");
   const order = useServerOrder(headings);
+  // Child effects run before the parent's snapshot effect, so this ref is
+  // the list on screen — including an in-flight reorder — when that runs.
+  useEffect(() => {
+    shownRef.current = order.shown;
+  });
 
   const atLimit = !isPaid && headings.length >= FREE_HEADING_LIMIT;
 
@@ -270,9 +310,11 @@ function HeadingsSection({
 function FaqsSection({
   isPaid,
   faqs,
+  shownRef,
 }: {
   isPaid: boolean;
   faqs: { id: Id<"faqs">; question: string; answer: string }[];
+  shownRef: { current: readonly { question: string; answer: string }[] | null };
 }) {
   const addFaq = useMutation(api.forms.addFaq);
   const editFaq = useMutation(api.forms.editFaq);
@@ -285,6 +327,9 @@ function FaqsSection({
   const [editAnswer, setEditAnswer] = useState("");
   const [error, setError] = useState("");
   const order = useServerOrder(faqs);
+  useEffect(() => {
+    shownRef.current = order.shown;
+  });
 
   const atLimit = !isPaid && faqs.length >= FREE_FAQ_LIMIT;
   const editing = faqs.find((faq) => faq.id === editingId) ?? null;
