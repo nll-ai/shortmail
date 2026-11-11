@@ -123,6 +123,41 @@ describe("subject heading and FAQ order mutations", () => {
     );
   });
 
+  it("edits the owner's heading and rejects another account's id", async () => {
+    const t = testDb();
+    const { ownerId, otherId } = await seedPair(t);
+    const ids = await t.run(async (ctx) => {
+      const mine = await ctx.db.insert("subjectHeadings", {
+        ownerId,
+        heading: "Mine",
+        position: 0,
+      });
+      const theirs = await ctx.db.insert("subjectHeadings", {
+        ownerId: otherId,
+        heading: "Theirs",
+        position: 0,
+      });
+      return { mine, theirs };
+    });
+    const asOwner = t.withIdentity(OWNER);
+
+    await asOwner.mutation(api.forms.editSubjectHeading, {
+      id: ids.mine,
+      heading: "Updated",
+    });
+    await expect(
+      asOwner.mutation(api.forms.editSubjectHeading, {
+        id: ids.theirs,
+        heading: "Stolen",
+      }),
+    ).rejects.toThrow(/NOT_FOUND/);
+
+    const mine = await t.run(async (ctx) => ctx.db.get(ids.mine));
+    const theirs = await t.run(async (ctx) => ctx.db.get(ids.theirs));
+    expect(mine?.heading).toBe("Updated");
+    expect(theirs?.heading).toBe("Theirs");
+  });
+
   it("still blocks a free account at the heading limit", async () => {
     const t = testDb();
     await seedPair(t);

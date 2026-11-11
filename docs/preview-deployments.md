@@ -194,8 +194,22 @@ Do this in the dashboards. Names only; do not commit the values.
    - `CONVEX_PROJECT_ID` — the numeric Convex project id (not the slug
      `shortmail`). Project settings, or the List Projects management API.
 
-7. **WorkOS** — no new redirect URI. Preview hosts are already allowed.
-   Production callbacks stay on the canonical host and gamma.
+7. **WorkOS** — no new AuthKit application redirect URI. Preview hosts are
+   already allowed. Production callbacks stay on the canonical host and
+   gamma. MCP clients register their own redirect URI through dynamic
+   client registration or a client ID metadata document. That registration,
+   and the MCP resource indicators, are a separate WorkOS change described
+   on `/connect`.
+
+8. **MCP audience on Convex.** Preview and production both sign MCP
+   tokens with staging AuthKit. Preview builds set `WORKOS_AUTHKIT_ISSUER`
+   to `https://warm-respect-91-staging.authkit.app` and
+   `SHORTMAIL_MCP_RESOURCE` to `https://<branch-alias>/mcp`. Production
+   builds set the same issuer and the resource to
+   `https://shortmail.nonlinearlabs.ai/mcp`. An explicit
+   `WORKOS_AUTHKIT_ISSUER` on the build overrides the issuer. Connect
+   preview agents to the branch alias, not the one-off deployment
+   hostname. The token audience has to match the resource Convex was given.
 
 The cleanup workflow runs on `pull_request` `closed` (merged or not) and on
 branch `delete`. It is a no-op for forks, tags, and `main`/`master`. A

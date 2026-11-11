@@ -15,6 +15,18 @@ function stubBin(): { dir: string; log: string } {
     `#!/bin/bash
 echo "npx $*" >> "$STUB_LOG"
 echo "DEPLOY_KEY_KIND=\${CONVEX_DEPLOY_KEY%%:*}" >> "$STUB_LOG"
+if [[ "\${STUB_DEPLOY_FAIL_ONCE:-}" == "1" && "$*" == *"convex deploy"* ]]; then
+  marker="${dir}/deploy-attempts"
+  count=0
+  if [[ -f "\$marker" ]]; then count=\$(cat "\$marker"); fi
+  count=\$((count + 1))
+  echo "\$count" > "\$marker"
+  if [[ "\$count" -eq 1 ]]; then
+    echo "STUB_DEPLOY_FAILED=1" >> "$STUB_LOG"
+    echo "Environment variable WORKOS_AUTHKIT_ISSUER is used in auth config file but its value was not set." >&2
+    exit 1
+  fi
+fi
 if [[ "$*" == *"--names-only"* ]]; then
   printf '%s\\n' "\${STUB_ENV_NAMES:-WORKOS_CLIENT_ID}"
 fi
@@ -77,6 +89,7 @@ function run(overrides: Record<string, string | undefined>): { status: number; l
     "RESEND_API_KEY",
     "STUB_ENV_NAMES",
     "STUB_EXPORT_BYTES",
+    "STUB_DEPLOY_FAIL_ONCE",
   ]) {
     delete fullEnv[key];
   }
@@ -192,6 +205,17 @@ describe("vercel-build.sh", () => {
     );
   });
 
+  it("retries a preview deploy once after the auth env can be written", () => {
+    const result = run({ ...preview, STUB_DEPLOY_FAIL_ONCE: "1" });
+    expect(result.status, result.log).toBe(0);
+    const deploys = result.log
+      .split("\n")
+      .filter((line) => line.startsWith("npx convex deploy --preview-name"));
+    expect(deploys).toHaveLength(2);
+    expect(result.log).toContain("STUB_DEPLOY_FAILED=1");
+    expect(result.stdout).toContain("writing env and retrying once");
+  });
+
   it("deploys production without a preview name or an import", () => {
     const result = run({
       VERCEL: "1",
@@ -199,6 +223,12 @@ describe("vercel-build.sh", () => {
       CONVEX_DEPLOY_KEY: "prod:hallowed-leopard-387|prod-token",
     });
     expect(result.status).toBe(0);
+    expect(result.log).toContain(
+      "npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://warm-respect-91-staging.authkit.app",
+    );
+    expect(result.log).toContain(
+      "npx convex env --prod set SHORTMAIL_MCP_RESOURCE https://shortmail.nonlinearlabs.ai/mcp",
+    );
     expect(result.log).toContain(
       "npx convex deploy --cmd npm run build --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL",
     );

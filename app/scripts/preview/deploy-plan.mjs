@@ -7,6 +7,7 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolveAuthkitIssuer } from "../../src/mcp/authkit-issuer.mjs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -319,10 +320,18 @@ export function writePreviewEnvFile(env, destination, origin) {
   if (origin !== plan.origin) {
     throw new Error("preview origin does not match the plan");
   }
+  const issuer = resolveAuthkitIssuer(env);
+  if (!issuer) {
+    throw new Error(
+      "Cannot resolve the AuthKit issuer. Set WORKOS_AUTHKIT_ISSUER or use a known WORKOS_CLIENT_ID.",
+    );
+  }
   const lines = [
     line("SHORTMAIL_PREVIEW", "1"),
     line("SHORTMAIL_PUBLIC_ORIGIN", origin),
     line("WORKOS_CLIENT_ID", env.WORKOS_CLIENT_ID.trim()),
+    line("WORKOS_AUTHKIT_ISSUER", issuer),
+    line("SHORTMAIL_MCP_RESOURCE", `${origin}/mcp`),
   ];
   const optional = [
     ["SUPER_ADMIN_EMAIL", env.SUPER_ADMIN_EMAIL],

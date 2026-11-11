@@ -136,6 +136,12 @@ describe("writePreviewEnvFile", () => {
         "SHORTMAIL_PUBLIC_ORIGIN=https://shortmail-git-feat-widgets-eric-mas-projects-a230afd1.vercel.app",
       );
       expect(written).toContain("RESEND_API_KEY=re_preview_secret");
+      expect(written).toContain(
+        "WORKOS_AUTHKIT_ISSUER=https://warm-respect-91-staging.authkit.app",
+      );
+      expect(written).toContain(
+        "SHORTMAIL_MCP_RESOURCE=https://shortmail-git-feat-widgets-eric-mas-projects-a230afd1.vercel.app/mcp",
+      );
       expect(written).not.toContain("re_production_secret");
     } finally {
       rmSync(directory, { recursive: true, force: true });

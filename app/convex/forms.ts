@@ -12,7 +12,7 @@ import { planReorder, sequentialPositions, sortByOrder } from "./lib/order";
 /**
  * Dashboard CRUD for subject headings and FAQs (parity with the legacy
  * /add_subject_heading, /remove_subject_heading, /add_faq, /edit_faq,
- * /remove_faq routes) plus vanity/display-name updates and list order.
+ * /remove_faq routes) plus heading edits, vanity/display-name updates, and list order.
  * Free-tier limits: 5 headings, 3 FAQs (main.py:354-402 parity).
  *
  * Reads return the owner's display order. Writes number `position` from 0
@@ -69,7 +69,7 @@ export const addSubjectHeading = mutation({
       const row = existing.find((candidate) => candidate._id === id);
       if (row) await ctx.db.patch(row._id, { position: next });
     });
-    await ctx.db.insert("subjectHeadings", {
+    return await ctx.db.insert("subjectHeadings", {
       ownerId: user._id,
       heading,
       position,
@@ -95,6 +95,18 @@ export const reorderSubjectHeadings = mutation({
       const row = owned.find((candidate) => candidate._id === id);
       if (row) await ctx.db.patch(row._id, { position });
     });
+  },
+});
+
+export const editSubjectHeading = mutation({
+  args: { id: v.id("subjectHeadings"), heading: v.string() },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+    const row = await ctx.db.get(args.id);
+    if (!row || row.ownerId !== user._id) throw new ConvexError("NOT_FOUND");
+    const heading = args.heading.trim();
+    if (!heading) throw new ConvexError("heading_required");
+    await ctx.db.patch(args.id, { heading });
   },
 });
 
@@ -127,7 +139,7 @@ export const addFaq = mutation({
       const row = existing.find((candidate) => candidate._id === id);
       if (row) await ctx.db.patch(row._id, { position: next });
     });
-    await ctx.db.insert("faqs", {
+    return await ctx.db.insert("faqs", {
       ownerId: user._id,
       question,
       answer,

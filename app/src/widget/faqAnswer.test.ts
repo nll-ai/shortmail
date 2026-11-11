@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, expect, it } from "vitest";
-import { renderFaqAnswer, safeFaqHref } from "./faqAnswer";
+import { faqAnswerLinkDecisions, renderFaqAnswer, safeFaqHref } from "./faqAnswer";
 
 const CALENDLY = "https://calendly.com/ericmjl/45-minute-meeting";
 
@@ -17,6 +17,17 @@ describe("safe FAQ answers", () => {
     expect(safeFaqHref(`  ${CALENDLY}  `)).toBe(CALENDLY);
     expect(safeFaqHref("http://example.com/path")).toBe("http://example.com/path");
     expect(safeFaqHref("mailto:owner@example.com")).toBe("mailto:owner@example.com");
+  });
+
+  it("reports the same keep-or-drop decision the public page uses", () => {
+    expect(
+      faqAnswerLinkDecisions(
+        `Book here: [Calendly](${CALENDLY}). Not this: [bad](javascript:alert(1)).`,
+      ),
+    ).toEqual([
+      { href: CALENDLY, kept: true },
+      { href: "javascript:alert(1)", kept: false },
+    ]);
   });
 
   it("rejects scriptable and relative targets", () => {

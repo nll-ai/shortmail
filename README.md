@@ -29,6 +29,18 @@ in `docs/preview-deployments.md`.
 
 The legacy Python app below still deploys to Modal independently.
 
+## Connect ShortMail to your agent
+
+A page owner can change their own page from Cursor, Claude, or another MCP
+client. The server is `https://shortmail.nonlinearlabs.ai/mcp`. Sign-in is
+the owner's WorkOS account. The server does not read or send letters.
+Cursor and Claude setup is on the `/connect` page
+(`app/src/app/connect/page.tsx`).
+
+WorkOS still has to allow MCP clients to register and to issue tokens for
+that URL. Those dashboard steps are listed on the connect page. They are
+not done by deploying this app.
+
 ## Setup
 
 Install pixi if you haven't already:
