@@ -23,6 +23,10 @@ npx convex dev        # creates/links a deployment, pushes functions
 npm run dev           # http://localhost:3000
 ```
 
+Vercel preview builds deploy a per-branch Convex backend and can copy
+production data into it. Setup, the mail block, and the one-time keys are
+in `docs/preview-deployments.md`.
+
 The legacy Python app below still deploys to Modal independently.
 
 ## Setup

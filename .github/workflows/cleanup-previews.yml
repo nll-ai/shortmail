@@ -1,0 +1,48 @@
+name: Cleanup previews
+
+on:
+  pull_request:
+    types: [closed]
+  delete:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Git branch whose preview deployments should be removed
+        required: true
+        type: string
+      dry_run:
+        description: Log the matching deployments and do not delete them
+        required: false
+        type: boolean
+        default: true
+
+# pull_request from a fork has no access to these secrets. Skip it here as
+# well as in the script. delete runs only for this repository.
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Delete branch previews
+    if: |
+      github.event.repository.fork == false && (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'delete' && github.event.ref_type == 'branch') ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Remove this branch's Convex and Vercel previews
+        env:
+          CLEANUP_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || '' }}
+          CLEANUP_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+          CONVEX_PROJECT_ID: ${{ secrets.CONVEX_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_cXq7wahRknr1gCAijhAy4dS6HckH
+          VERCEL_ORG_ID: eric-mas-projects-a230afd1
+        run: node app/scripts/cleanup-previews.mjs

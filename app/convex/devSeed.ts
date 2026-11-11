@@ -4,9 +4,10 @@ import { MutationCtx } from "./_generated/server";
 
 /**
  * Idempotent demo seed so a fresh Convex backend is testable without
- * sign-in on the public path (config + send for /send/demo). Runs on every
- * preview deploy (vercel-build.sh --preview-run) and manually via
- * `npx convex run devSeed:seedDemo`.
+ * sign-in on the public path (config + send for /send/demo). Preview builds
+ * run this after hydration (`vercel-build.sh`) because `--preview-run` only
+ * fires when Convex creates the deployment, and a snapshot import replaces
+ * those rows. Also runnable manually via `npx convex run devSeed:seedDemo`.
  */
 export const seedDemo = internalMutation({
   args: {},
