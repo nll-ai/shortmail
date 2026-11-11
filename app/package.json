@@ -20,10 +20,12 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "convex-test": "^0.0.69",
     "cypress": "^15.21.1",
     "esbuild": "^0.28.2",
     "eslint": "^9",

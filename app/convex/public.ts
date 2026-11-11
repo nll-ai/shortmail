@@ -6,6 +6,7 @@ import { insertEventRow } from "./lib/events";
 import { DAILY_SEND_CAP_DEFAULT } from "./lib/identity";
 import { SENDER_DAILY_MAX, normalizeSenderEmail, sha256Hex } from "./lib/senderProof";
 import { sessionIsLive } from "./senderProof";
+import { sortByOrder } from "./lib/order";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -46,12 +47,14 @@ export const configForVanity = internalQuery({
         .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
         .collect(),
     ]);
+    const orderedHeadings = sortByOrder(headings);
+    const orderedFaqs = sortByOrder(faqs);
 
     return {
       vanityName: user.vanityName,
       displayName: user.displayName ?? user.email,
-      headings: headings.map((h) => h.heading),
-      faqs: faqs.map((f) => ({ question: f.question, answer: f.answer })),
+      headings: orderedHeadings.map((h) => h.heading),
+      faqs: orderedFaqs.map((f) => ({ question: f.question, answer: f.answer })),
       theme: await (async () => {
         const settings = await ctx.db
           .query("themeSettings")

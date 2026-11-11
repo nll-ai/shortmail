@@ -50,6 +50,8 @@ if [[ "$KIND" == "production" ]]; then
     echo "warning: could not list production Convex env names; continuing the production function deploy" >&2
   fi
   npx convex deploy --cmd "npm run build" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
+  echo "==> Backfilling subject heading and FAQ order"
+  npx convex run --prod migrate:backfillListOrder '{}'
   exit 0
 fi
 
@@ -180,4 +182,6 @@ fi
 
 echo "==> Seeding demo vanities that the snapshot did not already contain"
 npx convex run --preview-name "$PREVIEW_NAME" devSeed:seedDemo '{}'
+echo "==> Backfilling subject heading and FAQ order"
+npx convex run --preview-name "$PREVIEW_NAME" migrate:backfillListOrder '{}'
 echo "==> Preview deploy finished"

@@ -341,6 +341,11 @@ class ShortmailWidget extends HTMLElement {
         }
         break;
       }
+      case "headings-reordered": {
+        if (this.config) this.config.headings = change.headings.slice();
+        this.reorderHeadingOptions(change.headings);
+        break;
+      }
       case "faq-added": {
         if (this.config) {
           this.config.faqs.push({
@@ -379,6 +384,16 @@ class ShortmailWidget extends HTMLElement {
         this.faqByQuestion(change.question)?.remove();
         const faqs = this.shadow.querySelector(".sm-faqs");
         if (faqs && faqs.childElementCount === 0) faqs.remove();
+        break;
+      }
+      case "faqs-reordered": {
+        if (this.config) {
+          this.config.faqs = change.faqs.map((faq) => ({
+            question: faq.question,
+            answer: faq.answer,
+          }));
+        }
+        this.reorderFaqNodes(change.faqs);
         break;
       }
       case "theme": {
@@ -924,6 +939,55 @@ class ShortmailWidget extends HTMLElement {
     });
 
     this.shadow.appendChild(form);
+  }
+
+  /** Put subject options in `headings` order. The blank and Other options stay put. */
+  private reorderHeadingOptions(headings: readonly string[]): void {
+    const select = this.shadow.querySelector("select");
+    if (!select) return;
+    const selected = select.value;
+    const other = [...select.options].find((option) => option.value === "OTHER");
+    for (const option of [...select.options]) {
+      if (option.value !== "" && option.value !== "OTHER") option.remove();
+    }
+    for (const heading of headings) {
+      const option = document.createElement("option");
+      option.value = heading;
+      option.textContent = heading;
+      if (other) select.insertBefore(option, other);
+      else select.appendChild(option);
+    }
+    if ([...select.options].some((option) => option.value === selected)) {
+      select.value = selected;
+    }
+  }
+
+  /** Move FAQ blocks into `faqs` order without rebuilding the rest of the form. */
+  private reorderFaqNodes(faqs: readonly { question: string; answer: string }[]): void {
+    const list = this.shadow.querySelector(".sm-faqs");
+    if (!list) {
+      const form = this.shadow.querySelector(".sm-form");
+      if (!form) return;
+      for (const faq of faqs) this.appendFaq(faq.question, faq.answer, form);
+      return;
+    }
+    const unused = this.faqNodes();
+    const used = new Set<HTMLElement>();
+    for (const faq of faqs) {
+      const node = unused.find((candidate) => !used.has(candidate) && candidate.dataset.question === faq.question);
+      if (!node) {
+        this.appendFaq(faq.question, faq.answer);
+        continue;
+      }
+      used.add(node);
+      const answer = node.querySelector(".sm-faq-answer");
+      if (answer) answer.replaceChildren(renderFaqAnswer(faq.answer));
+      list.appendChild(node);
+    }
+    for (const node of unused) {
+      if (!used.has(node)) node.remove();
+    }
+    if (list.childElementCount === 0) list.remove();
   }
 
   private faqNodes(): HTMLElement[] {

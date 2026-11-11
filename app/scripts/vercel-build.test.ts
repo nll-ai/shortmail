@@ -138,6 +138,9 @@ describe("vercel-build.sh", () => {
     expect(importLine).not.toContain("--prod");
     expect(result.log).toContain("npx convex env --preview-name feat/widgets remove RESEND_API_KEY");
     expect(result.log).toContain("npx convex run --preview-name feat/widgets devSeed:seedDemo {}");
+    expect(result.log).toContain(
+      "npx convex run --preview-name feat/widgets migrate:backfillListOrder {}",
+    );
     expect(result.log).not.toContain("re_production_secret");
     expect(result.log).not.toContain("prod-token");
     expect(result.log).toContain("timeout 180 npx convex export --prod --path");
@@ -199,6 +202,7 @@ describe("vercel-build.sh", () => {
     expect(result.log).toContain(
       "npx convex deploy --cmd npm run build --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL",
     );
+    expect(result.log).toContain("npx convex run --prod migrate:backfillListOrder {}");
     expect(result.log).not.toContain("--preview-name");
     expect(result.log).not.toContain("convex import");
     expect(result.log).not.toContain("convex export");

@@ -20,6 +20,7 @@ import type * as lib_days from "../lib/days.js";
 import type * as lib_disposableDomains from "../lib/disposableDomains.js";
 import type * as lib_events from "../lib/events.js";
 import type * as lib_identity from "../lib/identity.js";
+import type * as lib_order from "../lib/order.js";
 import type * as lib_previewMail from "../lib/previewMail.js";
 import type * as lib_previewScrub from "../lib/previewScrub.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   "lib/disposableDomains": typeof lib_disposableDomains;
   "lib/events": typeof lib_events;
   "lib/identity": typeof lib_identity;
+  "lib/order": typeof lib_order;
   "lib/previewMail": typeof lib_previewMail;
   "lib/previewScrub": typeof lib_previewScrub;
   "lib/rateLimit": typeof lib_rateLimit;

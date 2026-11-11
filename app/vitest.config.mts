@@ -6,6 +6,11 @@ const root = import.meta.dirname;
 export default defineConfig({
   test: {
     environment: "node",
+    server: {
+      deps: {
+        inline: ["convex-test"],
+      },
+    },
     include: [
       "src/**/*.test.ts",
       "src/**/*.test.tsx",

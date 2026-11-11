@@ -27,20 +27,27 @@ describe("dashboard live preview", () => {
 
     expect(saveAt).toBeGreaterThan(-1);
     expect(block).toContain('kind: "faq-edited"');
-    expect(block).toContain("previousQuestion: f.question");
+    expect(block).toContain("previousQuestion: editing.question");
     expect(block).toContain("question: editQuestion");
     expect(block).toContain("answer: editAnswer");
   });
 
   it("removes a FAQ from the preview by the question visitors see", () => {
-    const removeAt = source.indexOf("await removeFaq({ id: f.id })");
-    const nextCatch = source.indexOf("} catch", removeAt);
-    const block = source.slice(removeAt, nextCatch);
+    const removeAt = source.indexOf("removeFaq({ id: faq.id })");
+    const dispatched = source.indexOf('kind: "faq-removed"', removeAt);
+    const block = source.slice(removeAt, dispatched + 80);
 
     expect(removeAt).toBeGreaterThan(-1);
     expect(block).toContain('kind: "faq-removed"');
-    expect(block).toContain("question: f.question");
+    expect(block).toContain("question: faq.question");
     expect(block).not.toContain("faq-edited");
     expect(block).not.toContain("editQuestion");
+  });
+
+  it("tells the preview when headings or FAQs are reordered", () => {
+    expect(source).toContain('kind: "headings-reordered"');
+    expect(source).toContain("headings: next.map((item) => item.heading)");
+    expect(source).toContain('kind: "faqs-reordered"');
+    expect(source).toContain("question: item.question, answer: item.answer");
   });
 });

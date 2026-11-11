@@ -25,12 +25,18 @@ export default defineSchema({
   subjectHeadings: defineTable({
     ownerId: v.id("users"),
     heading: v.string(),
+    // Absent on documents created before ordering. Readers fall back to
+    // creation time; do not make this required.
+    position: v.optional(v.number()),
   }).index("by_owner", ["ownerId"]),
 
   faqs: defineTable({
     ownerId: v.id("users"),
     question: v.string(),
     answer: v.string(), // markdown
+    // Absent on documents created before ordering. Readers fall back to
+    // creation time; do not make this required.
+    position: v.optional(v.number()),
   }).index("by_owner", ["ownerId"]),
 
   events: defineTable({
