@@ -10,7 +10,7 @@ type AdminRole = "moderator" | "admin" | "super_admin";
 
 export default function AdminUsersPage() {
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto min-h-svh max-w-3xl bg-background p-8 text-foreground">
       <h1 className="text-2xl font-bold mb-4">User management</h1>
       <Link href="/admin" className="text-sm underline">
         ← Admin stats
@@ -28,11 +28,11 @@ function AdminUsers() {
   const me = useQuery(api.users.me);
 
   if (me === undefined) {
-    return <p className="text-sm text-gray-400">Loading…</p>;
+    return <p className="text-sm text-muted">Loading…</p>;
   }
   if (me === null || !me.adminRole) {
     return (
-      <p className=" border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+      <p className="border border-danger-border bg-danger-bg p-4 text-sm text-danger-foreground">
         Admin access required.
       </p>
     );
@@ -50,19 +50,19 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const deleteUser = useMutation(api.admin.deleteUser);
 
   if (users === undefined) {
-    return <p className="text-sm text-gray-400">Loading users…</p>;
+    return <p className="text-sm text-muted">Loading users…</p>;
   }
 
   return (
     <div className="space-y-3">
       {error && (
-        <p className=" border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+        <p className="border border-danger-border bg-danger-bg p-3 text-sm text-danger-foreground">
           {error}
         </p>
       )}
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="text-xs uppercase text-gray-500">
+          <tr className="text-xs uppercase text-muted">
             <th className="py-1">Email</th>
             <th className="py-1">Vanity</th>
             <th className="py-1">Paid</th>
@@ -80,8 +80,8 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                   type="button"
                   className={` border px-3 py-0.5 text-xs ${
                     u.isPaid
-                      ? "border-green-600 text-green-700"
-                      : "border-gray-400 text-gray-600"
+                      ? "border-success text-success"
+                      : "border-line text-muted"
                   }`}
                   onClick={async () => {
                     setError("");
@@ -100,7 +100,7 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               {isSuperAdmin && (
                 <td className="py-2">
                   <select
-                    className=" border border-gray-300 px-1 py-0.5 text-xs"
+                    className="border border-line bg-background px-1 py-0.5 text-xs text-foreground"
                     value={u.adminRole ?? ""}
                     onChange={async (e) => {
                       setError("");
@@ -133,7 +133,7 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                 <td className="py-2">
                   <button
                     type="button"
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-danger hover:underline"
                     onClick={async () => {
                       if (!confirm(`Delete ${u.email}? This also removes their headings and FAQs.`)) {
                         return;

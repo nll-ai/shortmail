@@ -8,6 +8,7 @@ import Script from "next/script";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { controlClass, fieldClass } from "@/theme/controls";
 
 const FREE_HEADING_LIMIT = 5;
 const FREE_FAQ_LIMIT = 3;
@@ -37,10 +38,8 @@ function friendlyError(e: unknown): string {
   }
 }
 
-const inputClass =
-  "w-full border-0 border-b border-neutral-400 bg-transparent px-1 py-1 text-sm focus:border-black focus:outline-none rounded-none";
-const buttonClass =
-  " border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40";
+const inputClass = fieldClass;
+const buttonClass = controlClass;
 
 export function DashboardData() {
   const { me, provisioning } = useMe();
@@ -48,11 +47,11 @@ export function DashboardData() {
   const faqs = useQuery(api.forms.myFaqs);
 
   if (me === undefined || me === null || headings === undefined || faqs === undefined) {
-    return <p className="mt-4 text-sm text-gray-400">Loading your data…</p>;
+    return <p className="mt-4 text-sm text-muted">Loading your data…</p>;
   }
   if (me === null) {
     return (
-      <p className="mt-4 text-sm text-red-500">
+      <p className="mt-4 text-sm text-danger">
         Convex identity: unauthenticated.
       </p>
     );
@@ -95,28 +94,28 @@ export function DashboardData() {
       </div>
 
       <div className="self-start space-y-4 lg:sticky lg:top-6">
-        <p className="text-xs uppercase tracking-wide text-gray-500">
+        <p className="text-xs uppercase tracking-wide text-muted">
           Live preview — what your visitors see
         </p>
-        <div className="border border-neutral-300 bg-white p-6">
+        <div className="border border-line bg-background p-6">
           {/* widget.js registers <shortmail-widget>. Without it the box stays empty. */}
           <Script src="/widget.js" strategy="afterInteractive" />
           <shortmail-widget vanity={me.vanityName} />
         </div>
         <div className=" border p-4 text-sm space-y-2">
           <p className="font-medium text-sm">Premium tools</p>
-          <Link href="/analytics" className="block text-blue-600 hover:underline text-sm">
+          <Link href="/analytics" className="block text-link hover:underline text-sm">
             Analytics →
           </Link>
           <Link
             href="/dashboard/theming"
-            className="block text-blue-600 hover:underline text-sm"
+            className="block text-link hover:underline text-sm"
           >
             Theming →
           </Link>
           <Link
             href="/dashboard/embed"
-            className="block text-blue-600 hover:underline text-sm"
+            className="block text-link hover:underline text-sm"
           >
             Embed →
           </Link>
@@ -139,7 +138,7 @@ function VanityControls({
 
   if (!isPaid) {
     return (
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-muted">
         Custom vanity names are a paid-account feature — your vanity stays{" "}
         <code>{current}</code>.
       </p>
@@ -169,7 +168,7 @@ function VanityControls({
       <button type="submit" className={buttonClass}>
         Rename
       </button>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </form>
   );
 }
@@ -193,14 +192,14 @@ function HeadingsSection({
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Subject headings</h2>
       <ul className="mb-3 space-y-1">
         {headings.length === 0 && (
-          <li className="text-gray-500">No subject headings yet.</li>
+          <li className="text-muted">No subject headings yet.</li>
         )}
         {headings.map((h) => (
           <li key={h.id} className="flex items-center justify-between gap-2">
             <span>{h.heading}</span>
             <button
               type="button"
-              className="text-xs text-red-600 hover:underline"
+              className="text-xs text-danger hover:underline"
               onClick={async () => {
                 setError("");
                 try {
@@ -244,12 +243,12 @@ function HeadingsSection({
         </button>
       </form>
       {atLimit && (
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted">
           Free accounts are limited to {FREE_HEADING_LIMIT} headings — go paid
           for unlimited.
         </p>
       )}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
     </section>
   );
 }
@@ -278,7 +277,7 @@ function FaqsSection({
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
       <ul className="mb-3 space-y-3">
         {faqs.length === 0 && (
-          <li className="text-gray-500">No FAQs yet.</li>
+          <li className="text-muted">No FAQs yet.</li>
         )}
         {faqs.map((f) =>
           editingId === f.id ? (
@@ -321,7 +320,7 @@ function FaqsSection({
                 </button>
                 <button
                   type="button"
-                  className="text-xs text-gray-500 hover:underline"
+                  className="text-xs text-muted hover:underline"
                   onClick={() => setEditingId(null)}
                 >
                   Cancel
@@ -335,7 +334,7 @@ function FaqsSection({
                 <span className="flex gap-2">
                   <button
                     type="button"
-                    className="text-xs text-blue-600 hover:underline"
+                    className="text-xs text-link hover:underline"
                     onClick={() => {
                       setEditingId(f.id);
                       setEditQuestion(f.question);
@@ -346,7 +345,7 @@ function FaqsSection({
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-danger hover:underline"
                     onClick={async () => {
                       setError("");
                       try {
@@ -364,7 +363,7 @@ function FaqsSection({
                   </button>
                 </span>
               </div>
-              <p className="whitespace-pre-wrap text-gray-600">{f.answer}</p>
+              <p className="whitespace-pre-wrap text-muted">{f.answer}</p>
             </li>
           ),
         )}
@@ -403,12 +402,12 @@ function FaqsSection({
         </button>
       </form>
       {atLimit && (
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted">
           Free accounts are limited to {FREE_FAQ_LIMIT} FAQs — go paid for
           unlimited.
         </p>
       )}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
     </section>
   );
 }
@@ -421,7 +420,7 @@ function DisplayNameSection({ current }: { current: string }) {
   return (
     <section className=" border p-4 text-sm">
       <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Display name</h2>
-      <p className="mb-2 text-xs text-gray-500">
+      <p className="mb-2 text-xs text-muted">
         Shown on your send page. Currently:{" "}
         <code>{current || "(your email)"}</code>
       </p>
@@ -449,7 +448,7 @@ function DisplayNameSection({ current }: { current: string }) {
           Update
         </button>
       </form>
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
     </section>
   );
 }

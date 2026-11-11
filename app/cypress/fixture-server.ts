@@ -2,6 +2,7 @@ import { createServer, type Server } from "node:http";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import esbuild from "esbuild";
 import { compile } from "@tailwindcss/node";
 
@@ -18,20 +19,29 @@ const CLASSES = [
   "lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]", "min-w-0", "space-y-8",
   "border", "p-4", "mb-3", "uppercase", "tracking-[0.2em]", "space-y-3",
   "flex", "items-center", "justify-between", "gap-2", "font-medium",
-  "text-blue-600", "text-red-600", "whitespace-pre-wrap", "text-gray-600",
-  "space-y-2", "text-gray-500", "border-black", "bg-black", "tracking-[0.14em]",
-  "space-y-4", "self-start", "border-neutral-300", "bg-white", "w-full",
-  "border-b", "border-neutral-400", "bg-transparent", "px-1", "py-1",
+  "text-link", "text-danger", "whitespace-pre-wrap", "text-muted",
+  "space-y-2", "border-accent", "bg-accent", "text-accent-foreground", "tracking-[0.14em]",
+  "space-y-4", "self-start", "border-line", "bg-background", "text-foreground", "w-full",
+  "border-b", "border-input", "bg-transparent", "text-foreground", "px-1", "py-1",
   "min-h-20",
 ];
 
 type Faq = { question: string; answer: string };
 
-const configs: Record<string, { displayName: string; headings: string[]; faqs: Faq[] }> = {
+const configs: Record<
+  string,
+  {
+    displayName: string;
+    headings: string[];
+    faqs: Faq[];
+    theme: { preset: string; customCss: string | null } | null;
+  }
+> = {
   fixture: {
     displayName: "Fixture Owner",
     headings: ["Data request"],
     faqs: [{ question: QUESTION, answer: ANSWER }],
+    theme: null,
   },
   unsafe: {
     displayName: "Fixture Owner",
@@ -43,6 +53,25 @@ const configs: Record<string, { displayName: string; headings: string[]; faqs: F
           'See <script>alert(1)</script> <img src=x onerror=alert(1)> [click](javascript:alert(1)) [blob](data:text/html,hi) [ok](https://calendly.com/ericmjl/45-minute-meeting)',
       },
     ],
+    theme: null,
+  },
+  midnight: {
+    displayName: "Midnight Owner",
+    headings: ["Data request"],
+    faqs: [{ question: QUESTION, answer: ANSWER }],
+    theme: { preset: "midnight", customCss: null },
+  },
+  paper: {
+    displayName: "Paper Owner",
+    headings: ["Data request"],
+    faqs: [{ question: QUESTION, answer: ANSWER }],
+    theme: { preset: "paper", customCss: null },
+  },
+  custom: {
+    displayName: "Custom Owner",
+    headings: ["Data request"],
+    faqs: [{ question: QUESTION, answer: ANSWER }],
+    theme: { preset: "default", customCss: "button { letter-spacing: 0.2em; }" },
   },
 };
 
@@ -70,20 +99,20 @@ function dashboard(css: string): string {
         <section class="min-w-0 space-y-8 border p-4 text-sm">
           <h2 class="mb-3 text-xs font-bold uppercase tracking-[0.2em]">FAQs</h2>
           <p class="font-medium">${QUESTION}</p>
-          <p class="whitespace-pre-wrap text-gray-600">${ANSWER}</p>
-          <p class="text-xs text-gray-500">These buttons call the real preview event. They do not save and they do not send mail.</p>
+          <p class="whitespace-pre-wrap text-muted">${ANSWER}</p>
+          <p class="text-xs text-muted">These buttons call the real preview event. They do not save and they do not send mail.</p>
           <form id="add-form" class="space-y-2">
-            <input id="previous" class="w-full border-0 border-b border-neutral-400 bg-transparent px-1 py-1 text-sm" value="${QUESTION}" />
-            <input id="question" class="w-full border-0 border-b border-neutral-400 bg-transparent px-1 py-1 text-sm" value="${QUESTION}" />
-            <textarea id="answer" class="w-full min-h-20 border-0 border-b border-neutral-400 bg-transparent px-1 py-1 text-sm">${ANSWER}</textarea>
-            <button id="add-faq" type="submit" class="border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white">Add FAQ</button>
-            <button id="save-edit" type="button" class="border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white">Save edit</button>
-            <button id="remove-faq" type="button" class="text-xs text-red-600">Remove</button>
+            <input id="previous" class="w-full border-0 border-b border-input bg-transparent px-1 py-1 text-sm text-foreground" value="${QUESTION}" />
+            <input id="question" class="w-full border-0 border-b border-input bg-transparent px-1 py-1 text-sm text-foreground" value="${QUESTION}" />
+            <textarea id="answer" class="w-full min-h-20 border-0 border-b border-input bg-transparent px-1 py-1 text-sm text-foreground">${ANSWER}</textarea>
+            <button id="add-faq" type="submit" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Add FAQ</button>
+            <button id="save-edit" type="button" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Save edit</button>
+            <button id="remove-faq" type="button" class="text-xs text-danger">Remove</button>
           </form>
         </section>
         <div class="space-y-4 self-start">
-          <p class="text-xs uppercase tracking-wide text-gray-500">Live preview — what your visitors see</p>
-          <div id="frame" class="border border-neutral-300 bg-white p-6">
+          <p class="text-xs uppercase tracking-wide text-muted">Live preview — what your visitors see</p>
+          <div id="frame" class="border border-line bg-background p-6">
             <shortmail-widget vanity="fixture"></shortmail-widget>
           </div>
         </div>
@@ -96,7 +125,7 @@ function dashboard(css: string): string {
 
 function hosted(css: string, vanity: string): string {
   return page(
-    `<main class="mx-auto max-w-lg border border-neutral-300 bg-white p-6 text-sm">
+    `<main class="mx-auto max-w-lg border border-line bg-background p-6 text-sm text-foreground">
       <shortmail-widget vanity="${vanity}"></shortmail-widget>
     </main>`,
     css,
@@ -132,6 +161,21 @@ export async function startFaqFixture(): Promise<string> {
       "process.env.WIDGET_CONVEX_SITE_URL": JSON.stringify(origin),
     },
   });
+  await esbuild.build({
+    absWorkingDir: appRoot,
+    entryPoints: ["cypress/theme-render.tsx"],
+    bundle: true,
+    format: "cjs",
+    platform: "node",
+    outfile: path.join(outdir, "theme-render.cjs"),
+    alias: {
+      "next/link": path.join(appRoot, "cypress/link-stub.tsx"),
+    },
+  });
+  const themeMod = createRequire(import.meta.url)(path.join(outdir, "theme-render.cjs")) as {
+    themePages: () => Record<string, string>;
+  };
+  const themes = themeMod.themePages();
   const widgetJs = readFileSync(path.join(outdir, "widget.js"));
   const harnessJs = readFileSync(path.join(outdir, "harness.js"));
   const globals = readFileSync(path.join(appRoot, "src/app/globals.css"), "utf8");
@@ -139,7 +183,15 @@ export async function startFaqFixture(): Promise<string> {
     base: appRoot,
     onDependency: () => undefined,
   });
-  const css = `${globals}\n${compiled.build(CLASSES)}`;
+  const used = new Set(CLASSES);
+  for (const html of Object.values(themes)) {
+    for (const match of html.matchAll(/class="([^"]*)"/g)) {
+      for (const token of match[1].split(/\s+/)) {
+        if (token) used.add(token);
+      }
+    }
+  }
+  const css = `${globals}\n${compiled.build([...used])}`;
   const dashboardHtml = dashboard(css);
   const sendHtml = hosted(css, "fixture");
   const unsafeHtml = hosted(css, "unsafe");
@@ -199,7 +251,7 @@ export async function startFaqFixture(): Promise<string> {
           headings: spec.headings,
           faqs: spec.faqs,
           isPaid: false,
-          theme: null,
+          theme: spec.theme,
           embedAllowedOrigins: [],
         }),
         "application/json",
@@ -213,6 +265,11 @@ export async function startFaqFixture(): Promise<string> {
     }
     if (url.pathname === "/") {
       respond(res, dashboardHtml, "text/html; charset=utf-8");
+      return;
+    }
+    const themeHtml = themes[url.pathname];
+    if (themeHtml) {
+      respond(res, page(themeHtml, css, false), "text/html; charset=utf-8");
       return;
     }
     if (url.pathname === "/send/fixture") {

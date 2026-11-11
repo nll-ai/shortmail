@@ -50,11 +50,11 @@ const CLASSES = [
   "mt-6", "grid", "grid-cols-1", "gap-8", "lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]",
   "min-w-0", "space-y-8", "border", "p-4", "mb-3", "font-bold", "uppercase",
   "tracking-[0.2em]", "space-y-3", "flex", "items-center", "justify-between",
-  "gap-2", "font-medium", "text-blue-600", "hover:underline", "text-red-600",
-  "whitespace-pre-wrap", "text-gray-600", "space-y-2", "text-gray-500",
-  "border-black", "bg-black", "px-4", "py-2", "tracking-[0.14em]",
+  "gap-2", "font-medium", "text-link", "hover:underline", "text-danger",
+  "whitespace-pre-wrap", "text-muted", "space-y-2",
+  "border-accent", "bg-accent", "text-accent-foreground", "px-4", "py-2", "tracking-[0.14em]",
   "space-y-4", "self-start", "lg:sticky", "lg:top-6", "uppercase",
-  "tracking-wide", "border-neutral-300", "bg-white", "p-6",
+  "tracking-wide", "border-line", "bg-background", "text-foreground", "p-6",
 ];
 
 function dashboardHtml(): string {
@@ -75,22 +75,22 @@ function dashboardHtml(): string {
             <div class="flex items-center justify-between gap-2">
               <span class="font-medium">${QUESTION}</span>
               <span class="flex gap-2">
-                <button type="button" id="rename-faq" class="text-xs text-blue-600 hover:underline">rename question</button>
-                <button type="button" id="remove-added" class="text-xs text-red-600 hover:underline">remove added</button>
+                <button type="button" id="rename-faq" class="text-xs text-link hover:underline">rename question</button>
+                <button type="button" id="remove-added" class="text-xs text-danger hover:underline">remove added</button>
               </span>
             </div>
-            <p class="whitespace-pre-wrap text-gray-600">${ANSWER}</p>
+            <p class="whitespace-pre-wrap text-muted">${ANSWER}</p>
           </li>
         </ul>
         <form id="add-form" class="space-y-2">
-          <p class="text-xs text-gray-500">Fixture control. It only tells the preview what changed. It does not save and it does not send mail.</p>
-          <button type="submit" id="add-faq" class="border border-black bg-black px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white">Add FAQ</button>
+          <p class="text-xs text-muted">Fixture control. It only tells the preview what changed. It does not save and it does not send mail.</p>
+          <button type="submit" id="add-faq" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Add FAQ</button>
         </form>
       </section>
     </div>
     <div class="space-y-4 self-start lg:sticky lg:top-6">
-      <p class="text-xs uppercase tracking-wide text-gray-500">Live preview — what your visitors see</p>
-      <div id="frame" class="border border-neutral-300 bg-white p-6">
+      <p class="text-xs uppercase tracking-wide text-muted">Live preview — what your visitors see</p>
+      <div id="frame" class="border border-line bg-background p-6">
         <shortmail-widget vanity="fixture"></shortmail-widget>
       </div>
     </div>

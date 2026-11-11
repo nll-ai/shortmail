@@ -9,7 +9,13 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
     redirectUri: callbackUrlFor(request.nextUrl.origin, fallbackRedirect),
     middlewareAuth: {
       enabled: true,
-      unauthenticatedPaths: ["/", "/send/:path*", "/verify", "/api/:path*"],
+      unauthenticatedPaths: [
+        "/",
+        "/send/:path*",
+        "/verify",
+        "/auth/error",
+        "/api/:path*",
+      ],
     },
   })(request, event);
 }

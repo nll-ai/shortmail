@@ -70,7 +70,7 @@ const pageHtml = (css: string) => `<!doctype html><html><head><meta charset="utf
   <section class="border p-4 text-sm">
     <h2 class="mb-3 text-xs font-bold uppercase tracking-[0.2em]">Your send page</h2>
     <p>Visitors write to you at <span class="font-mono underline">/send/fixture</span></p>
-    <p class="mt-2 text-xs text-gray-500">Custom vanity names are a paid-account feature.</p>
+    <p class="mt-2 text-xs text-muted">Custom vanity names are a paid-account feature.</p>
   </section>
 </main>
 </body></html>`;
@@ -106,7 +106,7 @@ describe("sign-out contrast on the dashboard stylesheet", () => {
       "tracking-[0.2em]",
       "font-mono",
       "underline",
-      "text-gray-500",
+      "text-muted",
     ]);
     const css = `${globals}\n${utilities}`;
     const server = createServer((req, res) => {

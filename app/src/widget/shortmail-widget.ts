@@ -14,7 +14,7 @@
 
 import { renderFaqAnswer } from "./faqAnswer";
 import { renderSendSuccess } from "./sendSuccess";
-import { presetById } from "./presets";
+import { ADAPTIVE, presetById, selectChevron } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
 import {
@@ -65,11 +65,12 @@ const HOST_CSS = `
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
-    color-scheme: light;
+    color-scheme: light dark;
+    background: var(--sm-bg, ${ADAPTIVE.bg});
     font-family: var(--sm-font, var(--font-geist-sans, system-ui, sans-serif));
     font-size: 16px;
     line-height: 1.5;
-    color: var(--sm-text, #171717);
+    color: var(--sm-text, ${ADAPTIVE.text});
     -webkit-font-smoothing: antialiased;
   }
   :host([hidden]) { display: none; }
@@ -87,7 +88,7 @@ const POLISH_CSS = `
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.3;
-    color: var(--sm-text, #171717);
+    color: var(--sm-text, ${ADAPTIVE.text});
   }
   .sm-faqs { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
   .sm-faq { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
@@ -96,19 +97,19 @@ const POLISH_CSS = `
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.5;
-    color: var(--sm-text, #171717);
+    color: var(--sm-text, ${ADAPTIVE.text});
     overflow-wrap: anywhere;
   }
   .sm-faq-answer {
     margin: 0;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: var(--sm-muted, #525252);
+    color: var(--sm-muted, ${ADAPTIVE.muted});
     overflow-wrap: anywhere;
   }
   .sm-faq-answer p { margin: 0; }
   .sm-faq-answer a {
-    color: var(--sm-text, #171717);
+    color: var(--sm-text, ${ADAPTIVE.text});
     text-decoration: underline;
     text-underline-offset: 0.15em;
   }
@@ -130,7 +131,7 @@ const POLISH_CSS = `
   input.sm-input, select.sm-input { min-height: 2.5rem; }
   .sm-textarea { min-height: 6.5rem; resize: none; }
   .sm-input::placeholder, .sm-textarea::placeholder {
-    color: var(--sm-muted, #525252);
+    color: var(--sm-muted, ${ADAPTIVE.muted});
     opacity: 1;
   }
   select.sm-input {
@@ -138,10 +139,15 @@ const POLISH_CSS = `
     -webkit-appearance: none;
     padding-right: 2.25rem;
     cursor: pointer;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6 L8 10.5 L12.5 6' fill='none' stroke='%23525252' stroke-width='1.25' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E");
+    background-image: var(--sm-select-icon, ${selectChevron("#525252")});
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 0.9rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    select.sm-input {
+      background-image: var(--sm-select-icon, ${selectChevron("#a3a3a3")});
+    }
   }
   .sm-radio-label { font-weight: 400; cursor: pointer; }
   .sm-radio-label input {
@@ -150,23 +156,23 @@ const POLISH_CSS = `
     width: 1rem;
     height: 1rem;
     margin: 0;
-    border: 1px solid var(--sm-border, #d4d4d4);
+    border: 1px solid var(--sm-border, ${ADAPTIVE.border});
     border-radius: 50%;
-    background: var(--sm-surface, #ffffff);
+    background: var(--sm-surface, ${ADAPTIVE.surface});
     display: grid;
     place-content: center;
     flex: none;
   }
-  .sm-radio-label input:checked { border-color: var(--sm-text, #171717); }
+  .sm-radio-label input:checked { border-color: var(--sm-text, ${ADAPTIVE.text}); }
   .sm-radio-label input:checked::before {
     content: "";
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: var(--sm-text, #171717);
+    background: var(--sm-text, ${ADAPTIVE.text});
   }
   .sm-radio-label input:focus-visible {
-    outline: 2px solid var(--sm-accent, #171717);
+    outline: 2px solid var(--sm-accent, ${ADAPTIVE.accent});
     outline-offset: 2px;
   }
   .sm-button {
@@ -180,6 +186,11 @@ const POLISH_CSS = `
   }
   .sm-hint { margin: 0; line-height: 1.5; }
   .sm-counter { font-variant-numeric: tabular-nums; }
+  .success {
+    color: var(--sm-text, ${ADAPTIVE.text});
+    font-size: 1rem;
+    line-height: 1.5;
+  }
   .sm-custom { margin-top: 0.5rem; }
 `;
 
@@ -190,7 +201,7 @@ const VERIFY_CSS = `
     padding: 0;
     border: 0;
     background: none;
-    color: var(--sm-text, #171717);
+    color: var(--sm-text, ${ADAPTIVE.text});
     font: inherit;
     font-size: 0.875rem;
     font-weight: 500;
@@ -199,7 +210,7 @@ const VERIFY_CSS = `
     cursor: pointer;
   }
   .sm-text-button:focus-visible {
-    outline: 2px solid var(--sm-accent, #171717);
+    outline: 2px solid var(--sm-accent, ${ADAPTIVE.accent});
     outline-offset: 2px;
   }
 `;
@@ -433,8 +444,19 @@ class ShortmailWidget extends HTMLElement {
   private applyTheme(): void {
     if (!this.config) return;
     const preset = presetById(this.config.theme?.preset ?? null);
+    for (let i = this.style.length - 1; i >= 0; i -= 1) {
+      const prop = this.style.item(i);
+      if (prop.startsWith("--sm-")) this.style.removeProperty(prop);
+    }
     for (const [key, value] of Object.entries(preset.vars)) {
       this.style.setProperty(key, value);
+    }
+    this.style.setProperty("color-scheme", preset.colorScheme);
+    const muted = preset.vars["--sm-muted"];
+    if (muted?.startsWith("#")) {
+      this.style.setProperty("--sm-select-icon", selectChevron(muted));
+    } else {
+      this.style.removeProperty("--sm-select-icon");
     }
     let owner: CSSStyleSheet | null = null;
     if (this.config.theme?.customCss) {
@@ -597,7 +619,9 @@ class ShortmailWidget extends HTMLElement {
     counter.className = "sm-counter";
     counter.textContent = `0/${MAX_MESSAGE_LENGTH}`;
     message.addEventListener("input", () => {
-      counter.textContent = `${message.value.length}/${MAX_MESSAGE_LENGTH}`;
+      const length = message.value.length;
+      counter.textContent = `${length}/${MAX_MESSAGE_LENGTH}`;
+      counter.classList.toggle("sm-counter-over", length > MAX_MESSAGE_LENGTH);
     });
     messageLabel.appendChild(message);
     messageLabel.appendChild(counter);

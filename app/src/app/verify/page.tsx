@@ -13,13 +13,13 @@ export const metadata: Metadata = {
 export default function VerifyPage() {
   return (
     <main
-      className="min-h-svh bg-white px-4 py-10 text-[#171717]"
+      className="min-h-svh bg-background px-4 py-10 text-foreground"
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
     >
-      <div className="mx-auto max-w-lg border border-[#d4d4d4] bg-white p-6 sm:p-8">
+      <div className="mx-auto max-w-lg border border-line bg-surface p-6 sm:p-8">
         <p className="text-sm font-bold tracking-[0.04em]">ShortMail</p>
         <h1 className="mt-6 text-lg font-semibold">Copy your code</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[#525252]">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           Return to the form where you wrote the letter and paste this code.
           This page does not send the letter.
         </p>
