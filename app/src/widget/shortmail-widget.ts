@@ -13,6 +13,7 @@
  */
 
 import { renderFaqAnswer } from "./faqAnswer";
+import { renderSendSuccess } from "./sendSuccess";
 import { presetById } from "./presets";
 import { WIDGET_CHANGE_EVENT, type WidgetChange } from "./liveUpdates";
 import { getFormSheet } from "./formSkin";
@@ -240,6 +241,8 @@ class ShortmailWidget extends HTMLElement {
   private verifyPoll = 0;
   /** A reconnect must not fetch config again and wipe a letter in progress. */
   private booted = false;
+  /** A late config response must not replace the form or the sent panel. */
+  private loadToken = 0;
   private hostSheet = new CSSStyleSheet();
   private polishSheet = new CSSStyleSheet();
   private verifySheet = new CSSStyleSheet();
@@ -386,10 +389,11 @@ class ShortmailWidget extends HTMLElement {
 
   attributeChangedCallback(): void {
     const next = this.getAttribute("vanity") ?? "";
-    if (next && next !== this.vanity) {
-      this.vanity = next;
-      if (this.isConnected) void this.load();
-    }
+    if (!next || next === this.vanity) return;
+    this.vanity = next;
+    // The parser upgrade is already connected, so this runs before
+    // connectedCallback. That path loads once. A later vanity change reloads.
+    if (this.isConnected && this.booted) void this.load();
   }
 
   /** Programmatic mount API. */
@@ -399,6 +403,7 @@ class ShortmailWidget extends HTMLElement {
   }
 
   private async load(): Promise<void> {
+    const token = ++this.loadToken;
     if (!this.vanity) {
       this.renderMessage("shortmail-widget: no vanity configured", true);
       return;
@@ -406,6 +411,7 @@ class ShortmailWidget extends HTMLElement {
     this.renderMessage("Loading…");
     try {
       const res = await fetch(`${convexSiteUrl()}/api/embed/${encodeURIComponent(this.vanity)}/config`);
+      if (token !== this.loadToken) return;
       if (res.status === 403) {
         this.renderMessage("This form is not allowed to be embedded on this site.");
         return;
@@ -419,6 +425,7 @@ class ShortmailWidget extends HTMLElement {
       this.renderForm();
       this.beaconView();
     } catch {
+      if (token !== this.loadToken) return;
       this.renderMessage("Could not load the form — network error.");
     }
   }
@@ -868,6 +875,7 @@ class ShortmailWidget extends HTMLElement {
         });
         if (res.ok) {
           window.clearInterval(this.verifyPoll);
+          this.loadToken += 1;
           form.replaceWith(this.successNote());
           return;
         }
@@ -950,11 +958,7 @@ class ShortmailWidget extends HTMLElement {
   }
 
   private successNote(): HTMLElement {
-    const div = document.createElement("div");
-    div.className = "success";
-    const name = this.config?.displayName ?? "them";
-    div.textContent = `Message sent to ${name}! It lands in their inbox as a plain, short email.`;
-    return div;
+    return renderSendSuccess(this.config?.displayName);
   }
 }
 
