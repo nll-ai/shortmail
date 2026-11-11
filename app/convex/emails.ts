@@ -2,6 +2,11 @@ import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { verificationMessage } from "./lib/senderProof";
+import {
+  decideOutboundMail,
+  readPreviewMailContext,
+  type MailDecision,
+} from "./lib/previewMail";
 
 const FROM_ADDRESS = "shortmail@mail.nonlinearlabs.ai";
 
@@ -24,30 +29,34 @@ export const sendShortmailEmail = internalAction({
     idempotencyKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      throw new Error("RESEND_API_KEY is not set on the Convex deployment");
-    }
-
     // Recipient = the owner's email (finding 16): structural invariant, the
-    // caller cannot pass a different address.
+    // caller cannot pass a different address. Preview deployments then apply
+    // the allowlist before any Resend call.
     const owner = await ctx.runQuery(internal.users.getUserById, {
       userId: args.ownerId,
     });
     if (!owner) throw new Error(`Owner ${args.ownerId} not found`);
 
+    const decision = decideOutboundMail({
+      channel: "letter",
+      intended: owner.email,
+      context: readPreviewMailContext(),
+    });
+    const delivery = resolveDelivery(decision, "letter");
+    if (delivery.blocked) return;
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${delivery.apiKey}`,
         "Content-Type": "application/json",
         "Idempotency-Key": args.idempotencyKey,
       },
       body: JSON.stringify({
         from: FROM_ADDRESS,
-        to: owner.email,
+        to: delivery.to,
         reply_to: args.replyTo,
-        subject: args.subject,
+        subject: delivery.redirected ? `[preview] ${args.subject}` : args.subject,
         html: args.html,
         text: args.text,
       }),
@@ -55,9 +64,9 @@ export const sendShortmailEmail = internalAction({
     const body = await res.text();
 
     if (!res.ok) {
-      throw new Error(
-        `Resend send failed (HTTP ${res.status}) for ${owner.email}: ${body}`,
-      );
+      const who =
+        process.env.SHORTMAIL_PREVIEW === "1" ? "preview recipient" : owner.email;
+      throw new Error(`Resend send failed (HTTP ${res.status}) for ${who}: ${body}`);
     }
 
     console.log(
@@ -85,20 +94,25 @@ export async function deliverVerificationEmail(
   token: string,
   origin: string,
 ): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY is not set on the Convex deployment");
+  const decision = decideOutboundMail({
+    channel: "verification",
+    intended: to,
+    context: readPreviewMailContext(),
+  });
+  const delivery = resolveDelivery(decision, "verification");
+  if (delivery.blocked) {
+    throw new Error("preview_email_blocked");
   }
   const message = verificationMessage(origin, token);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${delivery.apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       from: FROM_ADDRESS,
-      to,
+      to: delivery.to,
       subject: message.subject,
       html: message.html,
       text: message.text,
@@ -108,4 +122,55 @@ export async function deliverVerificationEmail(
     throw new Error(`Resend verification failed (HTTP ${res.status})`);
   }
   console.log(`[emails] verification sent status=${res.status}`);
+}
+
+type ResolvedDelivery =
+  | { blocked: true }
+  | {
+      blocked: false;
+      apiKey: string;
+      to: string;
+      redirected: boolean;
+    };
+
+/**
+ * Turn a mail decision into a Resend call, or stop.
+ *
+ * Preview blocks are logged without the address. A missing key for an
+ * allowlisted preview recipient throws so the misconfiguration is visible.
+ * Every other preview block returns without calling Resend and without
+ * raising, so the scheduler does not retry a send that must not happen.
+ * Verification blocks throw a reason code with no address; the HTTP action
+ * turns that into `unavailable`.
+ *
+ * :param decision: Policy result. Never contains a recipient outside the allowlist when previewing.
+ * :param channel: Letter or verification. Selects the blocked-call behavior.
+ * :returns: The key and recipient to hand to Resend.
+ */
+function resolveDelivery(
+  decision: MailDecision,
+  channel: "letter" | "verification",
+): ResolvedDelivery {
+  if (decision.action === "block") {
+    console.log(
+      `[emails] preview blocked channel=${channel} reason=${decision.reason}`,
+    );
+    if (channel === "verification" || decision.reason === "preview_no_api_key") {
+      throw new Error(`preview_email_blocked:${decision.reason}`);
+    }
+    return { blocked: true };
+  }
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not set on the Convex deployment");
+  }
+  if (decision.redirected) {
+    console.log(`[emails] preview redirected channel=${channel}`);
+  }
+  return {
+    blocked: false,
+    apiKey,
+    to: decision.to,
+    redirected: decision.redirected,
+  };
 }

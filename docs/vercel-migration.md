@@ -14,7 +14,7 @@ the transition, including for embeds that already point there.
 |---|---|---|
 | Live Vercel production | https://shortmail-gamma.vercel.app | Convex `hallowed-leopard-387` |
 | Canonical hostname | https://shortmail.nonlinearlabs.ai | Still Modal (SQLite volume `shortmail`) until DNS cutover. App code is ready for this host. |
-| Per-PR previews | `shortmail-<hash>-eric-mas-projects-a230afd1.vercel.app` | fresh per-branch Convex backend, auto-seeded |
+| Per-PR previews | `shortmail-<hash>-eric-mas-projects-a230afd1.vercel.app` and `shortmail-git-<branch>-…` | that branch's Convex preview deployment. See `docs/preview-deployments.md`. |
 
 ## Environment inventory
 
@@ -22,20 +22,24 @@ the transition, including for embeds that already point there.
 - Root Directory: `app`; build command: `bash scripts/vercel-build.sh`
   (runs `npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL`
   plus the widget esbuild step via `package.json` `build`)
-- `CONVEX_DEPLOY_KEY` — **production** deploy key → target `production` only
-- `CONVEX_DEPLOY_KEY` — **preview** deploy key → target `preview` (per-branch
-  Convex backends; auto-cleanup ~5 days)
+- Preview keys, production hydration, and the mail block are in
+  `docs/preview-deployments.md`. Do not put the production `RESEND_API_KEY`
+  on the Vercel Preview environment or on Convex preview deployments.
 - `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, `WORKOS_COOKIE_PASSWORD` (≥32 chars),
-  `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY` — all environments
+  `SUPER_ADMIN_EMAIL` — Production and Preview
+- `RESEND_API_KEY` — not required on Vercel. Convex production reads it.
+  Previews use `SHORTMAIL_PREVIEW_RESEND_API_KEY` only when preview mail
+  should actually send, and only to `SHORTMAIL_EMAIL_ALLOWLIST`.
 - `NEXT_PUBLIC_WORKOS_REDIRECT_URI` = `https://shortmail-gamma.vercel.app/callback`
 
 ### Convex project `eric-036a4/shortmail`
 - dev: `gallant-dogfish-30`; prod: `hallowed-leopard-387` (default prod);
-  preview deployments per branch
-- Env vars per deployment: `WORKOS_CLIENT_ID`, `SUPER_ADMIN_EMAIL`,
-  `RESEND_API_KEY`
-- Project **Default Environment Variables** (applied to new deployments):
-  same three keys — set via dashboard Settings → Default Environment Variables
+  preview deployments per branch (`docs/preview-deployments.md`)
+- Production env: `WORKOS_CLIENT_ID`, `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY`,
+  `SHORTMAIL_PUBLIC_ORIGIN` = `https://shortmail.nonlinearlabs.ai`
+- Do not put `RESEND_API_KEY` in project default environment variables.
+  Preview builds set `SHORTMAIL_PREVIEW=1` and remove `RESEND_API_KEY`
+  unless a separate preview key was provided.
 
 ### WorkOS (Nonlinear Labs, staging environment)
 - AuthKit domain: `warm-respect-91-staging.authkit.app`
@@ -137,6 +141,8 @@ the prod deployment. Note `migrate.ts` upserts by email — safe to re-run.
   release date (`LICENSE`).
 - `scripts/vercel-build.sh` deploys Convex functions before `next build`;
   `scripts/build-widget.mjs` rebuilds `public/widget.js` with the baked
-  Convex site URL. Both run on every Vercel build.
+  Convex site URL of that build's deployment (preview or production).
+  Both run on every Vercel build. Preview data, mail blocking, and
+  branch cleanup are in `docs/preview-deployments.md`.
 - npm lifecycle scripts are disabled in Vercel builds — do not rely on
   `pre*` hooks; chain commands in the `build` script instead.

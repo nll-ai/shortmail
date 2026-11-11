@@ -6,7 +6,12 @@ const root = import.meta.dirname;
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "convex/**/*.test.ts"],
+    include: [
+      "src/**/*.test.ts",
+      "src/**/*.test.tsx",
+      "convex/**/*.test.ts",
+      "scripts/**/*.test.ts",
+    ],
   },
   resolve: {
     alias: {

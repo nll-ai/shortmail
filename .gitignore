@@ -187,3 +187,6 @@ pyrightconfig.json
 # SQLite database
 message_log.db
 .vercel
+
+# Production snapshots from a preview hydrate. The build writes these under /tmp.
+shortmail-preview*.zip
