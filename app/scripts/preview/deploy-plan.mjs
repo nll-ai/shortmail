@@ -7,6 +7,7 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolveAuthkitIssuer } from "../../src/mcp/authkit-issuer.mjs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -319,9 +320,12 @@ export function writePreviewEnvFile(env, destination, origin) {
   if (origin !== plan.origin) {
     throw new Error("preview origin does not match the plan");
   }
-  const issuer = (env.WORKOS_AUTHKIT_ISSUER ?? "https://fair-rose-65.authkit.app")
-    .trim()
-    .replace(/\/$/, "");
+  const issuer = resolveAuthkitIssuer(env);
+  if (!issuer) {
+    throw new Error(
+      "Cannot resolve the AuthKit issuer. Set WORKOS_AUTHKIT_ISSUER or use a known WORKOS_CLIENT_ID.",
+    );
+  }
   const lines = [
     line("SHORTMAIL_PREVIEW", "1"),
     line("SHORTMAIL_PUBLIC_ORIGIN", origin),

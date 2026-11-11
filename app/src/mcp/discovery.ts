@@ -17,7 +17,14 @@ const CACHE_MS = 5 * 60 * 1000;
  * :returns: JSON document clients fetch from `/.well-known/oauth-protected-resource`.
  */
 export function protectedResourceResponse(env: Record<string, string | undefined>): Response {
-  const body = protectedResourceMetadata(mcpResourceUrl(env), authkitIssuer(env));
+  const issuer = authkitIssuer(env);
+  if (!issuer) {
+    return Response.json(
+      { error: "auth_issuer_unconfigured" },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const body = protectedResourceMetadata(mcpResourceUrl(env), issuer);
   return Response.json(body, { headers: CORS });
 }
 

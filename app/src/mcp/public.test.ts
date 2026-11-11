@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   PRODUCTION_AUTHKIT_ISSUER,
+  PRODUCTION_CLIENT_ID,
   PRODUCTION_MCP_RESOURCE,
+  STAGING_AUTHKIT_ISSUER,
+  STAGING_CLIENT_ID,
   authkitIssuer,
   mcpAudiences,
   mcpResourceUrl,
@@ -23,7 +26,7 @@ describe("MCP resource URL", () => {
     expect(mcpResourceUrl({ SHORTMAIL_MCP_RESOURCE: "https://example.test/mcp/" })).toBe(
       "https://example.test/mcp",
     );
-    expect(authkitIssuer({})).toBe(PRODUCTION_AUTHKIT_ISSUER);
+    expect(authkitIssuer({})).toBeNull();
     expect(mcpAudiences({ WORKOS_CLIENT_ID: "client_test", VERCEL_ENV: "production" })).toEqual([
       PRODUCTION_MCP_RESOURCE,
       "client_test",
@@ -42,12 +45,46 @@ describe("MCP resource URL", () => {
     );
   });
 
-  it("matches the issuer the preview build writes", () => {
+  it("uses staging AuthKit for previews and production AuthKit for production", () => {
+    const preview = "https://shortmail-git-cursor-mcp-page-2c5b4b-eric-mas-projects-a230afd1.vercel.app";
+    expect(
+      authkitIssuer({
+        VERCEL_ENV: "preview",
+        WORKOS_CLIENT_ID: STAGING_CLIENT_ID,
+      }),
+    ).toBe(STAGING_AUTHKIT_ISSUER);
+    expect(
+      authkitIssuer({
+        VERCEL_ENV: "production",
+        WORKOS_CLIENT_ID: STAGING_CLIENT_ID,
+      }),
+    ).toBe(PRODUCTION_AUTHKIT_ISSUER);
+    expect(authkitIssuer({ WORKOS_CLIENT_ID: STAGING_CLIENT_ID })).toBe(STAGING_AUTHKIT_ISSUER);
+    expect(authkitIssuer({ WORKOS_CLIENT_ID: PRODUCTION_CLIENT_ID })).toBe(
+      PRODUCTION_AUTHKIT_ISSUER,
+    );
+    expect(
+      authkitIssuer({
+        VERCEL_ENV: "preview",
+        WORKOS_AUTHKIT_ISSUER: "https://override.example/",
+      }),
+    ).toBe("https://override.example");
+
+    const metadata = protectedResourceMetadata(
+      `${preview}/mcp`,
+      authkitIssuer({ VERCEL_ENV: "preview", WORKOS_CLIENT_ID: STAGING_CLIENT_ID }) ?? "",
+    );
+    expect(metadata.authorization_servers).toEqual([STAGING_AUTHKIT_ISSUER]);
+    expect(metadata.resource).toBe(`${preview}/mcp`);
+  });
+
+  it("lets the preview build import the same issuer resolver", () => {
     const source = readFileSync(
       new URL("../../scripts/preview/deploy-plan.mjs", import.meta.url),
       "utf8",
     );
-    expect(source).toContain(PRODUCTION_AUTHKIT_ISSUER);
+    expect(source).toContain("resolveAuthkitIssuer");
     expect(source).toContain("SHORTMAIL_MCP_RESOURCE");
+    expect(source).not.toContain(PRODUCTION_AUTHKIT_ISSUER);
   });
 });

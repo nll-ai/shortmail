@@ -10,6 +10,7 @@ describe("connect page", () => {
     expect(html).toContain("mcpServers");
     expect(html).toContain("claude mcp add --transport http shortmail");
     expect(html).toContain("fair-rose-65.authkit.app");
+    expect(html).toContain("warm-respect-91-staging.authkit.app");
     expect(html).toContain("Dynamic Client Registration");
     expect(html).not.toContain("sk_");
   });

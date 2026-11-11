@@ -1,10 +1,19 @@
 /**
- * Public MCP addresses. These are not secrets. Production AuthKit for this
- * app is `fair-rose-65.authkit.app`. Preview builds override the resource
- * with the branch origin.
+ * Public MCP addresses. These are not secrets. The issuer comes from
+ * `resolveAuthkitIssuer`: preview deployments use staging AuthKit, and
+ * production uses production AuthKit.
  */
 
-export const PRODUCTION_AUTHKIT_ISSUER = "https://fair-rose-65.authkit.app";
+import { resolveAuthkitIssuer } from "./authkit-issuer.mjs";
+
+export {
+  PRODUCTION_AUTHKIT_ISSUER,
+  PRODUCTION_CLIENT_ID,
+  STAGING_AUTHKIT_ISSUER,
+  STAGING_CLIENT_ID,
+  resolveAuthkitIssuer,
+} from "./authkit-issuer.mjs";
+
 export const PRODUCTION_MCP_RESOURCE = "https://shortmail.nonlinearlabs.ai/mcp";
 
 export const MCP_SCOPES = ["openid", "email", "profile", "offline_access"] as const;
@@ -32,15 +41,13 @@ export function mcpResourceUrl(env: Record<string, string | undefined>): string 
 }
 
 /**
- * AuthKit issuer that signs MCP access tokens.
+ * AuthKit issuer that signs MCP access tokens for this deployment.
  *
  * :param env: Process environment.
- * :returns: Issuer URL without a trailing slash.
+ * :returns: Issuer URL without a trailing slash, or null when unset.
  */
-export function authkitIssuer(env: Record<string, string | undefined>): string {
-  const explicit = env.WORKOS_AUTHKIT_ISSUER?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
-  return PRODUCTION_AUTHKIT_ISSUER;
+export function authkitIssuer(env: Record<string, string | undefined>): string | null {
+  return resolveAuthkitIssuer(env);
 }
 
 /**

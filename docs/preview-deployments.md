@@ -201,13 +201,15 @@ Do this in the dashboards. Names only; do not commit the values.
    and the MCP resource indicators, are a separate WorkOS change described
    on `/connect`.
 
-8. **MCP audience on Convex.** Preview builds set `WORKOS_AUTHKIT_ISSUER`
-   and `SHORTMAIL_MCP_RESOURCE` (`https://<branch-alias>/mcp`) on the
-   preview deployment. Production builds set the issuer to
-   `https://fair-rose-65.authkit.app` and the resource to
-   `https://shortmail.nonlinearlabs.ai/mcp`. Connect preview agents to the
-   branch alias, not the one-off deployment hostname. The token audience
-   has to match the resource Convex was given.
+8. **MCP audience on Convex.** The issuer follows the deployment.
+   Preview builds set `WORKOS_AUTHKIT_ISSUER` to
+   `https://warm-respect-91-staging.authkit.app` and
+   `SHORTMAIL_MCP_RESOURCE` to `https://<branch-alias>/mcp`. Production
+   builds set the issuer to `https://fair-rose-65.authkit.app` and the
+   resource to `https://shortmail.nonlinearlabs.ai/mcp`. An explicit
+   `WORKOS_AUTHKIT_ISSUER` on the build overrides that. Connect preview
+   agents to the branch alias, not the one-off deployment hostname. The
+   token audience has to match the resource Convex was given.
 
 The cleanup workflow runs on `pull_request` `closed` (merged or not) and on
 branch `delete`. It is a no-op for forks, tags, and `main`/`master`. A

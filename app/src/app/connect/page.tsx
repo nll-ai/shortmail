@@ -99,9 +99,11 @@ export default function ConnectPage() {
 
         <h2 className="mb-3.5 mt-14 text-[15px] font-semibold">WorkOS setup</h2>
         <p className="leading-[1.55] text-muted">
-          Sign-in will fail until the production WorkOS environment
-          (AuthKit domain <code>fair-rose-65.authkit.app</code>) allows MCP
-          clients. These are dashboard settings, not part of the app deploy:
+          A preview signs in with the staging AuthKit
+          (<code>warm-respect-91-staging.authkit.app</code>). The production
+          server URL uses the production AuthKit
+          (<code>fair-rose-65.authkit.app</code>). The issuer follows the
+          deployment, not a single hardcoded domain.
         </p>
         <ol className="mt-4 list-decimal space-y-3 pl-5 leading-normal">
           <li>

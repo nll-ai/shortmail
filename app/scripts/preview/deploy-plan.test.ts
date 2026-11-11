@@ -137,7 +137,7 @@ describe("writePreviewEnvFile", () => {
       );
       expect(written).toContain("RESEND_API_KEY=re_preview_secret");
       expect(written).toContain(
-        "WORKOS_AUTHKIT_ISSUER=https://fair-rose-65.authkit.app",
+        "WORKOS_AUTHKIT_ISSUER=https://warm-respect-91-staging.authkit.app",
       );
       expect(written).toContain(
         "SHORTMAIL_MCP_RESOURCE=https://shortmail-git-feat-widgets-eric-mas-projects-a230afd1.vercel.app/mcp",

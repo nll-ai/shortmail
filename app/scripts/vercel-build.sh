@@ -50,7 +50,16 @@ if [[ "$KIND" == "production" ]]; then
     echo "warning: could not list production Convex env names; continuing the production function deploy" >&2
   fi
   echo "==> Publishing the MCP token audience on the production Convex deployment"
-  npx convex env --prod set WORKOS_AUTHKIT_ISSUER https://fair-rose-65.authkit.app
+  ISSUER="$(node --input-type=module -e '
+    import { resolveAuthkitIssuer } from "./src/mcp/authkit-issuer.mjs";
+    const issuer = resolveAuthkitIssuer(process.env);
+    if (!issuer) {
+      console.error("Cannot resolve the production AuthKit issuer.");
+      process.exit(1);
+    }
+    process.stdout.write(issuer);
+  ')"
+  npx convex env --prod set WORKOS_AUTHKIT_ISSUER "$ISSUER"
   npx convex env --prod set SHORTMAIL_MCP_RESOURCE https://shortmail.nonlinearlabs.ai/mcp
   npx convex deploy --cmd "npm run build" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
   echo "==> Backfilling subject heading and FAQ order"

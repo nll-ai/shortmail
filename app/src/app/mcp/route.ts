@@ -40,6 +40,9 @@ async function authenticate(request: Request) {
     };
   }
   const issuer = authkitIssuer(process.env);
+  if (!issuer) {
+    return { ok: false as const, response: authUnavailable() };
+  }
   try {
     await verifyMcpAccessToken(token, {
       jwks: signingKeys(issuer),
