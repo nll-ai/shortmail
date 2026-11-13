@@ -1,0 +1,3 @@
+/** Exact “What is kept” paragraph for the homepage and regression tests. */
+export const LANDING_PRIVACY_PARAGRAPH =
+  "The letter is delivered as email to you. ShortMail does not keep the letter body in its database. The visitor's name and email are required, and both are on the email you receive, so the visitor is not anonymous. ShortMail does not put a copy in the visitor's sent folder. It does store the subject, including whether a reply was requested, and aggregate events for page views and successful sends. Before a letter can be delivered, the visitor proves they can open that inbox. ShortMail stores a hash of the address and a hash of that browser's proof for up to 30 days, not a copy of the letter.";
