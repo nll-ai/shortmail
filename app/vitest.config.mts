@@ -17,7 +17,6 @@ export default defineConfig({
       "convex/**/*.test.ts",
       "scripts/**/*.test.ts",
       "shared/**/*.test.ts",
-      "e2e/**/*.spec.ts",
     ],
   },
   resolve: {
