@@ -33,7 +33,7 @@ describe("Admin comp Premium (fixture)", () => {
     cy.get("#comp-kind-select").should("be.visible");
     cy.contains("Free for one year").should("be.visible");
     cy.contains("Comp / period").should("be.visible");
-    cy.contains("One year (ends)").should("be.visible");
+    cy.contains("One year · ends Nov 13, 2027").should("be.visible");
     cy.contains("Comp Premium").should("be.visible");
     cy.screenshot("fixture-admin-users-comp", { capture: "viewport" });
   });

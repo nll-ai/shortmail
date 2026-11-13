@@ -6,19 +6,9 @@ import Link from "next/link";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { QueryBoundary } from "@/components/QueryBoundary";
+import { formatCompPeriodLabel, type CompKind } from "@/admin/formatCompPeriod";
 
 type AdminRole = "moderator" | "admin" | "super_admin";
-type CompKind = "lifetime" | "one_year";
-
-function formatPeriodEnd(ms: number | null): string {
-  if (!ms) return "—";
-  return new Date(ms).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 export default function AdminUsersPage() {
   return (
@@ -138,18 +128,11 @@ function UsersPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               <td className="py-2 font-mono text-xs">{u.vanityName}</td>
               <td className="py-2 text-xs">{u.isPaid ? "yes" : "no"}</td>
               <td className="py-2 text-xs text-muted">
-                {u.stripeCompKind ? (
-                  <>
-                    {u.stripeCompKind === "lifetime" ? "Lifetime" : "One year"}
-                    {u.stripeCompKind === "one_year" && u.stripeCancelAtPeriodEnd
-                      ? " (ends)"
-                      : ""}
-                    <br />
-                    Until {formatPeriodEnd(u.stripeCurrentPeriodEnd)}
-                  </>
-                ) : (
-                  "—"
-                )}
+                {formatCompPeriodLabel({
+                  stripeCompKind: u.stripeCompKind,
+                  stripeCurrentPeriodEnd: u.stripeCurrentPeriodEnd,
+                  stripeCancelAtPeriodEnd: u.stripeCancelAtPeriodEnd,
+                })}
               </td>
               <td className="py-2">
                 <button

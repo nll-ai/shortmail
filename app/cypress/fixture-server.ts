@@ -225,7 +225,7 @@ function adminUsersFixture(css: string): string {
             <td class="py-2">comp@example.com</td>
             <td class="py-2 font-mono text-xs">comp-user</td>
             <td class="py-2 text-xs">yes</td>
-            <td class="py-2 text-xs text-muted">One year (ends)<br>Until Jan 1, 2027</td>
+            <td class="py-2 text-xs text-muted">One year · ends Nov 13, 2027</td>
             <td class="py-2"><button type="button" class="border border-line px-3 py-0.5 text-xs" disabled>Subscribed</button></td>
           </tr>
         </tbody>
