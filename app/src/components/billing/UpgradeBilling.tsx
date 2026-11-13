@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import { primaryClass, controlClass } from "@/theme/controls";
-import { portalErrorMessage } from "@/lib/billing/apiErrors";
+import { portalErrorMessage } from "./apiErrors";
 
 type JsonBody = { url?: string; error?: string; message?: string };
 
