@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "cypress:run": "cypress run --browser chrome"
+    "cypress:run": "cypress run --browser chrome",
+    "stripe:setup-products": "node scripts/stripe-setup-products.mjs",
+    "billing:legacy-migrate": "tsx scripts/billing-legacy-paid-migrate.ts"
   },
   "dependencies": {
     "@convex-dev/workos": "^0.0.3",
@@ -23,6 +25,7 @@
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "stripe": "^18.5.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -38,6 +41,8 @@
     "eslint-config-next": "16.4.2",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.30",
+    "puppeteer-core": "^24.2.0",
+    "tsx": "^4.19.4",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.5"

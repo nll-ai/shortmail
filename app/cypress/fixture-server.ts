@@ -14,6 +14,10 @@ const LABEL =
   "FIXTURE — real widget.js, mocked config. Not a signed-in account. No Convex write. No email.";
 const REORDER_LABEL =
   "FIXTURE — local reorder harness. Not the Vercel preview. Not a signed-in account. No email.";
+const BILLING_LABEL =
+  "FIXTURE — mocked Stripe checkout. Not a signed-in account. No Convex write. No real payment.";
+const ADMIN_BILLING_LABEL =
+  "FIXTURE — admin comp UI (static). Not signed in. No Convex write. No Stripe.";
 
 const CLASSES = [
   "bg-neutral-900", "px-4", "py-2", "text-xs", "tracking-wide", "text-white",
@@ -131,6 +135,108 @@ function dashboard(css: string): string {
   );
 }
 
+function billingFree(css: string): string {
+  return page(
+    `<main class="mx-auto max-w-lg p-8 text-sm">
+      <h1 class="text-2xl font-bold">ShortMail Dashboard</h1>
+      <div class="mt-6 border p-4 space-y-2">
+        <p class="font-medium text-sm">Upgrade to Premium</p>
+        <p class="text-xs text-muted">$48/year billed annually (fixture shows mocked checkout).</p>
+        <button id="upgrade-btn" type="button" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Upgrade to Premium</button>
+      </div>
+      <script>
+        document.getElementById("upgrade-btn").addEventListener("click", async () => {
+          const res = await fetch("/api/billing/checkout", { method: "POST" });
+          const body = await res.json();
+          if (body.url) window.location.href = body.url;
+        });
+      </script>
+    </main>`,
+    css,
+    [],
+    BILLING_LABEL,
+  );
+}
+
+function billingSuccess(css: string): string {
+  return page(
+    `<main class="mx-auto max-w-lg p-8 text-sm">
+      <h1 class="text-2xl font-bold">ShortMail Dashboard</h1>
+      <p class="mt-4 border px-4 py-3 text-sm">Payment received — Premium unlocked (fixture).</p>
+      <div class="mt-6 border p-4 space-y-2">
+        <p class="font-medium text-sm">Premium active</p>
+        <p class="text-xs text-muted">Analytics, theming, embed, and custom vanity are unlocked.</p>
+        <button type="button" class="border px-4 py-2 text-xs">Manage billing</button>
+      </div>
+    </main>`,
+    css,
+    [],
+    BILLING_LABEL,
+  );
+}
+
+function billingPremiumActive(css: string): string {
+  return page(
+    `<main class="mx-auto max-w-lg p-8 text-sm">
+      <h1 class="text-2xl font-bold">ShortMail Dashboard</h1>
+      <div class="mt-6 border p-4 space-y-2">
+        <p class="font-medium text-sm">Premium active</p>
+        <p class="text-xs text-muted">Analytics, theming, embed, and custom vanity are unlocked.</p>
+        <button id="manage-billing" type="button" class="border px-4 py-2 text-xs">Manage billing</button>
+      </div>
+    </main>`,
+    css,
+    [],
+    BILLING_LABEL,
+  );
+}
+
+function adminUsersFixture(css: string): string {
+  return page(
+    `<main class="mx-auto min-h-svh max-w-5xl bg-background p-8 text-foreground text-sm">
+      <h1 class="text-2xl font-bold mb-4">User management</h1>
+      <p class="text-xs text-muted mb-3">Premium comps use Stripe 100% coupons (shortmail_comp_lifetime or shortmail_comp_1yr).</p>
+      <label class="flex items-center gap-2 text-sm mb-4" id="comp-kind-label">
+        Default comp type:
+        <select id="comp-kind-select" class="border border-line bg-background px-2 py-1 text-xs">
+          <option value="one_year">Free for one year</option>
+          <option value="lifetime">Free for life</option>
+        </select>
+      </label>
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="text-xs uppercase text-muted">
+            <th class="py-1">Email</th>
+            <th class="py-1">Vanity</th>
+            <th class="py-1">Paid</th>
+            <th class="py-1">Comp / period</th>
+            <th class="py-1">Premium</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t">
+            <td class="py-2">free@example.com</td>
+            <td class="py-2 font-mono text-xs">free-user</td>
+            <td class="py-2 text-xs">no</td>
+            <td class="py-2 text-xs text-muted">—</td>
+            <td class="py-2"><button type="button" class="border border-line px-3 py-0.5 text-xs">Comp Premium</button></td>
+          </tr>
+          <tr class="border-t">
+            <td class="py-2">comp@example.com</td>
+            <td class="py-2 font-mono text-xs">comp-user</td>
+            <td class="py-2 text-xs">yes</td>
+            <td class="py-2 text-xs text-muted">One year · ends Nov 13, 2027</td>
+            <td class="py-2"><button type="button" class="border border-line px-3 py-0.5 text-xs" disabled>Subscribed</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </main>`,
+    css,
+    [],
+    ADMIN_BILLING_LABEL,
+  );
+}
+
 function hosted(css: string, vanity: string, label = LABEL): string {
   return page(
     `<main class="mx-auto max-w-lg border border-line bg-background p-6 text-sm text-foreground">
@@ -245,6 +351,10 @@ export async function startFaqFixture(): Promise<string> {
   }
   const css = `${globals}\n${compiled.build([...used])}`;
   const dashboardHtml = dashboard(css);
+  const billingFreeHtml = billingFree(css);
+  const billingSuccessHtml = billingSuccess(css);
+  const billingPremiumHtml = billingPremiumActive(css);
+  const adminUsersHtml = adminUsersFixture(css);
   const sendHtml = hosted(css, "fixture");
   const unsafeHtml = hosted(css, "unsafe");
   const reorderHtml = page(
@@ -370,6 +480,26 @@ export async function startFaqFixture(): Promise<string> {
     if (url.pathname === "/api/collect/fixture" || url.pathname === "/api/collect/unsafe") {
       res.writeHead(204);
       res.end();
+      return;
+    }
+    if (url.pathname === "/api/billing/checkout" && req.method === "POST") {
+      respond(res, JSON.stringify({ url: `${origin}/billing/success` }), "application/json");
+      return;
+    }
+    if (url.pathname === "/billing/free") {
+      respond(res, billingFreeHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/billing/success") {
+      respond(res, billingSuccessHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/billing/premium") {
+      respond(res, billingPremiumHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/admin/users") {
+      respond(res, adminUsersHtml, "text/html; charset=utf-8");
       return;
     }
     if (url.pathname === "/") {
