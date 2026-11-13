@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import Home from "../src/app/page";
+import { LandingHome } from "../src/components/landing/LandingHome";
 import VerifyPage from "../src/app/verify/page";
 import NotFound from "../src/app/not-found";
 import AuthError from "../src/app/auth/error/page";
@@ -80,7 +80,9 @@ const admin = shell(
  */
 export function themePages(): Record<string, string> {
   return {
-    "/theme/home": renderToStaticMarkup(createElement(Home)),
+    "/theme/home": renderToStaticMarkup(
+      createElement(LandingHome, { foundingEligible: false }),
+    ),
     "/theme/verify": renderToStaticMarkup(createElement(VerifyPage)),
     "/theme/missing": renderToStaticMarkup(createElement(NotFound)),
     "/theme/auth-error": renderToStaticMarkup(createElement(AuthError)),

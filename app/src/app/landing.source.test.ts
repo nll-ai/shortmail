@@ -2,14 +2,22 @@ import { existsSync, readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import Home from "./page";
+import {
+  FOUNDING_CENTS_YEARLY,
+  PREMIUM_CENTS_YEARLY,
+} from "../../shared/billing/config";
+import { LandingHome } from "@/components/landing/LandingHome";
+import { formatYearlyDollars } from "@/app/landing/formatPrice";
+import { LANDING_PRIVACY_PARAGRAPH } from "@/app/landing/privacy";
 
-const PRIVACY =
-  "The letter is delivered as email to you. ShortMail does not keep the letter body in its database. The visitor's name and email are required, and both are on the email you receive, so the visitor is not anonymous. ShortMail does not put a copy in the visitor's sent folder. It does store the subject, including whether a reply was requested, and aggregate events for page views and successful sends. Before a letter can be delivered, the visitor proves they can open that inbox. ShortMail stores a hash of the address and a hash of that browser's proof for up to 30 days, not a copy of the letter.";
+const standardYearly = formatYearlyDollars(PREMIUM_CENTS_YEARLY);
+const foundingYearly = formatYearlyDollars(FOUNDING_CENTS_YEARLY);
 
 describe("homepage", () => {
   it("offers two account links and the approved copy", () => {
-    const html = renderToStaticMarkup(createElement(Home));
+    const html = renderToStaticMarkup(
+      createElement(LandingHome, { foundingEligible: false }),
+    );
     const create = html.match(
       /<a[^>]*href="\/dashboard"[^>]*>Create your page<\/a>/g,
     );
@@ -19,26 +27,45 @@ describe("homepage", () => {
 
     expect(create).toHaveLength(1);
     expect(signIn).toHaveLength(1);
-    expect(html.replaceAll("&#x27;", "'")).toContain(PRIVACY);
-    expect(html).toContain(
-      "Visitors see those answers under the questions on the letter page.",
-    );
+    expect(html.replaceAll("&#x27;", "'")).toContain(LANDING_PRIVACY_PARAGRAPH);
+    expect(html).toContain("A link for the letters you are willing to read.");
+    expect(html).toContain("allowlist of up to 20 sites");
+    expect(html).toContain("This page does not charge a card");
+    expect(html).toContain("Will this stop all my email?");
+    expect(html).toContain("A fictional page. Nothing on this card is sent.");
     expect(html).toContain("189/500");
     expect(html).not.toContain("<form");
     expect(html).not.toContain("shortmail-widget");
     expect(html).not.toContain("cce87ae9c1d7");
+    expect(html).toContain(`${standardYearly} a year.`);
+    expect(html).not.toContain(`Founding price ${foundingYearly}`);
+  });
+
+  it("mentions founding price only when eligible", () => {
+    const html = renderToStaticMarkup(
+      createElement(LandingHome, { foundingEligible: true }),
+    );
+    expect(html).toContain(`Founding price ${foundingYearly} a year.`);
+    expect(html).toContain(standardYearly);
+    expect(html).toContain(foundingYearly);
   });
 
   it("does not import the live send demo", () => {
     const source = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
-    expect(source).toContain("min-h-11");
-    expect(source).toContain("focusClass");
+    expect(source).toContain("loadFoundingEligible");
+    expect(source).toContain("LandingHome");
+    const landingSource = readFileSync(
+      new URL("../components/landing/LandingHome.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(landingSource).toContain("min-h-11");
+    expect(landingSource).toContain("focusClass");
     const controls = readFileSync(
       new URL("../theme/controls.ts", import.meta.url),
       "utf8",
     );
     expect(controls).toContain("focus-visible:outline-2");
-    expect(source).toContain(
+    expect(landingSource).toContain(
       'fontFamily: "var(--font-geist-sans), sans-serif"',
     );
     expect(source).not.toContain("LandingLetter");
