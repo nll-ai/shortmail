@@ -30,12 +30,33 @@ The table shows **comp type** and **period end** (`stripeCompKind`, `stripeCurre
 
 ## Legacy `isPaid` without Stripe
 
-Users with `isPaid=true` but missing `stripeCustomerId` / `stripeSubscriptionId` are invalid under the new invariant. Fix by comping them through the admin UI (or Checkout), not by patching Convex.
+Users with `isPaid=true` but missing `stripeCustomerId` / `stripeSubscriptionId` are invalid under the new invariant.
 
-Dry-run report (no Stripe writes):
+### Dry-run (default)
+
+Lists affected users as JSON — no Stripe or Convex writes beyond the read:
 
 ```bash
-cd app && npx convex run billing:legacyPaidWithoutStripeReport
+cd app
+export BILLING_INTERNAL_SECRET=… NEXT_PUBLIC_CONVEX_URL=…
+npm run billing:legacy-migrate
+# or: npx tsx scripts/billing-legacy-paid-migrate.ts
 ```
 
-Review the printed list and grant Premium with **Comp Premium** per user (no automatic Stripe migration).
+Moderators can also use Convex query `billing:legacyPaidWithoutStripeReport` from the dashboard.
+
+### Apply via Stripe (opt-in)
+
+**Do not run against production.** Requires test-mode Stripe and an explicit confirmation env:
+
+```bash
+cd app
+export STRIPE_SECRET_KEY=sk_test_…
+export BILLING_INTERNAL_SECRET=…
+export NEXT_PUBLIC_CONVEX_URL=…   # preview/dev deployment only
+export SHORTMAIL_ALLOW_LEGACY_MIGRATE=1
+npm run billing:legacy-migrate -- --apply
+# optional: --kind one_year   (default: lifetime)
+```
+
+`--apply` refuses `sk_live_…` keys, refuses the production Convex deployment hostname, and comp each listed user using the same Stripe path as **Comp Premium** (default **lifetime**).

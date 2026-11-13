@@ -260,6 +260,15 @@ export const legacyPaidWithoutStripeReport = query({
   },
 });
 
+/** Script-only list for legacy migration (`billing-legacy-paid-migrate`). */
+export const legacyPaidListForMigration = mutation({
+  args: { secret: v.string() },
+  handler: async (ctx, args) => {
+    verifyBillingSecret(args.secret);
+    return legacyPaidRows(await ctx.db.query("users").collect());
+  },
+});
+
 export const countFoundingCustomersInternal = internalQuery({
   args: {},
   handler: async (ctx) => countFoundingCustomers(ctx),
