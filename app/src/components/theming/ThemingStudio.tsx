@@ -5,6 +5,7 @@ import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { THEME_PRESETS, presetById } from "../../widget/presets";
 import { applyTheme } from "../../widget/theme";
+import { UpgradeBillingCard } from "../billing/UpgradeBilling";
 import { primaryClass } from "@/theme/controls";
 
 const SAMPLE_MESSAGES = [
@@ -39,12 +40,9 @@ export function ThemingStudio() {
           Pick a color preset and add your own CSS so your send form matches
           your site — on the hosted page and everywhere it is embedded.
         </p>
-        <a
-          href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className={`mt-4 inline-block ${primaryClass}`}
-        >
-          Upgrade to premium
-        </a>
+        <div className="mt-4">
+          <UpgradeBillingCard compact />
+        </div>
       </div>
     );
   }

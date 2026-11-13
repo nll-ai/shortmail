@@ -9,6 +9,7 @@ import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { controlClass, fieldClass } from "@/theme/controls";
+import { UpgradeBillingCard } from "../billing/UpgradeBilling";
 import { FaqRows, HeadingRows } from "./ReorderRows";
 import { previewSnapshot, previewSnapshotKey } from "./previewSnapshot";
 import { useServerOrder } from "./useServerOrder";
@@ -139,6 +140,7 @@ export function DashboardData() {
           <Script src="/widget.js" strategy="afterInteractive" />
           <shortmail-widget vanity={me.vanityName} />
         </div>
+        <UpgradeBillingCard />
         <div className=" border p-4 text-sm space-y-2">
           <p className="font-medium text-sm">Premium tools</p>
           <Link href="/analytics" className="block text-link hover:underline text-sm">

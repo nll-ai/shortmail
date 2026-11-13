@@ -14,6 +14,8 @@ const LABEL =
   "FIXTURE — real widget.js, mocked config. Not a signed-in account. No Convex write. No email.";
 const REORDER_LABEL =
   "FIXTURE — local reorder harness. Not the Vercel preview. Not a signed-in account. No email.";
+const BILLING_LABEL =
+  "FIXTURE — mocked Stripe checkout. Not a signed-in account. No Convex write. No real payment.";
 
 const CLASSES = [
   "bg-neutral-900", "px-4", "py-2", "text-xs", "tracking-wide", "text-white",
@@ -131,6 +133,46 @@ function dashboard(css: string): string {
   );
 }
 
+function billingFree(css: string): string {
+  return page(
+    `<main class="mx-auto max-w-lg p-8 text-sm">
+      <h1 class="text-2xl font-bold">ShortMail Dashboard</h1>
+      <div class="mt-6 border p-4 space-y-2">
+        <p class="font-medium text-sm">Upgrade to Premium</p>
+        <p class="text-xs text-muted">$48/year billed annually (fixture shows mocked checkout).</p>
+        <button id="upgrade-btn" type="button" class="border border-accent bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-accent-foreground">Upgrade to Premium</button>
+      </div>
+      <script>
+        document.getElementById("upgrade-btn").addEventListener("click", async () => {
+          const res = await fetch("/api/billing/checkout", { method: "POST" });
+          const body = await res.json();
+          if (body.url) window.location.href = body.url;
+        });
+      </script>
+    </main>`,
+    css,
+    [],
+    BILLING_LABEL,
+  );
+}
+
+function billingSuccess(css: string): string {
+  return page(
+    `<main class="mx-auto max-w-lg p-8 text-sm">
+      <h1 class="text-2xl font-bold">ShortMail Dashboard</h1>
+      <p class="mt-4 border px-4 py-3 text-sm">Payment received — Premium unlocked (fixture).</p>
+      <div class="mt-6 border p-4 space-y-2">
+        <p class="font-medium text-sm">Premium active</p>
+        <p class="text-xs text-muted">Analytics, theming, embed, and custom vanity are unlocked.</p>
+        <button type="button" class="border px-4 py-2 text-xs">Manage billing</button>
+      </div>
+    </main>`,
+    css,
+    [],
+    BILLING_LABEL,
+  );
+}
+
 function hosted(css: string, vanity: string, label = LABEL): string {
   return page(
     `<main class="mx-auto max-w-lg border border-line bg-background p-6 text-sm text-foreground">
@@ -245,6 +287,8 @@ export async function startFaqFixture(): Promise<string> {
   }
   const css = `${globals}\n${compiled.build([...used])}`;
   const dashboardHtml = dashboard(css);
+  const billingFreeHtml = billingFree(css);
+  const billingSuccessHtml = billingSuccess(css);
   const sendHtml = hosted(css, "fixture");
   const unsafeHtml = hosted(css, "unsafe");
   const reorderHtml = page(
@@ -370,6 +414,18 @@ export async function startFaqFixture(): Promise<string> {
     if (url.pathname === "/api/collect/fixture" || url.pathname === "/api/collect/unsafe") {
       res.writeHead(204);
       res.end();
+      return;
+    }
+    if (url.pathname === "/api/billing/checkout" && req.method === "POST") {
+      respond(res, JSON.stringify({ url: `${origin}/billing/success` }), "application/json");
+      return;
+    }
+    if (url.pathname === "/billing/free") {
+      respond(res, billingFreeHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/billing/success") {
+      respond(res, billingSuccessHtml, "text/html; charset=utf-8");
       return;
     }
     if (url.pathname === "/") {

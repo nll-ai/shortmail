@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { primaryClass } from "@/theme/controls";
+import { UpgradeBillingCard } from "../billing/UpgradeBilling";
 
 type PerDay = { day: string; views: number; sends: number };
 
@@ -86,16 +86,9 @@ export function AnalyticsDashboard() {
           trends of form views and messages, your most popular subject
           headings, and how many people asked for a reply.
         </p>
-        <a
-          href="mailto:eric.ma@nonlinearlabs.ai?subject=ShortMail%20premium"
-          className={`mt-4 inline-block ${primaryClass}`}
-        >
-          Upgrade to premium
-        </a>
-        <p className="mt-2 text-xs">
-          (While billing is not yet wired up, ask an admin to toggle your
-          account — the button records your interest.)
-        </p>
+        <div className="mt-4">
+          <UpgradeBillingCard compact />
+        </div>
       </div>
     );
   }
