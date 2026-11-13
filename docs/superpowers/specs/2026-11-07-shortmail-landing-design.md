@@ -1,179 +1,115 @@
 # ShortMail landing design
 
-Status: approved for implementation on 2026-11-07, including the v2 specimen (Dr. Nkechi Adeyemi / Elena Ruiz). This file is the spec. The black “Proposed mockup” bar in review screenshots is not part of the page.
-
-The live homepage at `/` currently mounts `LandingLetter` with `demo`. The caption says the demo does not send. `handleSubmit` still `POST`s `/api/send/cce87ae9c1d7`. The replacement page removes that path.
+Status: approved for implementation on 2026-11-07 (specimen v2). Updated 2026-11-13 for pain, Premium positioning, and public pricing copy aligned with PR #49 billing. This file is the spec.
 
 ## Decision
 
-`/` is a quiet white page for someone who wants their own ShortMail page.
+`/` is a quiet owner-focused page for busy professionals and academics who want a ShortMail contact link.
 
-- Ground stays white, text stays ink, type stays the Geist Sans already loaded by the root layout. Do not revive the airmail envelope.
-- "Create your page" is in the first viewport. "Sign in" is a quiet text link for someone who already has an account.
-- The letter is a static, clearly fictional specimen. It is not a form. It does not post, and it does not load an owner config, a real vanity, or Eric's headings.
-- `/send/[vanity]`, the widget submit path, Resend delivery, WorkOS, premium flags, and the dashboard stay as they are.
+- Ground follows the system color scheme (`color-scheme: light dark` via the root layout). Type stays Geist Sans on the landing root only. Do not revive the airmail envelope.
+- "Create your page" is in the first viewport at 390×844 and 1440×900. "Sign in" is a quiet text link for someone who already has an account.
+- The letter is a static, clearly fictional specimen. It is not a form. It does not post, and it does not load an owner config, a real vanity, or Eric's headings. The caption adds: `A fictional page. Nothing on this card is sent.`
+- `/send/[vanity]`, the widget submit path, Resend delivery, WorkOS, premium flags, the dashboard, and Stripe checkout stay as they are. This page does not charge a card and does not host a checkout button.
 
 ## Non-goals
 
-- No DNS or domain cutover, production config, deployment, billing, or data change.
-- No new checkout, upgrade button, or `mailto:` sales link on `/`.
-- No widget change. The public widget renders FAQ questions and omits answers (`app/src/widget/shortmail-widget.ts`). This spec does not promise FAQ deflection and does not fix that.
+- No DNS or domain cutover, production config, deployment, or Stripe checkout on `/`.
+- No widget change for this copy pass.
 - No edit to `app/src/widget/formSkin.ts`. Landing focus and target size are local to the landing links.
-- No edit to root font loading in `app/src/app/layout.tsx`. Removing Geist there would be app-wide.
+- No edit to root font loading in `app/src/app/layout.tsx`.
 - Do not advertise the 200-send daily cap.
 
 ## Page
 
-One column, `main` max width `42rem`, horizontal padding `1.5rem`, page background white. Order:
+One column, `main` max width `42rem`, horizontal padding `1.5rem`. Order:
 
 1. Header.
-2. Hero, including the only "Create your page" link.
+2. Hero, including the only filled "Create your page" link.
 3. Fictional letter specimen.
-4. "A free page".
-5. "What is kept".
-6. Footer.
+4. "The long letter" (pain / outcome).
+5. "How a letter gets to you".
+6. "Free and Premium".
+7. "Price" (amounts from `app/shared/billing/config.ts`; founding line only when `api.billing.foundingStatus` reports `eligible: true`).
+8. "What is kept".
+9. "Questions" (FAQ).
+10. Footer.
 
-The hero link is the only filled control. The specimen follows it so the letter cannot push the action below the first screen.
+The hero link is the only filled control. The specimen follows it so the letter cannot push the action below the first screen on the tested viewports.
 
 ### Exact copy
 
 Document title: `ShortMail`.
 
-Meta description: `One link for short letters. 500 characters, delivered as email.`
+Meta description: `One link instead of your email address. 500 characters, delivered to the inbox you already use.`
 
 Header wordmark: `ShortMail`.
 
 Header link: `Sign in`. Href `/dashboard`.
 
-Hero `h1`: `A page for the letters you want.`
+Hero `h1`: `A link for the letters you are willing to read.`
 
-Hero lede: `People write you at one link. Each letter is at most 500 characters. It arrives as ordinary email.`
+Hero lede: `Publish one link instead of your email address. People write at most 500 characters, on the subjects you name. The letter arrives in the inbox you already use.`
 
 Hero link: `Create your page`. Href `/dashboard`.
 
-Specimen caption, before the letter: `Example`
+Specimen caption: `Example`, then `A fictional page. Nothing on this card is sent.`
 
-The caption is the only label on the card. The card itself reads as a person’s page.
+Specimen body: unchanged Adeyemi / Ruiz example (189/500, Data request selected).
 
-Specimen, in this order:
+Section `h2`: `The long letter` — pain paragraph per `app/src/components/landing/LandingHome.tsx`.
 
-- Name: `Dr. Nkechi Adeyemi`
-- Role: `Professor of environmental health`
-- Subject headings, as text, with `Data request` marked selected and the others quiet: `Question about a paper`, `Prospective student`, `Data request`, `Speaking invitation`
-- From: `Elena Ruiz, elena.ruiz@example.com`
-- Letter: `Dr. Adeyemi, I assigned your 2023 heat-mortality paper in my methods seminar. Two students want the ward-level counts behind Figure 3. Can you share them, or tell me who can, before Friday?`
-- Length: `189/500`. The counter is the letter’s character length. That sentence is 189 characters.
-- Reply requested: `Yes`
+Section `h2`: `How a letter gets to you` — four numbered steps (generated link, headings/FAQs, verification, delivery).
 
-`example.com` is the reserved example domain. Do not use a real address. The path in the free-page list stays plain text, not a link.
+Section `h2`: `Free and Premium` — free tier list; Premium includes unlimited headings/FAQs, custom vanity, analytics (30 days), theming presets + custom CSS, and an embed allowlist (up to 20 origins). Do not claim that embedding itself is Premium-gated; only saving the allowlist is.
 
-Section `h2`: `A free page`
+Section `h2`: `Price` — `${formatYearlyDollars(PREMIUM_CENTS_YEARLY)} a year.` Optional founding sentence when eligible. Mention `DEFAULT_FOUNDING_CAP` and `DEFAULT_FOUNDING_WINDOW_DAYS` when founding is eligible. Close with dashboard upgrade / Manage billing; `This page does not charge a card.`
 
-1. `Create your page. A free account gets a generated link, shaped like /send/ada-1a2b3c. Signup does not let you choose that name.`
-2. `You can publish up to 5 subject headings. Visitors pick one of yours, or write their own. A free account can also save 3 FAQ entries. Visitors do not see those answers on the letter page.`
-3. `The letter arrives as email. Analytics, theming, an embed, and a custom link name are paid-account features. This page does not take payment.`
+Section `h2`: `What is kept` — privacy paragraph in `app/src/app/landing/privacy.ts`.
 
-`ada-1a2b3c` illustrates the shape only. The real link is `{email local-part, lowercased, characters outside a-z 0-9 _ - removed, at most 30 characters}-{last 6 characters of the WorkOS subject}` from `getOrCreateCurrentUser`. Do not claim a visitor receives those exact six characters.
+Section `h2`: `Questions` — FAQ entries in `LandingHome.tsx` (no refunds promised).
 
-Section `h2`: `What is kept`
+Footer: `© Nonlinear Labs · BUSL-1.1`, `Connect an agent`, `One account, one email.`
 
-`The letter is delivered as email to you. ShortMail does not keep the letter body in its database. The visitor's name and email are required, and both are on the email you receive, so the visitor is not anonymous. ShortMail does not put a copy in the visitor's sent folder. It does store the subject, including whether a reply was requested, and aggregate events for page views and successful sends. Before a letter can be delivered, the visitor proves they can open that inbox. ShortMail stores a hash of the address and a hash of that browser's proof for up to 30 days, not a copy of the letter.`
-
-Footer text: `© Nonlinear Labs · BUSL-1.1` and `One account, one email.` Color may darken to meet the contrast rule below. The words stay.
-
-Copy must not say that senders are anonymous, that nothing is stored, that a copy lands in a sent folder, that a free account chooses its link name, that FAQ answers deflect questions, or that premium can be bought on this page.
+Copy must not say that senders are anonymous, that nothing is stored, that a copy lands in a sent folder, that a free account chooses its link name, or that premium can be bought on this page.
 
 ## Components
 
 | Piece | File | Behavior |
 |---|---|---|
-| Landing page | `app/src/app/page.tsx` | Server component. Owns the copy, both links, landmarks, and landing metadata. |
-| Specimen | `app/src/components/LetterSpecimen.tsx` | Server component. No `"use client"`. Static `figure` and `dl`. |
-| Removed | `app/src/components/LandingLetter.tsx` | Delete it. After this change nothing imports it. The file is the live POST. |
+| Landing page | `app/src/app/page.tsx` | Async server component. Calls `loadFoundingEligible` once, renders `LandingHome`. |
+| Landing body | `app/src/components/landing/LandingHome.tsx` | Sync server markup. Owns section copy and links. |
+| Founding read | `app/src/app/landing/loadFoundingEligible.ts` | Single unauthenticated `api.billing.foundingStatus` query via `ConvexHttpClient`. Failure → founding closed. |
+| Specimen | `app/src/components/LetterSpecimen.tsx` | Static figure. No network. |
 
-`LetterSpecimen` contains no `form`, `input`, `textarea`, `select`, `button`, or `contenteditable`. It imports neither `sendUrl` nor `configUrl`. It does not render `<shortmail-widget>`.
-
-Both account links are `<a href="/dashboard">`. `/dashboard` already calls `withAuth({ ensureSignedIn: true })`. This PR does not add a second signup URL and does not change that gate. "Create your page" and "Sign in" share a destination on purpose: WorkOS already separates a new sign-up from a returning sign-in. The landing only changes the visible names and weights.
+Both account links are `<a href="/dashboard">`. Checkout remains on the dashboard via `POST /api/billing/checkout`.
 
 ## Data flow
 
-`GET /` returns the static server render. The page component runs no Convex query and no `fetch`. It does not read `NEXT_PUBLIC_CONVEX_URL` and does not call `/api/embed/{vanity}/config`, `/api/send/{vanity}`, or `/api/collect/{vanity}`.
-
-A click navigates to `/dashboard`. Sign-in, user creation, vanity generation, and mail stay on their current routes.
-
-The root layout may still wrap `/` in `ConvexClientProvider` and AuthKit. Leave that wrap in place. A WorkOS session probe from that provider is existing behavior and is out of scope. It is not an owner-config fetch and it is not a send.
-
-What a real letter does, unchanged, and therefore what the privacy paragraph is allowed to say:
-
-- Name and email are required (`app/convex/lib/sendRequest.ts`).
-- The body is not a Convex table. It is the Resend email body.
-- The sender does not send from their own mail client, so there is no ShortMail-created sent-folder copy.
-- `events` stores `form_view` and `send_success`. `send_success.subject` is the tagged subject (`[RN]` or `[NRN]`), which is how the reply preference is stored.
-- Name and email are not columns on `events`.
-- The public privacy sentence means there is no letter record in the application schema. The email action still receives the body long enough to hand it to Resend. Do not add a `messages` table, and do not claim that an in-flight action payload is impossible.
-
-## Error handling
-
-`/` has nothing to submit, so it has no validation message, disabled control, or retry state. Do not add a landing error banner for a request the page must not make.
-
-Auth failures, mailbox failures, and the daily send cap stay on the existing dashboard, widget, and HTTP handlers. Do not restyle them here.
+`GET /` may perform exactly one Convex query: `api.billing.foundingStatus` (no auth). It must not call `/api/embed/{vanity}/config`, `/api/send/{vanity}`, or `/api/collect/{vanity}`.
 
 ## Accessibility
 
-Landing-scoped. Do not change shared form skin, the widget, or the dashboard.
-
-- One `h1` (the hero). The specimen is a `figure` named by its `figcaption`, not a heading. The following headings are `h2` "A free page" and `h2` "What is kept". No skipped level, and no second `h1`.
+- One `h1` (the hero). Specimen is a `figure`. Section titles are `h2`. FAQ questions are `dt` / `dd`.
 - Landmarks: `header`, `main`, `footer`.
-- The fictional caption is text at the start of the `figure`, not color alone and not a background image.
-- "Sign in" and "Create your page" are links with a hit box of at least 44×44 CSS pixels. Quiet means unfilled: neutral text, no solid black rectangle. The hit box comes from padding, not from a smaller font.
-- Keyboard: both links are in tab order. `:focus-visible` shows a 2px solid `#171717` outline, offset 2px. Resting mouse clicks do not need that ring. The specimen has no tab stop.
-- Text on white is at least 4.5:1. Use `#171717` for the heading and body. Use `#525252` or darker for the lede, caption, and footer. Do not use `#737373` for the 12px footer.
-- "Create your page" is white `#ffffff` on `#171717`.
-- No new motion. No image that needs alt text.
+- "Sign in" and "Create your page" links ≥ 44×44 CSS pixels. `:focus-visible` outline ≥ 2px (from `focusClass`).
 
 ## Responsive
 
-- At 320, 390, and 1440 CSS pixels wide, `documentElement.scrollWidth` is at most `clientWidth + 1`.
-- At 390×844 and at 1440×900, the bottom of "Create your page" is above the bottom of the viewport on first paint.
-- The specimen stacks in one column at every width above. The example path wraps inside the column (`overflow-wrap: anywhere` on that line only).
-- No horizontal carousel, no fixed-width letter, no viewport-locked font size.
-
-## Fonts
-
-On the landing root only, set `font-family` to `var(--font-geist-sans), sans-serif`. That uses the variable `layout.tsx` already defines, so the homepage reads in the face the app already ships. Do not add Courier, a display face, or another `next/font` call. Geist Mono stays on the root layout because removing it would change every route. The landing page does not set a monospace font.
+- At 320, 390, and 1440 CSS pixels wide, no horizontal overflow.
+- At 390×844 and 1440×900, "Create your page" is inside the first viewport on first paint.
 
 ## Test plan
 
-Tests use fixtures and network mocks. They must not send mail, create a WorkOS user, or complete a signup.
+`app/src/components/LetterSpecimen.test.tsx` — static specimen, fictional line, no controls.
 
-`app/src/components/LetterSpecimen.test.tsx`, Vitest and jsdom:
+`app/src/app/landing.source.test.ts` — account links, privacy text, price copy, no live send imports.
 
-- Rendered markup contains `Example`, the 189-character letter, `189/500`, `Dr. Nkechi Adeyemi`, and `elena.ruiz@example.com`. The letter constant’s `.length` is 189. The caption is not `Fictional example`.
-- Markup contains no `form`, `input`, `textarea`, `select`, `button`, `shortmail-widget`, `cce87ae9c1d7`, or the live headings "I'd like you to consult for me" and "SciPy 2026 Fundraiser".
-- Rendering calls `fetch` zero times.
+`app/e2e/landing.spec.ts` — Puppeteer against a local static render: viewport CTA, overflow, privacy, FAQ.
 
-`app/src/app/landing.source.test.ts`:
+`app/cypress/e2e/landing.cy.ts` — fixture route `/landing`: CTA in viewport, pain/premium/privacy copy, light/dark body background.
 
-- `app/src/app/page.tsx` has exactly one anchor whose accessible name is `Create your page` and exactly one whose accessible name is `Sign in`. Both `href` values are `/dashboard`. The words "Create your page" may also appear in the free-page list as prose.
-- It does not import `LandingLetter`, `sendUrl`, `configUrl`, or `shortmail-widget`.
-- `app/src/components/LandingLetter.tsx` is absent.
-- `app/src/widget/shortmail-widget.ts` still contains `/api/send/`. This guards the real send path while the homepage demo is removed.
-- The implementation diff against `main` does not modify `app/src/widget/formSkin.ts` or `app/src/app/layout.tsx`. Check with `git diff main -- app/src/widget/formSkin.ts app/src/app/layout.tsx`.
-
-`app/e2e/landing.spec.ts`, Playwright, devDependency only. Boot with the existing local env. Do not add or rotate production keys to run it.
-
-- Intercept requests. Fail the test if any URL contains `/api/send`, `/api/embed`, `/api/collect`, or `api.resend.com`. A Convex websocket or a WorkOS session probe from the existing provider is not, by itself, a failure. An embed config fetch is a failure.
-- Do not type into a login form and do not submit one.
-- Viewports 320×700, 390×844, and 1440×900: no horizontal overflow, as defined above.
-- At 390×844 and 1440×900, "Create your page" is inside the first viewport.
-- Tab reaches "Sign in" and "Create your page". The focused link's computed outline style is not `none` and the outline width is at least 2px.
-- Visible text includes the exact "What is kept" paragraph and the FAQ sentence "Visitors do not see those answers on the letter page."
-
-Regression, mocks only:
-
-- Run `app/convex/lib/sendRequest.test.ts` unchanged. It already covers required name and email, the 500-character rule, and `[RN]` / `[NRN]` tagging.
-- Do not add a test that calls Resend or the production Convex site.
+`app/src/app/landing/loadFoundingEligible.test.ts` — failure → false, eligible query → true.
 
 ## Implementation gate
 
-Eric approved this spec and the v2 mockups on 2026-11-07. A later copy change updates this file in the same pull request as the code it describes.
+Copy changes ship in the same pull request as updates to this file.

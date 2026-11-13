@@ -24,6 +24,9 @@ export function LetterSpecimen() {
     <figure className="mt-14">
       <figcaption className="mb-3 text-[15px] leading-snug text-muted">
         Example
+        <span className="mt-1 block">
+          A fictional page. Nothing on this card is sent.
+        </span>
       </figcaption>
       <div className="border border-line p-6 max-sm:p-[1.15rem]">
         <p className="text-lg font-semibold tracking-tight">
