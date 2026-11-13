@@ -11,11 +11,11 @@ export const runtime = "nodejs";
  * Start a Stripe Checkout Session for ShortMail Premium (annual).
  */
 export async function POST(request: Request) {
-  const session = await withAuth({ ensureSignedIn: true });
-  if (!session.user || !session.accessToken) {
+  const auth = await withAuth();
+  if (!auth.user || !auth.accessToken) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const token = session.accessToken;
+  const token = auth.accessToken;
 
   try {
     const client = convexServerClient(token);
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       client_reference_id: checkout.userId,
@@ -63,12 +63,12 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!session.url) {
+    if (!checkoutSession.url) {
       return NextResponse.json({ error: "checkout_unavailable" }, { status: 503 });
     }
 
     return NextResponse.json({
-      url: session.url,
+      url: checkoutSession.url,
       useFoundingPrice: checkout.useFoundingPrice,
     });
   } catch (error) {

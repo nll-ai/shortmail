@@ -83,6 +83,61 @@ describe("billing sync and founding eligibility", () => {
     expect(profile?.stripeCustomerId).toBe("cus_test");
   });
 
+  it("syncs comp fields from Stripe subscription events", async () => {
+    const t = testDb();
+    const userId = await t.run(async (ctx) =>
+      ctx.db.insert("users", {
+        email: OWNER.email,
+        workosUserId: OWNER.subject,
+        vanityName: "billing",
+        isPaid: false,
+        createdAt: 1,
+      }),
+    );
+    const asOwner = t.withIdentity(OWNER);
+
+    await t.mutation(api.billing.syncFromStripeEvent, {
+      secret: "test-secret",
+      eventId: "evt_comp",
+      eventType: "customer.subscription.updated",
+      userId,
+      stripeCustomerId: "cus_comp",
+      stripeSubscriptionId: "sub_comp",
+      subscriptionStatus: "active",
+      stripeCompKind: "one_year",
+      stripeCurrentPeriodEnd: 1_800_000_000_000,
+      stripeCancelAtPeriodEnd: true,
+    });
+
+    const profile = await asOwner.query(api.billing.billingProfile, {});
+    expect(profile?.stripeCompKind).toBe("one_year");
+    expect(profile?.stripeCurrentPeriodEnd).toBe(1_800_000_000_000);
+    expect(profile?.stripeCancelAtPeriodEnd).toBe(true);
+  });
+
+  it("rejects isPaid true without stripe ids", async () => {
+    const t = testDb();
+    const userId = await t.run(async (ctx) =>
+      ctx.db.insert("users", {
+        email: OWNER.email,
+        workosUserId: OWNER.subject,
+        vanityName: "billing",
+        isPaid: false,
+        createdAt: 1,
+      }),
+    );
+
+    await expect(
+      t.mutation(api.billing.syncFromStripeEvent, {
+        secret: "test-secret",
+        eventId: "evt_bad",
+        eventType: "customer.subscription.updated",
+        userId,
+        subscriptionStatus: "active",
+      }),
+    ).rejects.toThrow();
+  });
+
   it("prepareCheckout chooses founding price while eligible", async () => {
     const t = testDb();
     vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-01-15T00:00:00Z"));

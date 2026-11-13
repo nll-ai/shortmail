@@ -18,6 +18,9 @@ export async function syncStripeToConvex(payload: {
   stripeSubscriptionId?: string;
   subscriptionStatus?: string;
   useFoundingPrice?: boolean;
+  stripeCompKind?: "lifetime" | "one_year";
+  stripeCurrentPeriodEnd?: number;
+  stripeCancelAtPeriodEnd?: boolean;
 }): Promise<{ duplicate: boolean }> {
   const secret = process.env.BILLING_INTERNAL_SECRET;
   if (!secret) throw new Error("BILLING_INTERNAL_SECRET is not configured");
@@ -34,6 +37,9 @@ export async function syncStripeToConvex(payload: {
     stripeSubscriptionId: payload.stripeSubscriptionId,
     subscriptionStatus: payload.subscriptionStatus,
     useFoundingPrice: payload.useFoundingPrice,
+    stripeCompKind: payload.stripeCompKind,
+    stripeCurrentPeriodEnd: payload.stripeCurrentPeriodEnd,
+    stripeCancelAtPeriodEnd: payload.stripeCancelAtPeriodEnd,
   })) as { duplicate: boolean };
   return result;
 }

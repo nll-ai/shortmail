@@ -45,7 +45,9 @@ Dedicated Stripe account **ShortMail** (`acct_1UbK9s0rcd9B0yFQ`). Do not use the
 | `STRIPE_FOUNDING_CAP` | Convex (optional, default `100`) |
 | `STRIPE_FOUNDING_WINDOW_DAYS` | Convex (optional, default `90`) |
 
-One-time product setup (test mode): `node scripts/stripe-setup-products.mjs` with `STRIPE_SECRET_KEY` set. Prices use lookup keys `shortmail_premium_yearly` and `shortmail_premium_founding_yearly`. Statement descriptor **SHORTMAIL** is set on the product.
+One-time product setup (test mode): `node scripts/stripe-setup-products.mjs` with `STRIPE_SECRET_KEY` set. Prices use lookup keys `shortmail_premium_yearly` and `shortmail_premium_founding_yearly`. The same script creates comp coupons `shortmail_comp_lifetime` and `shortmail_comp_1yr`. Statement descriptor **SHORTMAIL** is set on the product.
+
+Admin comping and legacy migration: see [billing-comp-premium.md](./billing-comp-premium.md).
 
 ### Convex project `eric-036a4/shortmail`
 - dev: `gallant-dogfish-30`; prod: `hallowed-leopard-387` (default prod);

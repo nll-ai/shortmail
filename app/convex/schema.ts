@@ -12,6 +12,9 @@ export default defineSchema({
     stripeSubscriptionId: v.optional(v.string()),
     stripeSubscriptionStatus: v.optional(v.string()),
     foundingPriceLocked: v.optional(v.boolean()),
+    stripeCompKind: v.optional(v.union(v.literal("lifetime"), v.literal("one_year"))),
+    stripeCurrentPeriodEnd: v.optional(v.number()),
+    stripeCancelAtPeriodEnd: v.optional(v.boolean()),
     embedAllowedOrigins: v.optional(v.array(v.string())),
     adminRole: v.optional(
       v.union(

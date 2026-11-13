@@ -2,23 +2,52 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { useMe } from "../useMe";
 import { primaryClass, controlClass } from "@/theme/controls";
+import { portalErrorMessage } from "@/lib/billing/apiErrors";
 
-async function postJson(path: string): Promise<{ url?: string; error?: string }> {
-  const res = await fetch(path, { method: "POST" });
-  const body = (await res.json()) as { url?: string; error?: string };
+type JsonBody = { url?: string; error?: string; message?: string };
+
+async function postJson(path: string, init?: RequestInit): Promise<JsonBody> {
+  const res = await fetch(path, { method: "POST", ...init });
+  const body = (await res.json()) as JsonBody;
   if (!res.ok) {
-    throw new Error(body.error ?? "request_failed");
+    const msg = body.message ?? portalErrorMessage(body.error) ?? body.error ?? "request_failed";
+    throw new Error(msg);
   }
   return body;
 }
 
+function readAndStripBillingParam(): string | null {
+  if (typeof window === "undefined") return null;
+  const current = new URLSearchParams(window.location.search).get("billing");
+  if (!current) return null;
+  const url = new URL(window.location.href);
+  url.searchParams.delete("billing");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState(window.history.state, "", next);
+  return current;
+}
+
 export function BillingBanner() {
+  const { me } = useMe();
   const params = useSearchParams();
-  const billing = params.get("billing");
+  const flashBilling = useMemo(() => {
+    if (params.get("billing")) return readAndStripBillingParam();
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
+  useEffect(() => {
+    if (params.get("billing")) readAndStripBillingParam();
+  }, [params]);
+
+  if (me?.isPaid) return null;
+
+  const billing = flashBilling ?? params.get("billing");
+
   if (billing === "success") {
     return (
       <p className="mb-4 border border-info-border bg-info-bg px-4 py-3 text-sm text-info-foreground">
@@ -64,7 +93,9 @@ export function UpgradeBillingCard({ compact = false }: { compact?: boolean }) {
               const { url } = await postJson("/api/billing/portal");
               if (url) window.location.href = url;
             } catch (e) {
-              setError(e instanceof Error ? e.message : "portal_failed");
+              setError(
+                e instanceof Error ? e.message : portalErrorMessage(undefined),
+              );
             } finally {
               setBusy(false);
             }
@@ -105,7 +136,7 @@ export function UpgradeBillingCard({ compact = false }: { compact?: boolean }) {
             const { url } = await postJson("/api/billing/checkout");
             if (url) window.location.href = url;
           } catch (e) {
-            setError(e instanceof Error ? e.message : "checkout_failed");
+            setError(e instanceof Error ? e.message : "Checkout failed — please try again.");
           } finally {
             setBusy(false);
           }

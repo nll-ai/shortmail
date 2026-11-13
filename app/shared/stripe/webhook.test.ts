@@ -30,6 +30,29 @@ describe("eventToSyncPayload", () => {
     });
   });
 
+  it("maps subscription.updated with comp metadata", () => {
+    const event = {
+      id: "evt_comp",
+      type: "customer.subscription.updated",
+      data: {
+        object: {
+          id: "sub_comp",
+          customer: "cus_123",
+          status: "active",
+          cancel_at_period_end: true,
+          current_period_end: 1_800_000_000,
+          metadata: { shortmail_comp_kind: "one_year" },
+        },
+      },
+    } as unknown as Stripe.Event;
+
+    expect(eventToSyncPayload(event)).toMatchObject({
+      stripeCompKind: "one_year",
+      stripeCancelAtPeriodEnd: true,
+      stripeCurrentPeriodEnd: 1_800_000_000_000,
+    });
+  });
+
   it("maps subscription deletion to canceled", () => {
     const event = {
       id: "evt_2",

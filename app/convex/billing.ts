@@ -1,15 +1,21 @@
 import {
-  internalMutation,
   internalQuery,
   mutation,
   query,
   type QueryCtx,
 } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import { findUserByIdentity, getOrCreateCurrentUser } from "./lib/identity";
+import { requireAdminRole, requireUser } from "./lib/identity";
 import { foundingEligibility } from "../shared/billing/foundingEligibility";
 import { readBillingConfig } from "../shared/billing/config";
 import { subscriptionGrantsPremium } from "../shared/billing/subscriptionPaid";
+import {
+  buildBillingUserPatch,
+  PaidStatusInvariantError,
+  type BillingUserPatch,
+} from "../shared/billing/paidPatch";
 
 function verifyBillingSecret(secret: string | undefined): void {
   const expected = process.env.BILLING_INTERNAL_SECRET;
@@ -24,6 +30,27 @@ async function countFoundingCustomers(ctx: QueryCtx) {
     .filter((q) => q.eq(q.field("foundingPriceLocked"), true))
     .collect();
   return paidFounding.length;
+}
+
+function compKindFromMetadata(
+  raw: string | undefined,
+): "lifetime" | "one_year" | undefined {
+  if (raw === "lifetime" || raw === "one_year") return raw;
+  return undefined;
+}
+
+function applyUserBillingPatch(user: Doc<"users">, patch: BillingUserPatch): void {
+  try {
+    buildBillingUserPatch(patch, {
+      stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId,
+    });
+  } catch (error) {
+    if (error instanceof PaidStatusInvariantError) {
+      throw new ConvexError("PAID_INVARIANT");
+    }
+    throw error;
+  }
 }
 
 export const foundingStatus = query({
@@ -55,6 +82,9 @@ export const billingProfile = query({
       stripeSubscriptionId: user.stripeSubscriptionId ?? null,
       stripeSubscriptionStatus: user.stripeSubscriptionStatus ?? null,
       foundingPriceLocked: user.foundingPriceLocked ?? false,
+      stripeCompKind: user.stripeCompKind ?? null,
+      stripeCurrentPeriodEnd: user.stripeCurrentPeriodEnd ?? null,
+      stripeCancelAtPeriodEnd: user.stripeCancelAtPeriodEnd ?? null,
     };
   },
 });
@@ -111,6 +141,9 @@ const syncArgs = {
   stripeSubscriptionId: v.optional(v.string()),
   subscriptionStatus: v.optional(v.string()),
   useFoundingPrice: v.optional(v.boolean()),
+  stripeCompKind: v.optional(v.union(v.literal("lifetime"), v.literal("one_year"))),
+  stripeCurrentPeriodEnd: v.optional(v.number()),
+  stripeCancelAtPeriodEnd: v.optional(v.boolean()),
 };
 
 export const syncFromStripeEvent = mutation({
@@ -137,7 +170,7 @@ export const syncFromStripeEvent = mutation({
     }
 
     if (user) {
-      const patch: Record<string, unknown> = {};
+      const patch: BillingUserPatch = {};
       if (args.stripeCustomerId) patch.stripeCustomerId = args.stripeCustomerId;
       if (args.stripeSubscriptionId !== undefined) {
         patch.stripeSubscriptionId = args.stripeSubscriptionId;
@@ -149,11 +182,21 @@ export const syncFromStripeEvent = mutation({
       if (args.useFoundingPrice) {
         patch.foundingPriceLocked = true;
       }
+      if (args.stripeCompKind) {
+        patch.stripeCompKind = args.stripeCompKind;
+      }
+      if (args.stripeCurrentPeriodEnd !== undefined) {
+        patch.stripeCurrentPeriodEnd = args.stripeCurrentPeriodEnd;
+      }
+      if (args.stripeCancelAtPeriodEnd !== undefined) {
+        patch.stripeCancelAtPeriodEnd = args.stripeCancelAtPeriodEnd;
+      }
       if (args.eventType === "customer.subscription.deleted") {
         patch.stripeSubscriptionStatus = "canceled";
         patch.isPaid = false;
       }
       if (Object.keys(patch).length > 0) {
+        applyUserBillingPatch(user, patch);
         await ctx.db.patch(user._id, patch);
       }
     }
@@ -165,6 +208,55 @@ export const syncFromStripeEvent = mutation({
     });
 
     return { duplicate: false as const };
+  },
+});
+
+/** Moderator+ comp flow: load the target user for Stripe subscription creation. */
+export const compTargetForAdmin = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const admin = await requireUser(ctx);
+    requireAdminRole(admin, "moderator");
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new ConvexError("NOT_FOUND");
+    return {
+      userId: user._id,
+      email: user.email,
+      stripeCustomerId: user.stripeCustomerId ?? null,
+      stripeSubscriptionId: user.stripeSubscriptionId ?? null,
+      isPaid: user.isPaid,
+    };
+  },
+});
+
+function legacyPaidRows(users: Doc<"users">[]) {
+  return users
+    .filter(
+      (u) =>
+        u.isPaid &&
+        (!u.stripeCustomerId || !u.stripeSubscriptionId),
+    )
+    .map((u) => ({
+      id: u._id,
+      email: u.email,
+      vanityName: u.vanityName,
+      stripeCustomerId: u.stripeCustomerId ?? null,
+      stripeSubscriptionId: u.stripeSubscriptionId ?? null,
+    }));
+}
+
+export const listLegacyPaidWithoutStripe = internalQuery({
+  args: {},
+  handler: async (ctx) => legacyPaidRows(await ctx.db.query("users").collect()),
+});
+
+/** Moderator+ dry-run list of paid users missing Stripe linkage (see docs/billing-comp-premium.md). */
+export const legacyPaidWithoutStripeReport = query({
+  args: {},
+  handler: async (ctx) => {
+    const admin = await requireUser(ctx);
+    requireAdminRole(admin, "moderator");
+    return legacyPaidRows(await ctx.db.query("users").collect());
   },
 });
 
@@ -183,20 +275,5 @@ export const getUserForBilling = internalQuery({
       email: user.email,
       stripeCustomerId: user.stripeCustomerId ?? null,
     };
-  },
-});
-
-export const adminSetStripeIds = internalMutation({
-  args: {
-    userId: v.id("users"),
-    stripeCustomerId: v.optional(v.string()),
-    stripeSubscriptionId: v.optional(v.string()),
-    stripeSubscriptionStatus: v.optional(v.string()),
-    isPaid: v.optional(v.boolean()),
-    foundingPriceLocked: v.optional(v.boolean()),
-  },
-  handler: async (ctx, args) => {
-    const { userId, ...rest } = args;
-    await ctx.db.patch(userId, rest);
   },
 });
