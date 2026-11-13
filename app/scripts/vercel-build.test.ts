@@ -142,7 +142,7 @@ describe("vercel-build.sh", () => {
     expect(result.log).toContain("npx convex export --prod --path");
     expect(result.log).toContain("DEPLOY_KEY_KIND=prod");
     expect(result.log).toMatch(
-      /npx convex import --preview-name feat\/widgets --replace --yes /,
+      /npx convex import --preview-name feat\/widgets --replace-all --yes /,
     );
     const importLine = result.log
       .split("\n")

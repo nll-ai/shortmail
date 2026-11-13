@@ -41,7 +41,7 @@ Default: **`SHORTMAIL_PREVIEW_HYDRATE=on-create`**.
 The first build of a branch's Convex preview deployment exports a zip from
 production (`npx convex export --prod`, using `CONVEX_PROD_DEPLOY_KEY` only
 for that subprocess) and imports it with
-`npx convex import --preview-name <branch> --replace --yes`. It then sets
+`npx convex import --preview-name <branch> --replace-all --yes`. It then sets
 `SHORTMAIL_PREVIEW_HYDRATED_AT` on the preview deployment. Later pushes to
 the same branch reuse the deployment and skip the copy, so edits made on
 the preview survive and the production snapshot is not pulled through the
@@ -54,7 +54,7 @@ preview testing. Re-copy when you want a fresh production snapshot:
 | `SHORTMAIL_PREVIEW_HYDRATE` | Behavior |
 |---|---|
 | `on-create` (default) | Import only when the preview has no hydrate marker. |
-| `always` | `--replace` from production on every preview build. Idempotent: the preview tables match the snapshot, they are not appended. |
+| `always` | `--replace-all` from production on every preview build. Idempotent: the preview tables match the snapshot, they are not appended. |
 | `skip` | Do not export or import. `devSeed:seedDemo` still runs. |
 
 Convex auto-deletes idle previews (about 5 days, or 14 on a paid plan).
