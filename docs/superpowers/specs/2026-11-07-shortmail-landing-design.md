@@ -104,7 +104,7 @@ Both account links are `<a href="/dashboard">`. Checkout remains on the dashboar
 
 `app/src/app/landing.source.test.ts` — account links, privacy text, price copy, no live send imports.
 
-`app/e2e/landing.spec.ts` — Puppeteer against a local static render: viewport CTA, overflow, privacy, FAQ.
+`app/e2e/landing.spec.ts` — Puppeteer against a local static render (local-only; CI uses Cypress). Viewport CTA, overflow, privacy, FAQ.
 
 `app/cypress/e2e/landing.cy.ts` — fixture route `/landing`: CTA in viewport, pain/premium/privacy copy, light/dark body background.
 

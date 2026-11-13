@@ -73,7 +73,7 @@ describe("landing page (e2e)", () => {
   });
 
   afterAll(async () => {
-    await browser.close();
+    await browser?.close();
     server.close();
   });
 
