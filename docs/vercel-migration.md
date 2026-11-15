@@ -10,6 +10,11 @@ the transition, including for embeds that already point there.
 
 ## Deployments
 
+Convex function deploys for `app/` happen **only** on Vercel builds
+(`scripts/vercel-build.sh`); do not deploy Convex from GitHub Actions or via
+manual `npx convex deploy` to production except in an emergency. See
+`AGENTS.md`.
+
 | Surface | URL | Backend |
 |---|---|---|
 | Live Vercel production | https://shortmail-gamma.vercel.app | Convex `hallowed-leopard-387` |
