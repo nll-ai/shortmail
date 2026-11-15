@@ -36,7 +36,7 @@ export const seedDemo = internalMutation({
       workosUserId: "demo-premium-id",
       vanityName: "demo-premium",
       displayName: "Premium Demo",
-      isPaid: true,
+      isPaid: false,
       headings: ["Consulting", "Collaboration"],
       faqs: [
         {
@@ -146,19 +146,7 @@ export const purgeByVanity = internalMutation({
   },
 });
 
-/** Dev/test helper: toggle premium by email (admin UI covers real flow). */
-export const setPaidByEmail = internalMutation({
-  args: { email: v.string(), isPaid: v.boolean() },
-  handler: async (ctx, args) => {
-    const row = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .unique();
-    if (!row) return "unknown";
-    await ctx.db.patch(row._id, { isPaid: args.isPaid });
-    return `set isPaid=${args.isPaid} for ${row.email}`;
-  },
-});
+/** Removed: Premium is set only via Stripe webhooks. Use comp-premium API or scripts. */
 
 /** Dev/test helper: set embed origins by email (bypasses auth; the real
  * path is users.setEmbedAllowedOrigins via the dashboard). */

@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { once } from "node:events";
 import esbuild from "esbuild";
-import { createRequire } from "node:module";
+import { CHROME_EXECUTABLE, puppeteer, type PuppeteerPage } from "../test/puppeteer";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   confirmTransition,
@@ -15,24 +15,7 @@ import {
   SESSION_TTL_MS,
 } from "../../convex/lib/senderProof";
 
-const require = createRequire("/tmp/sm-audit/package.json");
-const puppeteer = require("puppeteer-core") as {
-  launch: (options: { executablePath: string; headless: string; args: string[] }) => Promise<{
-    newPage: () => Promise<BrowserPage>;
-    close: () => Promise<void>;
-  }>;
-};
-
-type BrowserPage = {
-  goto: (url: string, options?: { waitUntil: "networkidle0" }) => Promise<unknown>;
-  screenshot: (options: { path: string }) => Promise<unknown>;
-  setViewport: (viewport: { width: number; height: number }) => Promise<unknown>;
-  close: () => Promise<void>;
-  waitForSelector: (selector: string) => Promise<unknown>;
-  waitForFunction: (fn: () => boolean) => Promise<unknown>;
-  // The callbacks run in the browser. Their arguments are serialized.
-  evaluate: (fn: (...args: string[]) => unknown, ...args: string[]) => Promise<unknown>;
-};
+type BrowserPage = PuppeteerPage;
 
 type Row = ProofRow & { token: string };
 
@@ -187,7 +170,7 @@ describe("widget verification in the browser", () => {
 
   it("confirms in the original tab, sends only after that, and does not share the proof", async () => {
     const browser = await puppeteer.launch({
-      executablePath: "/usr/local/bin/google-chrome",
+      executablePath: CHROME_EXECUTABLE,
       headless: "new",
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
     });

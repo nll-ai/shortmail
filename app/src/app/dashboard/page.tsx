@@ -1,6 +1,8 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
+import { Suspense } from "react";
 import { QueryBoundary } from "@/components/QueryBoundary";
 import { SignOutButton } from "@/components/SignOutButton";
+import { BillingBanner } from "@/components/billing/UpgradeBilling";
 import { DashboardData } from "@/components/dashboard/DashboardData";
 
 export default async function Dashboard() {
@@ -23,6 +25,9 @@ export default async function Dashboard() {
         <SignOutButton />
       </div>
       <QueryBoundary>
+        <Suspense fallback={null}>
+          <BillingBanner />
+        </Suspense>
         <DashboardData />
       </QueryBoundary>
     </main>

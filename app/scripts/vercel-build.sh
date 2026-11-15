@@ -189,9 +189,12 @@ if [[ "$DO_HYDRATE" == "yes" ]]; then
   )
   node scripts/preview/deploy-plan.mjs assert-snapshot --file "$SNAPSHOT" --max "$MAX_BYTES"
   echo "==> Importing snapshot into preview ${PREVIEW_NAME}"
+  # `--replace-all` is required when this deploy already created tables that are
+  # absent from the production snapshot (schema adds new tables). Per-table
+  # `--replace` can hit cross-table ID allocator conflicts (Convex import error).
   timeout "$IMPORT_TIMEOUT" npx convex import \
     --preview-name "$PREVIEW_NAME" \
-    --replace \
+    --replace-all \
     --yes \
     "$SNAPSHOT"
   rm -rf "$SNAPSHOT_DIR"

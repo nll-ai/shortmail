@@ -1,22 +1,14 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
+import { CHROME_EXECUTABLE, puppeteer } from "../test/puppeteer";
 import { compile } from "@tailwindcss/node";
 
 const buttonSource = readFileSync(new URL("./SignOutButton.tsx", import.meta.url), "utf8");
 const classMatch = buttonSource.match(/SIGN_OUT_BUTTON_CLASS =\n  "([^"]+)"/);
 if (!classMatch) throw new Error("sign-out button class missing");
 const SIGN_OUT_BUTTON_CLASS = classMatch[1];
-
-const require = createRequire("/tmp/sm-audit/package.json");
-const puppeteer = require("puppeteer-core") as {
-  launch: (options: { executablePath: string; headless: string; args: string[] }) => Promise<{
-    newPage: () => Promise<BrowserPage>;
-    close: () => Promise<void>;
-  }>;
-};
 
 type BrowserPage = {
   goto: (url: string, options?: { waitUntil: "networkidle0" }) => Promise<unknown>;
@@ -117,7 +109,7 @@ describe("sign-out contrast on the dashboard stylesheet", () => {
     await once(server, "listening");
     const port = (server.address() as { port: number }).port;
     const browser = await puppeteer.launch({
-      executablePath: "/usr/local/bin/google-chrome",
+      executablePath: CHROME_EXECUTABLE,
       headless: "new",
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
     });

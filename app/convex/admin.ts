@@ -4,7 +4,7 @@ import { requireAdminRole, requireUser } from "./lib/identity";
 
 /**
  * Admin surface (parity with the legacy /admin + /admin/users routes):
- * stats + user list for moderator+, isPaid toggle for moderator+,
+ * stats + user list for moderator+ (Premium is comped via Stripe, not toggled here),
  * role assignment and deletion for super_admin only.
  */
 
@@ -52,16 +52,13 @@ export const listUsers = query({
       isPaid: u.isPaid,
       adminRole: u.adminRole,
       createdAt: u.createdAt,
+      stripeCustomerId: u.stripeCustomerId ?? null,
+      stripeSubscriptionId: u.stripeSubscriptionId ?? null,
+      stripeSubscriptionStatus: u.stripeSubscriptionStatus ?? null,
+      stripeCompKind: u.stripeCompKind ?? null,
+      stripeCurrentPeriodEnd: u.stripeCurrentPeriodEnd ?? null,
+      stripeCancelAtPeriodEnd: u.stripeCancelAtPeriodEnd ?? null,
     }));
-  },
-});
-
-export const setUserPaid = mutation({
-  args: { userId: v.id("users"), isPaid: v.boolean() },
-  handler: async (ctx, args) => {
-    const user = await requireUser(ctx);
-    requireAdminRole(user, "moderator");
-    await ctx.db.patch(args.userId, { isPaid: args.isPaid });
   },
 });
 

@@ -8,6 +8,13 @@ export default defineSchema({
     vanityName: v.string(),
     displayName: v.optional(v.string()),
     isPaid: v.boolean(),
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    stripeSubscriptionStatus: v.optional(v.string()),
+    foundingPriceLocked: v.optional(v.boolean()),
+    stripeCompKind: v.optional(v.union(v.literal("lifetime"), v.literal("one_year"))),
+    stripeCurrentPeriodEnd: v.optional(v.number()),
+    stripeCancelAtPeriodEnd: v.optional(v.boolean()),
     embedAllowedOrigins: v.optional(v.array(v.string())),
     adminRole: v.optional(
       v.union(
@@ -81,4 +88,10 @@ export default defineSchema({
     customCss: v.optional(v.string()), // sanitized, <=16KB
     updatedAt: v.number(),
   }).index("by_owner", ["ownerId"]),
+
+  stripeWebhookEvents: defineTable({
+    eventId: v.string(),
+    type: v.string(),
+    processedAt: v.number(),
+  }).index("by_event_id", ["eventId"]),
 });

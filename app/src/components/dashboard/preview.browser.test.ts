@@ -1,16 +1,8 @@
 import { createServer, type Server } from "node:http";
 import { once } from "node:events";
 import esbuild from "esbuild";
-import { createRequire } from "node:module";
+import { CHROME_EXECUTABLE, puppeteer } from "../../test/puppeteer";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
-const require = createRequire("/tmp/sm-audit/package.json");
-const puppeteer = require("puppeteer-core") as {
-  launch: (options: { executablePath: string; headless: string; args: string[] }) => Promise<{
-    newPage: () => Promise<BrowserPage>;
-    close: () => Promise<void>;
-  }>;
-};
 
 type BrowserPage = {
   goto: (url: string, options?: { waitUntil: "networkidle0" }) => Promise<unknown>;
@@ -147,7 +139,7 @@ describe("dashboard preview registration", () => {
 
   it("stays an empty frame without the script, then fills on first load and on client mount", async () => {
     const browser = await puppeteer.launch({
-      executablePath: "/usr/local/bin/google-chrome",
+      executablePath: CHROME_EXECUTABLE,
       headless: "new",
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
     });
