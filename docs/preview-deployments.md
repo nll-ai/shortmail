@@ -4,6 +4,7 @@ Every Vercel preview build of `app/` deploys Convex functions to a preview
 deployment for that git branch, bakes that deployment's URL into the Next.js
 app and `widget.js`, and can copy production data into the preview database.
 Production builds keep deploying to Convex deployment `hallowed-leopard-387`.
+Agent/contributor policy (Vercel-only Convex deploys): `AGENTS.md`.
 
 Vercel project: `shortmail` (`prj_cXq7wahRknr1gCAijhAy4dS6HckH`), team
 `eric-mas-projects-a230afd1`. Root directory: `app`. Build command:
