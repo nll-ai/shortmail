@@ -57,8 +57,16 @@ shift
 exec "$@"
 `,
   );
+  writeFileSync(
+    path.join(dir, "npm"),
+    `#!/bin/bash
+echo "npm $*" >> "$STUB_LOG"
+exit 0
+`,
+  );
   chmodSync(path.join(dir, "npx"), 0o755);
   chmodSync(path.join(dir, "timeout"), 0o755);
+  chmodSync(path.join(dir, "npm"), 0o755);
   writeFileSync(log, "");
   return { dir, log };
 }
@@ -90,6 +98,8 @@ function run(overrides: Record<string, string | undefined>): { status: number; l
     "STUB_ENV_NAMES",
     "STUB_EXPORT_BYTES",
     "STUB_DEPLOY_FAIL_ONCE",
+    "SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL",
+    "NEXT_PUBLIC_CONVEX_URL",
   ]) {
     delete fullEnv[key];
   }
@@ -216,11 +226,37 @@ describe("vercel-build.sh", () => {
     expect(result.stdout).toContain("writing env and retrying once");
   });
 
-  it("deploys production without a preview name or an import", () => {
+  it("builds production on Vercel when Convex deploy is gated to GitHub Actions", () => {
     const result = run({
       VERCEL: "1",
       VERCEL_ENV: "production",
       CONVEX_DEPLOY_KEY: "prod:hallowed-leopard-387|prod-token",
+      NEXT_PUBLIC_CONVEX_URL: "https://hallowed-leopard-387.convex.cloud",
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain(
+      "Convex production deploy is handled by GitHub Actions",
+    );
+    expect(result.log).not.toContain("convex deploy");
+    expect(result.log).toContain("npm run build");
+  });
+
+  it("refuses a production Vercel build without NEXT_PUBLIC_CONVEX_URL when Convex deploy is on GitHub Actions", () => {
+    const result = run({
+      VERCEL: "1",
+      VERCEL_ENV: "production",
+      CONVEX_DEPLOY_KEY: "prod:hallowed-leopard-387|prod-token",
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.log).not.toContain("convex deploy");
+  });
+
+  it("deploys production with frontend build when SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL=1", () => {
+    const result = run({
+      VERCEL: "1",
+      VERCEL_ENV: "production",
+      CONVEX_DEPLOY_KEY: "prod:hallowed-leopard-387|prod-token",
+      SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL: "1",
     });
     expect(result.status).toBe(0);
     expect(result.log).toContain(

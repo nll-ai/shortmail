@@ -12,7 +12,7 @@ the transition, including for embeds that already point there.
 
 | Surface | URL | Backend |
 |---|---|---|
-| Live Vercel production | https://shortmail-gamma.vercel.app | Convex `hallowed-leopard-387` |
+| Live Vercel production | https://shortmail-gamma.vercel.app | Convex `hallowed-leopard-387` (functions pushed on every `main` push by GitHub Actions after App tests; Vercel builds the frontend) |
 | Canonical hostname | https://shortmail.nonlinearlabs.ai | Still Modal (SQLite volume `shortmail`) until DNS cutover. App code is ready for this host. |
 | Per-PR previews | `shortmail-<hash>-eric-mas-projects-a230afd1.vercel.app` and `shortmail-git-<branch>-…` | that branch's Convex preview deployment. See `docs/preview-deployments.md`. |
 
@@ -20,8 +20,10 @@ the transition, including for embeds that already point there.
 
 ### Vercel project `shortmail` (team `eric-mas-projects-a230afd1`)
 - Root Directory: `app`; build command: `bash scripts/vercel-build.sh`
-  (runs `npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL`
-  plus the widget esbuild step via `package.json` `build`)
+  Preview: `npx convex deploy --preview-name … --cmd 'npm run build'`.
+  Production: `npm run build` with `NEXT_PUBLIC_CONVEX_URL` (Convex deploy on
+  `main` is the App workflow job **Deploy Convex production** — see
+  `docs/preview-deployments.md`).
 - Preview keys, production hydration, and the mail block are in
   `docs/preview-deployments.md`. Do not put the production `RESEND_API_KEY`
   on the Vercel Preview environment or on Convex preview deployments.
@@ -156,10 +158,12 @@ the prod deployment. Note `migrate.ts` upserts by email — safe to re-run.
 
 - Releasing new versions: bump the BUSL `Change Date` to four years from the
   release date (`LICENSE`).
-- `scripts/vercel-build.sh` deploys Convex functions before `next build`;
-  `scripts/build-widget.mjs` rebuilds `public/widget.js` with the baked
-  Convex site URL of that build's deployment (preview or production).
-  Both run on every Vercel build. Preview data, mail blocking, and
-  branch cleanup are in `docs/preview-deployments.md`.
+- `scripts/convex-production-deploy.sh` pushes production Convex functions
+  from GitHub Actions on `main` (after tests). `scripts/vercel-build.sh`
+  still deploys Convex on **preview** builds; on **production** it runs
+  `npm run build` unless `SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL=1`.
+  `scripts/build-widget.mjs` rebuilds `public/widget.js` with the Convex
+  site URL for that build. Preview data, mail blocking, and branch cleanup
+  are in `docs/preview-deployments.md`.
 - npm lifecycle scripts are disabled in Vercel builds — do not rely on
   `pre*` hooks; chain commands in the `build` script instead.

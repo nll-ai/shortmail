@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: app-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Typecheck, unit, Cypress, build
@@ -44,3 +48,29 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_CONVEX_URL: https://ci-placeholder.convex.cloud
+
+  convex-production:
+    name: Deploy Convex production
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: convex-production-${{ github.repository }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - name: Deploy functions to hallowed-leopard-387
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          VERCEL: "1"
+          VERCEL_ENV: production
+        run: bash scripts/convex-production-deploy.sh

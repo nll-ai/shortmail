@@ -3,7 +3,10 @@
 Every Vercel preview build of `app/` deploys Convex functions to a preview
 deployment for that git branch, bakes that deployment's URL into the Next.js
 app and `widget.js`, and can copy production data into the preview database.
-Production builds keep deploying to Convex deployment `hallowed-leopard-387`.
+Production Convex functions deploy to `hallowed-leopard-387` from GitHub
+Actions on push to `main` (after the App workflow tests pass). Vercel
+Production builds only the Next.js app and `widget.js` using a fixed
+`NEXT_PUBLIC_CONVEX_URL`.
 
 Vercel project: `shortmail` (`prj_cXq7wahRknr1gCAijhAy4dS6HckH`), team
 `eric-mas-projects-a230afd1`. Root directory: `app`. Build command:
@@ -11,8 +14,15 @@ Vercel project: `shortmail` (`prj_cXq7wahRknr1gCAijhAy4dS6HckH`), team
 
 Convex chooses the target from `CONVEX_DEPLOY_KEY`:
 
-- `prod:…` on the Vercel **Production** environment deploys to production.
-  The script does not export or import data on that path.
+- **Production functions** — GitHub Actions job `Deploy Convex production`
+  in `.github/workflows/app.yml` (push to `main` only). It runs
+  `bash app/scripts/convex-production-deploy.sh` with the repo secret
+  `CONVEX_DEPLOY_KEY` (`prod:…` for `hallowed-leopard-387`). Vercel
+  **Production** no longer runs `npx convex deploy` unless
+  `SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL=1` is set (legacy all-in-one build).
+- `prod:…` on Vercel **Production** without that flag only validates the key
+  via `deploy-plan.mjs`; the build script then runs `npm run build` with
+  `NEXT_PUBLIC_CONVEX_URL`.
 - `preview:…` on the Vercel **Preview** environment runs
   `npx convex deploy --preview-name "$VERCEL_GIT_COMMIT_REF" --cmd 'npm run build' --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL`.
   Convex documents this as the Vercel preview flow. The hidden
@@ -118,13 +128,18 @@ original emails. Hydrate with `always` to copy production again.
 
 Do this in the dashboards. Names only; do not commit the values.
 
-1. **Convex production deploy key** for Vercel Production.
+1. **Convex production deploy key**
    Convex dashboard → deployment `hallowed-leopard-387` → Settings →
-   Deploy Keys → Generate. Enable deploy permission. Vercel → project
-   `shortmail` → Settings → Environment Variables:
-   - Name: `CONVEX_DEPLOY_KEY`
-   - Environments: **Production only**
-   - Value: the `prod:…` key
+   Deploy Keys → Generate. Enable deploy permission.
+   - **GitHub Actions** (required): repository secret `CONVEX_DEPLOY_KEY`
+     with the `prod:…` key. The `Deploy Convex production` job on push to
+     `main` uses this.
+   - **Vercel Production** (optional, for legacy bundled builds only): same
+     name `CONVEX_DEPLOY_KEY` on the Production environment when
+     `SHORTMAIL_CONVEX_DEPLOY_ON_VERCEL=1`.
+   - **Vercel Production** (required for the split path): plain env var
+     `NEXT_PUBLIC_CONVEX_URL` = `https://hallowed-leopard-387.convex.cloud`
+     so `widget.js` and the app build without `convex deploy --cmd`.
 
 2. **Convex preview deploy key** for Vercel Preview.
    Convex dashboard → project Settings → Generate Preview Deploy Key.
