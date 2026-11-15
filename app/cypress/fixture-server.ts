@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 import esbuild from "esbuild";
 import { compile } from "@tailwindcss/node";
 import { planReorder, sortByOrder, type OwnedItem } from "../convex/lib/order";
+import { landingMarketingHtml } from "./landing-fixture";
 
 const QUESTION = "Can I find time with you to chat?";
 const ANSWER =
@@ -344,12 +345,15 @@ export async function startFaqFixture(): Promise<string> {
   }
   for (const file of [
     "src/components/dashboard/ReorderRows.tsx",
+    "src/components/landing/LandingHome.tsx",
+    "src/components/LetterSpecimen.tsx",
     "src/theme/controls.ts",
     "cypress/reorder-client.tsx",
   ]) {
     for (const token of classTokens(path.join(appRoot, file))) used.add(token);
   }
   const css = `${globals}\n${compiled.build([...used])}`;
+  const landingHtml = landingMarketingHtml(css);
   const dashboardHtml = dashboard(css);
   const billingFreeHtml = billingFree(css);
   const billingSuccessHtml = billingSuccess(css);
@@ -500,6 +504,10 @@ export async function startFaqFixture(): Promise<string> {
     }
     if (url.pathname === "/admin/users") {
       respond(res, adminUsersHtml, "text/html; charset=utf-8");
+      return;
+    }
+    if (url.pathname === "/landing") {
+      respond(res, landingHtml, "text/html; charset=utf-8");
       return;
     }
     if (url.pathname === "/") {

@@ -18,7 +18,7 @@ describe("LetterSpecimen", () => {
 
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(html).toContain(">Example<");
-    expect(html).not.toContain("Fictional");
+    expect(html).toContain("A fictional page. Nothing on this card is sent.");
     expect(html).toContain("Dr. Nkechi Adeyemi");
     expect(html).toContain("Professor of environmental health");
     expect(html).toContain("Question about a paper");
