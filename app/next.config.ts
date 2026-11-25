@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
+    // No Content-Security-Policy is set. Vercel Web Analytics loads
+    // `/_vercel/insights/script.js` same-origin on Next.js pages. If a CSP
+    // is added later, allow `script-src 'self'` (covers `/_vercel/insights/*`)
+    // and `connect-src 'self'`. Do not put that script in `/widget.js`;
+    // third-party host CSPs must not need Vercel insights for the embed.
     return [
       {
         source: "/widget.js",
